@@ -1,95 +1,110 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import {
+  AppBar,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Grid,
+  Typography,
+  Toolbar,
+  Box
+} from '@mui/material';
+import { NotificationsActive, Star, Bolt, Google } from '@mui/icons-material';
+import AuthButton from '@/components/authButton';
 
-export default function Home() {
+const LandingPage = async () => {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div style={{ background: 'linear-gradient(to bottom, #bbdefb, #ffffff)', minHeight: '100vh' }}>
+      <AppBar position="static" color="transparent" elevation={0}>
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#1976d2', fontWeight: 'bold' }}>
+            App Review <span style={{ color: '#FF6B6B' }}>Alert</span>
+          </Typography>
+          {/* <Button color="inherit">Features</Button>
+          <Button color="inherit">Pricing</Button>
+          <Button variant="contained" color="primary" sx={{ ml: 2 }}>Sign Up</Button> */}
+        </Toolbar>
+      </AppBar>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      <Container maxWidth="lg">
+        <Box sx={{ my: 8, textAlign: 'center' }}>
+          <Typography variant="h2" component="h1" gutterBottom>
+            Stay on Top of Your App Reviews
+          </Typography>
+          <Typography variant="h5" component="p" color="textSecondary" paragraph>
+            Get alerts for new reviews across Chrome Web Store, Google Play, and iOS App Store.
+          </Typography>
+          {/* <Button variant="contained" color="primary" size="large" sx={{ mt: 2 }}>
+            Start Free Trial
+          </Button> */}
+          <AuthButton />
+        </Box>
+
+        <Grid container spacing={4} sx={{ mb: 8 }}>
+          <Grid item xs={12} md={4}>
+            <Card raised>
+              <CardContent>
+                <Box sx={{ fontSize: '3rem', color: '#1976d2', marginBottom: '1rem' }}>
+                  <NotificationsActive fontSize="inherit" />
+                </Box>
+                <Typography variant="h5" component="h2" gutterBottom>
+                  Timely Alerts
+                </Typography>
+                <Typography variant="body1" color="textSecondary">
+                  Stop refreshing the page. Get alerts when there are new reviews.
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card raised>
+              <CardContent>
+                <Box sx={{ fontSize: '3rem', color: '#1976d2', marginBottom: '1rem' }}>
+                  <Star fontSize="inherit" />
+                </Box>
+                <Typography variant="h5" component="h2" gutterBottom>
+                  Multi-Store Support
+                </Typography>
+                <Typography variant="body1" color="textSecondary">
+                  Monitor reviews across Chrome Web Store, Google Play, and iOS App Store.
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card raised>
+              <CardContent>
+                <Box sx={{ fontSize: '3rem', color: '#1976d2', marginBottom: '1rem' }}>
+                  <Bolt fontSize="inherit" />
+                </Box>
+                <Typography variant="h5" component="h2" gutterBottom>
+                  AI-Powered Insights
+                </Typography>
+                <Typography variant="body1" color="textSecondary">
+                  Get smart analysis and actionable insights from your reviews.
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
+        <Box sx={{ textAlign: 'center', mb: 8 }}>
+          <Typography variant="h4" component="h2" gutterBottom>
+            Ready to stay on top of your app reviews?
+          </Typography>
+          <Button variant="contained" color="primary" size="large">
+            Get Started Now
+          </Button>
+        </Box>
+      </Container>
+
+      <Box component="footer" sx={{ bgcolor: 'background.paper', py: 6 }}>
+        <Typography variant="body2" color="text.secondary" align="center">
+          © 2024 AppReviewAlert. All rights reserved.
+        </Typography>
+      </Box>
     </div>
   );
-}
+};
+
+export default LandingPage;
