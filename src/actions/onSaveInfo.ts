@@ -6,6 +6,7 @@ import { checkAuth } from "@/lib/services/middleware";
 import UserModel from "../lib/models/server/user";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Types } from "mongoose";
 
 const EMAIL_TEST = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const URL_TEST = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
@@ -18,10 +19,14 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
     }
     await dbConnect();
     
-    const email = formData.get('email')?.toString();
-    const google = formData.get('google')?.toString();
-    const apple = formData.get('apple')?.toString();
-    const chrome = formData.get('chrome')?.toString();
+    const email = formData.get('email')?.toString()?.trim();
+    const google = formData.get('google')?.toString()?.trim();
+    const apple = formData.get('apple')?.toString()?.trim();
+    const chrome = formData.get('chrome')?.toString()?.trim();
+
+    const googleId = formData.get('googleId')?.toString()?.trim();
+    const appleId = formData.get('appleId')?.toString()?.trim();
+    const chromeId = formData.get('chromeId')?.toString()?.trim();
     
     let errors: string[] = [];
     if (!email || !EMAIL_TEST.test(email)) {
@@ -50,23 +55,73 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
     }
 
     const user = await getUser(decoded.uid);
+    let dirtyIds: string[] = [];
+    let saved;
     if (user) {
         user.email = email;
-        user.apps = [];
+        const apps = [];
+        let found: any;
+
+        // chrome
         if (chrome) {
-            user.apps.push({ store: 'ChromeExt', url: chrome, id: chrome.split('/').pop()   })
+            const chromeApp: any = { store: 'ChromeExt', url: chrome, appId: chrome.split('/').pop() };
+            found = user.apps?.find((app: any) => app._id.toString() === chromeId);
+
+            if (chromeId) {
+                chromeApp._id = new Types.ObjectId(chromeId);
+                if ((found && found.url !== chrome) || !found) {
+                    dirtyIds.push(chromeId);
+                }
+            }
+            
+            apps.push(chromeApp);
         }
+
+        // google
         if (google) {
-            const googleId = new URL(google).searchParams.get('id');
-            if (!googleId) {
+            const googleAppId = new URL(google).searchParams.get('id');
+            if (!googleAppId) {
                 return { errors: ['Please submit a valid google store url with id'] }
             }
-            user.apps.push({ store: 'GooglePlay', url: google, id: googleId })
+            const googleApp: any = { store: 'GooglePlay', url: google, appId: googleAppId };
+            found = user.apps?.find((app: any) => app._id.toString() === googleId);
+
+            if (googleId) {
+                googleApp._id = new Types.ObjectId(googleId);
+                if ((found && found.url !== google) || !found) {
+                    dirtyIds.push(googleId);
+                }
+            }
+
+            apps.push(googleApp)
         }
+
         if (apple) {
-            user.apps.push({ store: 'AppleStore', url: apple, id: apple.split('id').pop()   })
+            const appleApp: any = { store: 'AppleStore', url: apple, appId: apple.split('id').pop() };
+            found = user.apps?.find((app: any) => app._id.toString() === appleId);
+
+            if (appleId) {
+                appleApp._id = new Types.ObjectId(appleId);
+                if ((found && found.url !== apple) || !found) {
+                    dirtyIds.push(appleId);
+                }
+            }
+
+            apps.push(appleApp);
         }
-        await  user.save();
+        
+        user.apps = apps;
+        saved = await user.save();
+
+        if (saved && !chromeId && chrome) {
+            dirtyIds.push(saved.apps.find((app: any) => app.store === 'ChromeExt')?._id?.toString() || '');
+        }
+        if (saved && !googleId && google) {
+            dirtyIds.push(saved.apps.find((app: any) => app.store === 'GooglePlay')?._id?.toString() || '');
+        }
+        if (saved && !appleId && apple) {
+            dirtyIds.push(saved.apps.find((app: any) => app.store === 'AppleStore')?._id?.toString() || '');
+        }
     } else {
         const newUser = new UserModel({
             uid: decoded.uid,
@@ -75,20 +130,32 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
         });
         newUser.apps = [];
         if (chrome) {
-            newUser.apps.push({ store: 'ChromeExt', url: chrome, id: chrome.split('/').pop()   })
+            newUser.apps.push({ store: 'ChromeExt', url: chrome, appId: chrome.split('/').pop()   })
         }
         if (google) {
-            const googleId = new URL(google).searchParams.get('id');
-            if (!googleId) {
+            const googleAppId = new URL(google).searchParams.get('id');
+            if (!googleAppId) {
                 return { errors: ['Please submit a valid google store url with id'] }
             }
-            newUser.apps.push({ store: 'GooglePlay', url: google, id: googleId })
+            newUser.apps.push({ store: 'GooglePlay', url: google, appId: googleAppId })
         }
         if (apple) {
-            newUser.apps.push({ store: 'AppleStore', url: apple, id: apple.split('id').pop()   })
+            newUser.apps.push({ store: 'AppleStore', url: apple, appId: apple.split('id').pop()   })
         }
-        await newUser.save();
+
+        saved = await newUser.save();
+        dirtyIds = saved?.apps?.map((app: any) => app._id.toString());
     }
 
+    console.log('dirtyIds', dirtyIds.filter(Boolean));
     revalidatePath('/', 'layout');
+
+    return {
+        success: true,
+        user: {
+            googleId: saved.apps.find((app: any) => app.store === 'GooglePlay')?._id?.toString() || '',
+            appleId: saved.apps.find((app: any) => app.store === 'AppleStore')?._id?.toString() || '',
+            chromeId: saved.apps.find((app: any) => app.store === 'ChromeExt')?._id?.toString() || ''
+        }
+    }
 }

@@ -2,7 +2,7 @@ export type User = {
     _id?: any;
     uid: string,
     email: string,
-    apps?: { store: 'ChromeExt' | 'GooglePlay' | 'AppleStore', url: string, id?: string }[],
+    apps?: { store: 'ChromeExt' | 'GooglePlay' | 'AppleStore', url: string, appId?: string, _id?: any }[],
     createdAt?: Date,
     updatedAt?: Date
 }

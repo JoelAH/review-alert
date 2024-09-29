@@ -5,7 +5,6 @@ import {
     Container,
     Typography,
     TextField,
-    Button,
     Box,
     Paper,
     Snackbar,
@@ -39,15 +38,19 @@ export default function ClientDashboard({ user }: { user: User | null }) {
     const [chromeLink, setChromeLink] = useState('');
     const [playStoreLink, setPlayStoreLink] = useState('');
     const [appStoreLink, setAppStoreLink] = useState('');
-    const [openSnackbar, setOpenSnackbar] = useState(false);
 
+    const [chromeLinkId, setChromeLinkId] = useState('');
+    const [playStoreLinkId, setPlayStoreLinkId] = useState('');
+    const [appStoreLinkId, setAppStoreLinkId] = useState('');
+
+    const [openSnackbar, setOpenSnackbar] = useState(false);
     const [state, formAction] = useFormState(onSaveInfo, {});
 
-    const handleSave = () => {
-        // Here you would typically send this data to your backend
-        console.log({ email, chromeLink, playStoreLink, appStoreLink });
-        setOpenSnackbar(true);
-    };
+    useEffect(() => {
+        if (state?.success) {
+            setOpenSnackbar(true);
+        }
+    }, [state])
 
     const initData = () => {
         if (user) {
@@ -55,6 +58,10 @@ export default function ClientDashboard({ user }: { user: User | null }) {
             setPlayStoreLink(user.apps?.find(app => app.store === 'GooglePlay')?.url || '');
             setAppStoreLink(user.apps?.find(app => app.store === 'AppleStore')?.url || '');
             setChromeLink(user.apps?.find(app => app.store === 'ChromeExt')?.url || '');
+
+            setPlayStoreLinkId(user.apps?.find(app => app.store === 'GooglePlay')?._id || '');
+            setAppStoreLinkId(user.apps?.find(app => app.store === 'AppleStore')?._id || '');
+            setChromeLinkId(user.apps?.find(app => app.store === 'ChromeExt')?._id || '');
         }
     }
 
@@ -94,6 +101,7 @@ export default function ClientDashboard({ user }: { user: User | null }) {
                             onChange={(e) => setEmail(e.target.value)}
                         />
                         <Typography sx={{ marginTop: 5 }}>Add any of your links below</Typography>
+                        <input name='chromeId' type='hidden' value={chromeLinkId || state?.user?.chromeId} />
                         <TextField
                             name='chrome'
                             fullWidth
@@ -103,6 +111,7 @@ export default function ClientDashboard({ user }: { user: User | null }) {
                             value={chromeLink}
                             onChange={(e) => setChromeLink(e.target.value)}
                         />
+                        <input name='googleId' type='hidden' value={playStoreLinkId || state?.user?.googleId} />
                         <TextField
                             name='google'
                             fullWidth
@@ -112,6 +121,7 @@ export default function ClientDashboard({ user }: { user: User | null }) {
                             value={playStoreLink}
                             onChange={(e) => setPlayStoreLink(e.target.value)}
                         />
+                        <input name='appleId' type='hidden' value={appStoreLinkId || state?.user?.appleId} />
                         <TextField
                             name='apple'
                             fullWidth
