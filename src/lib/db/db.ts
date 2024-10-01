@@ -16,7 +16,6 @@ async function dbConnect() {
         }).then(() => mongoose);
         await dbObj.conn;
       }
-      
       return dbObj;
 }
 

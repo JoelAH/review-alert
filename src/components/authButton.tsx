@@ -44,7 +44,7 @@ export default function AuthButton() {
     return (
         <>
             <ToastContainer />
-            <GoogleButton onClick={onGoogleSignIn} />
+            <GoogleButton onClick={onGoogleSignIn} style={{ 'margin': '0 auto' }} />
         </>
     )
 }

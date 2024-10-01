@@ -18,7 +18,7 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
         redirect('/');
     }
     await dbConnect();
-    
+
     const email = formData.get('email')?.toString()?.trim();
     const google = formData.get('google')?.toString()?.trim();
     const apple = formData.get('apple')?.toString()?.trim();
@@ -27,7 +27,7 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
     const googleId = formData.get('googleId')?.toString()?.trim();
     const appleId = formData.get('appleId')?.toString()?.trim();
     const chromeId = formData.get('chromeId')?.toString()?.trim();
-    
+
     let errors: string[] = [];
     if (!email || !EMAIL_TEST.test(email)) {
         errors.push('Please submit a valid email address');
@@ -73,7 +73,7 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
                     dirtyIds.push(chromeId);
                 }
             }
-            
+
             apps.push(chromeApp);
         }
 
@@ -109,7 +109,7 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
 
             apps.push(appleApp);
         }
-        
+
         user.apps = apps;
         saved = await user.save();
 
@@ -130,7 +130,7 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
         });
         newUser.apps = [];
         if (chrome) {
-            newUser.apps.push({ store: 'ChromeExt', url: chrome, appId: chrome.split('/').pop()   })
+            newUser.apps.push({ store: 'ChromeExt', url: chrome, appId: chrome.split('/').pop() })
         }
         if (google) {
             const googleAppId = new URL(google).searchParams.get('id');
@@ -140,7 +140,7 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
             newUser.apps.push({ store: 'GooglePlay', url: google, appId: googleAppId })
         }
         if (apple) {
-            newUser.apps.push({ store: 'AppleStore', url: apple, appId: apple.split('id').pop()   })
+            newUser.apps.push({ store: 'AppleStore', url: apple, appId: apple.split('id').pop() })
         }
 
         saved = await newUser.save();
@@ -148,6 +148,27 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
     }
 
     console.log('dirtyIds', dirtyIds.filter(Boolean));
+    if (dirtyIds.filter(Boolean)?.length) {
+        try {
+            await fetch(
+                'https://sdhxsfg2f6.execute-api.us-east-1.amazonaws.com/dev/update-reviews',
+                {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        ids: dirtyIds.filter(Boolean)
+                    }),
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-api-key": process.env.BACKEND_API_KEY || ''
+                    },
+                    cache: 'no-store'
+                }
+            )
+        }
+        catch (e) {
+            console.log('failed id process', e)
+        }
+    }
     revalidatePath('/', 'layout');
 
     return {
