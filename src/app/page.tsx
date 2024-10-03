@@ -78,10 +78,10 @@ const LandingPage = async () => {
                   <Bolt fontSize="inherit" />
                 </Box>
                 <Typography variant="h5" component="h2" gutterBottom>
-                  AI-Powered Insights
+                  Coming Soon: Insights
                 </Typography>
                 <Typography variant="body1" color="textSecondary">
-                  Get smart analysis and actionable insights from your reviews.
+                  Get smart analysis and actionable insights from your reviews.*
                 </Typography>
               </CardContent>
             </Card>
@@ -100,6 +100,7 @@ const LandingPage = async () => {
 
       <Box component="footer" sx={{ bgcolor: 'background.paper', py: 6 }}>
         <Typography variant="body2" color="text.secondary" align="center">
+          <small>* Not yet implemented. Coming soon</small>
           © 2024 AppReviewAlert. All rights reserved.
         </Typography>
       </Box>
