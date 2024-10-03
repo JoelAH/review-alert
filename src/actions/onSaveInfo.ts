@@ -28,7 +28,7 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
     const appleId = formData.get('appleId')?.toString()?.trim();
     const chromeId = formData.get('chromeId')?.toString()?.trim();
 
-    let errors: string[] = [];
+    const errors: string[] = [];
     if (!email || !EMAIL_TEST.test(email)) {
         errors.push('Please submit a valid email address');
     }

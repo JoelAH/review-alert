@@ -9,7 +9,7 @@ import {
   Toolbar,
   Box
 } from '@mui/material';
-import { NotificationsActive, Star, Bolt, Google } from '@mui/icons-material';
+import { NotificationsActive, Star, Bolt } from '@mui/icons-material';
 import AuthButton from '@/components/authButton';
 
 const LandingPage = async () => {

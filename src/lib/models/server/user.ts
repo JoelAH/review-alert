@@ -36,7 +36,7 @@ export const formatUser = (savedObject: any): User => {
   delete formattedUser.updatedAt;
   delete formattedUser.createdAt;
   formattedUser._id = formattedUser._id.toString();
-  let apps = [];
+  const apps = [];
   if (formattedUser.apps) {
     for (const app of formattedUser.apps) {
       apps.push({ store: app.store, url: app.url, appId: app.appId, _id: app._id.toString() });

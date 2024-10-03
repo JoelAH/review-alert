@@ -52,7 +52,7 @@ export default function ClientDashboard({ user }: { user: User | null }) {
         }
     }, [state])
 
-    const initData = () => {
+    useEffect(() => {
         if (user) {
             setEmail(user.email || '');
             setPlayStoreLink(user.apps?.find(app => app.store === 'GooglePlay')?.url || '');
@@ -63,11 +63,7 @@ export default function ClientDashboard({ user }: { user: User | null }) {
             setAppStoreLinkId(user.apps?.find(app => app.store === 'AppleStore')?._id || '');
             setChromeLinkId(user.apps?.find(app => app.store === 'ChromeExt')?._id || '');
         }
-    }
-
-    useEffect(() => {
-        initData();
-    }, [])
+    }, [user])
 
     return (
         <Container maxWidth="md">
