@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { NotificationsActive, Star, Bolt } from '@mui/icons-material';
 import AuthButton from '@/components/authButton';
+import GetStarted from '@/components/getStarted';
 
 const LandingPage = async () => {
   return (
@@ -92,9 +93,7 @@ const LandingPage = async () => {
           <Typography variant="h4" component="h2" gutterBottom>
             Ready to stay on top of your app reviews?
           </Typography>
-          <Button variant="contained" color="primary" size="large">
-            Get Started Now
-          </Button>
+          <GetStarted />
         </Box>
       </Container>
 
