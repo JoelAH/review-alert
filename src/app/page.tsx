@@ -52,7 +52,6 @@ const LandingPage = () => {
 
   return (
     <div style={{ 
-      background: 'linear-gradient(to bottom, #f8fafc, #ffffff)', 
       minHeight: '100vh',
       width: '100%',
       margin: 0,
@@ -84,10 +83,10 @@ const LandingPage = () => {
         Skip to main content
       </a>
 
-      {/* Header - Modern minimal design */}
+      {/* Header - Modern minimal design positioned over hero */}
       <header>
         <AppBar 
-          position="static" 
+          position="absolute" 
           color="transparent" 
           elevation={0}
           component="nav"
@@ -95,7 +94,8 @@ const LandingPage = () => {
           sx={{
             background: 'rgba(255, 255, 255, 0.8)',
             backdropFilter: 'blur(10px)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+            zIndex: 10
           }}
         >
           <Toolbar sx={{ py: 1 }}>

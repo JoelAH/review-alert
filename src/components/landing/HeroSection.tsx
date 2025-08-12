@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Typography, Button, Container, Stack, Chip, Avatar, useTheme } from '@mui/material';
-import { RocketLaunch, Info, PlayCircle, Star, TrendingUp, Security, Speed } from '@mui/icons-material';
+import { RocketLaunch, Info, PlayCircle, TrendingUp, Star } from '@mui/icons-material';
 import { HeroSectionProps, SecondaryAction } from '@/types/landing';
 
 interface EnhancedHeroSectionProps extends HeroSectionProps {
@@ -28,8 +28,6 @@ const HeroSection: React.FC<EnhancedHeroSectionProps> = ({
   };
 
   const trustIndicators = [
-    { icon: <Security />, text: 'Enterprise Security' },
-    { icon: <Speed />, text: 'Real-time Updates' },
     { icon: <TrendingUp />, text: 'AI-Powered Insights' }
   ];
 
@@ -37,14 +35,17 @@ const HeroSection: React.FC<EnhancedHeroSectionProps> = ({
     <Box
       sx={{
         position: 'relative',
-        minHeight: { xs: '80vh', md: '90vh' },
+        minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         background: `linear-gradient(135deg, 
           ${theme.palette.primary.main}15 0%, 
           ${theme.palette.secondary.main}10 50%, 
-          ${theme.palette.primary.light}08 100%)`,
+          ${theme.palette.primary.light}08 100%),
+          linear-gradient(to bottom, #f8fafc, #ffffff)`,
         overflow: 'hidden',
+        marginTop: '-80px', // Offset for header height
+        paddingTop: '80px', // Add padding to account for header
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -300,47 +301,7 @@ const HeroSection: React.FC<EnhancedHeroSectionProps> = ({
             ))}
           </Stack>
 
-          {/* Social Proof */}
-          <Box sx={{ mt: 8, opacity: 0.8 }}>
-            <Typography
-              variant="body2"
-              sx={{
-                mb: 2,
-                color: theme.palette.text.secondary,
-                fontWeight: 500,
-                fontSize: { xs: '0.875rem', sm: '1rem' }
-              }}
-            >
-              Trusted by developers worldwide
-            </Typography>
-            <Stack
-              direction="row"
-              spacing={1}
-              justifyContent="center"
-              alignItems="center"
-            >
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  sx={{
-                    fontSize: '1.25rem',
-                    color: '#FFD700',
-                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
-                  }}
-                />
-              ))}
-              <Typography
-                variant="body2"
-                sx={{
-                  ml: 1,
-                  fontWeight: 600,
-                  color: theme.palette.text.primary
-                }}
-              >
-                4.9/5 from 1,200+ reviews
-              </Typography>
-            </Stack>
-          </Box>
+
         </Box>
       </Container>
     </Box>
