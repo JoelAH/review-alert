@@ -51,7 +51,14 @@ const LandingPage = () => {
   ];
 
   return (
-    <div style={{ background: 'linear-gradient(to bottom, #bbdefb, #ffffff)', minHeight: '100vh' }}>
+    <div style={{ 
+      background: 'linear-gradient(to bottom, #bbdefb, #ffffff)', 
+      minHeight: '100vh',
+      width: '100%',
+      margin: 0,
+      padding: 0,
+      overflowX: 'hidden'
+    }}>
       {/* Skip to main content link for screen readers */}
       <a 
         href="#main-content" 

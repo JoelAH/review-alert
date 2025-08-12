@@ -45,7 +45,7 @@ const GamificationShowcase: React.FC<GamificationShowcaseProps> = ({
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 6, sm: 7, md: 8 }, px: { xs: 2, sm: 3, md: 4 } }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 6, sm: 7, md: 8 }, px: { xs: 1, sm: 3, md: 4 } }}>
       <Box textAlign="center" mb={{ xs: 4, sm: 5, md: 6 }}>
         <Typography 
           variant="h2" 
@@ -67,7 +67,7 @@ const GamificationShowcase: React.FC<GamificationShowcaseProps> = ({
           mx="auto"
           sx={{
             fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
-            px: { xs: 2, sm: 1, md: 0 },
+            px: { xs: 1, sm: 1, md: 0 },
             lineHeight: { xs: 1.5, sm: 1.6 }
           }}
         >

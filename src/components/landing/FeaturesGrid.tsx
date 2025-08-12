@@ -6,7 +6,7 @@ import FeatureCard from './FeatureCard';
 
 const FeaturesGrid: React.FC<FeaturesGridProps> = ({ features }) => {
   return (
-    <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+    <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 3, md: 4 } }}>
       <Box sx={{ mb: { xs: 4, sm: 5, md: 6 }, textAlign: 'center' }}>
         <Typography 
           variant="h2" 
@@ -29,7 +29,7 @@ const FeaturesGrid: React.FC<FeaturesGridProps> = ({ features }) => {
             maxWidth: '600px', 
             mx: 'auto',
             fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
-            px: { xs: 2, sm: 1, md: 0 },
+            px: { xs: 1, sm: 1, md: 0 },
             lineHeight: { xs: 1.5, sm: 1.6 }
           }}
         >
