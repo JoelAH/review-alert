@@ -17,7 +17,7 @@ import { AudienceSectionProps } from '@/types/landing';
 
 const AudienceSection: React.FC<AudienceSectionProps> = ({ personas }) => {
   return (
-    <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 3, md: 4 } }}>
+    <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
       <Box sx={{ mb: { xs: 4, sm: 5, md: 6 }, textAlign: 'center' }}>
         <Typography 
           variant="h2" 
@@ -40,7 +40,7 @@ const AudienceSection: React.FC<AudienceSectionProps> = ({ personas }) => {
             maxWidth: '700px', 
             mx: 'auto',
             fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
-            px: { xs: 1, sm: 1, md: 0 },
+            px: { xs: 1, sm: 0, md: 0 },
             lineHeight: { xs: 1.5, sm: 1.6 }
           }}
         >

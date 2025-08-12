@@ -30,7 +30,7 @@ const DifferentiationSection: React.FC<DifferentiationSectionProps> = ({
 
   return (
     <Box sx={{ py: { xs: 6, sm: 7, md: 8 }, bgcolor: 'grey.50' }}>
-      <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 3, md: 4 } }}>
+      <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
         {/* Section Header */}
         <Box sx={{ textAlign: 'center', mb: { xs: 4, sm: 5, md: 6 } }}>
           <Typography 
@@ -55,7 +55,7 @@ const DifferentiationSection: React.FC<DifferentiationSectionProps> = ({
               maxWidth: '800px', 
               mx: 'auto',
               fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
-              px: { xs: 1, sm: 1, md: 0 },
+              px: { xs: 1, sm: 0, md: 0 },
               lineHeight: { xs: 1.5, sm: 1.6 }
             }}
           >

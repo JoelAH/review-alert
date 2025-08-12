@@ -17,7 +17,7 @@ const CTASection: React.FC<CTAProps> = ({
         sx={{ 
           textAlign: 'center',
           py: 8,
-          px: { xs: 2, sm: 4 },
+          px: { xs: 2, sm: 4, md: 6 },
           backgroundColor: variant === 'primary' ? 'primary.main' : 'background.paper',
           color: variant === 'primary' ? 'primary.contrastText' : 'text.primary',
           borderRadius: 2,

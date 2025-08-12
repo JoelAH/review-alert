@@ -60,17 +60,16 @@ main {
   padding: 0 8px;
 }
 
-/* Ensure MUI containers don't exceed viewport */
+/* Ensure MUI containers don't exceed viewport on mobile, but allow proper margins on larger screens */
 .MuiContainer-root {
-  max-width: 100% !important;
   padding-left: 8px !important;
   padding-right: 8px !important;
 }
 
 @media only screen and (min-width: 600px) {
   .MuiContainer-root {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
   }
 }
 
@@ -82,12 +81,12 @@ main {
 
 @media only screen and (min-width: 900px) {
   .responsive-container {
-    padding: 0 24px;
+    padding: 0 32px;
   }
   
   .MuiContainer-root {
-    padding-left: 24px !important;
-    padding-right: 24px !important;
+    padding-left: 32px !important;
+    padding-right: 32px !important;
   }
 }
 
