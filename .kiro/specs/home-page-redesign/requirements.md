@@ -68,8 +68,8 @@ This feature involves redesigning the home/landing page (app/page.tsx) to reflec
 
 #### Acceptance Criteria
 
-1. WHEN a user wants to sign up THEN the system SHALL provide prominent, gamification-themed CTAs throughout the page
-2. WHEN a user clicks the primary CTA THEN the system SHALL maintain the existing Google OAuth authentication flow
+1. WHEN a user wants to sign up THEN the system SHALL provide prominent, gamification-themed CTAs throughout the page that lead to a future signup page/modal
+2. WHEN a user clicks the primary CTA THEN the system SHALL prepare for a future dedicated signup flow (Google OAuth can be hidden for now)
 3. WHEN a user sees secondary CTAs THEN the system SHALL offer options like "Learn More" or "See Demo"
 4. WHEN a user views the footer CTA THEN the system SHALL reinforce the main value proposition with action-oriented language
 
