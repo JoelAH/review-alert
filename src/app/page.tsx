@@ -52,7 +52,7 @@ const LandingPage = () => {
 
   return (
     <div style={{ 
-      background: 'linear-gradient(to bottom, #bbdefb, #ffffff)', 
+      background: 'linear-gradient(to bottom, #f8fafc, #ffffff)', 
       minHeight: '100vh',
       width: '100%',
       margin: 0,
@@ -84,7 +84,7 @@ const LandingPage = () => {
         Skip to main content
       </a>
 
-      {/* Header - Maintain existing branding */}
+      {/* Header - Modern minimal design */}
       <header>
         <AppBar 
           position="static" 
@@ -92,15 +92,28 @@ const LandingPage = () => {
           elevation={0}
           component="nav"
           role="banner"
+          sx={{
+            background: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(10px)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+          }}
         >
-          <Toolbar>
+          <Toolbar sx={{ py: 1 }}>
             <Typography 
-              variant="h6" 
+              variant="h5" 
               component="h1" 
-              sx={{ flexGrow: 1, color: '#1976d2', fontWeight: 'bold' }}
+              sx={{ 
+                flexGrow: 1, 
+                fontWeight: 800,
+                fontSize: { xs: '1.5rem', sm: '1.75rem' },
+                background: 'linear-gradient(135deg, #1976d2, #FF6B6B)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}
               aria-label="Review Alert - Home"
             >
-              Review <span style={{ color: '#FF6B6B' }}>Alert</span>
+              Review Alert
             </Typography>
           </Toolbar>
         </AppBar>
