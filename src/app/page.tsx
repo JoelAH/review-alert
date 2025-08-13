@@ -1,107 +1,195 @@
+'use client';
+
+import { useEffect } from 'react';
+import { AppBar, Toolbar, Typography, Box } from '@mui/material';
 import {
-  AppBar,
-  Card,
-  CardContent,
-  Container,
-  Grid,
-  Typography,
-  Toolbar,
-  Box
-} from '@mui/material';
-import { NotificationsActive, Star, Bolt } from '@mui/icons-material';
-import AuthButton from '@/components/authButton';
-import GetStarted from '@/components/getStarted';
+  HeroSection,
+  FeaturesGrid,
+  GamificationShowcase,
+  AudienceSection,
+  DifferentiationSection,
+  MidPageCTA,
+  CTASection
+} from '@/components/landing';
+import { LANDING_PAGE_CONTENT } from '@/lib/constants/landingContent';
+import { initKeyboardNavigation } from '@/lib/utils/keyboard';
 
-const LandingPage = async () => {
+const LandingPage = () => {
+  // Initialize keyboard navigation on component mount
+  useEffect(() => {
+    initKeyboardNavigation();
+  }, []);
+
+  // CTA handlers - placeholder functions for future signup integration
+  const handlePrimaryCTA = () => {
+    console.log('Primary CTA clicked - future signup integration');
+    // Announce to screen readers
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only';
+    announcement.textContent = 'Sign up process will be available soon';
+    document.body.appendChild(announcement);
+    setTimeout(() => document.body.removeChild(announcement), 1000);
+  };
+
+
+
+
+
   return (
-    <div style={{ background: 'linear-gradient(to bottom, #bbdefb, #ffffff)', minHeight: '100vh' }}>
-      <AppBar position="static" color="transparent" elevation={0}>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#1976d2', fontWeight: 'bold' }}>
-            App Review <span style={{ color: '#FF6B6B' }}>Alert</span>
-          </Typography>
-          {/* <Button color="inherit">Features</Button>
-          <Button color="inherit">Pricing</Button>
-          <Button variant="contained" color="primary" sx={{ ml: 2 }}>Sign Up</Button> */}
-        </Toolbar>
-      </AppBar>
+    <div style={{
+      minHeight: '100vh',
+      width: '100%',
+      margin: 0,
+      padding: 0,
+      overflowX: 'hidden'
+    }}>
+      {/* Skip to main content link for screen readers */}
+      <a
+        href="#main-content"
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          zIndex: 999,
+          padding: '8px 16px',
+          background: '#000',
+          color: '#fff',
+          textDecoration: 'none',
+          fontSize: '14px'
+        }}
+        onFocus={(e) => {
+          e.target.style.left = '6px';
+          e.target.style.top = '6px';
+        }}
+        onBlur={(e) => {
+          e.target.style.left = '-9999px';
+          e.target.style.top = 'auto';
+        }}
+      >
+        Skip to main content
+      </a>
 
-      <Container maxWidth="lg">
-        <Box sx={{ my: 8, textAlign: 'center' }}>
-          <Typography variant="h2" component="h1" gutterBottom>
-            Stay on Top of Your App Reviews
+      {/* Header - Modern minimal design positioned over hero */}
+      <header>
+        <AppBar
+          position="absolute"
+          color="transparent"
+          elevation={0}
+          component="nav"
+          role="banner"
+          sx={{
+            background: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(10px)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+            zIndex: 10
+          }}
+        >
+          <Toolbar sx={{ py: 1 }}>
+            <Typography
+              variant="h5"
+              component="h1"
+              sx={{
+                flexGrow: 1,
+                fontWeight: 800,
+                fontSize: { xs: '1.5rem', sm: '1.75rem' },
+                background: 'linear-gradient(135deg, #1976d2, #FF6B6B)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}
+              aria-label="Review Alert - Home"
+            >
+              Review Alert
+            </Typography>
+          </Toolbar>
+        </AppBar>
+      </header>
+
+      {/* Main Content */}
+      <main id="main-content" role="main">
+        {/* Hero Section */}
+        <section aria-labelledby="hero-heading">
+          <HeroSection
+            title={LANDING_PAGE_CONTENT.hero.title}
+            subtitle={LANDING_PAGE_CONTENT.hero.subtitle}
+            ctaText={LANDING_PAGE_CONTENT.hero.ctaText}
+            onCtaClick={handlePrimaryCTA}
+          />
+        </section>
+
+        {/* Features Grid */}
+        <section aria-labelledby="features-heading">
+          <Box sx={{ py: { xs: 4, sm: 6, md: 8 } }}>
+            <FeaturesGrid features={LANDING_PAGE_CONTENT.features} />
+          </Box>
+        </section>
+
+        {/* Gamification Showcase */}
+        <section aria-labelledby="gamification-heading">
+          <Box sx={{ bgcolor: 'grey.50', py: { xs: 4, sm: 6, md: 8 } }}>
+            <GamificationShowcase
+              currentXP={LANDING_PAGE_CONTENT.gamification.sampleXP}
+              currentLevel={LANDING_PAGE_CONTENT.gamification.sampleLevel}
+              nextLevelXP={2000}
+              recentTasks={LANDING_PAGE_CONTENT.gamification.sampleTasks}
+            />
+          </Box>
+        </section>
+
+        {/* Mid-Page CTA */}
+        <section aria-labelledby="midpage-cta-heading">
+          <Box sx={{ py: { xs: 4, sm: 6, md: 8 } }}>
+            <MidPageCTA
+              title={LANDING_PAGE_CONTENT.ctaSections.midPage.title}
+              description={LANDING_PAGE_CONTENT.ctaSections.midPage.description}
+              primaryText={LANDING_PAGE_CONTENT.ctaSections.midPage.primary}
+              onPrimaryClick={handlePrimaryCTA}
+            />
+          </Box>
+        </section>
+
+        {/* Target Audience Section */}
+        <section aria-labelledby="audience-heading">
+          <Box sx={{ bgcolor: 'grey.50', py: { xs: 4, sm: 6, md: 8 } }}>
+            <AudienceSection personas={LANDING_PAGE_CONTENT.personas} />
+          </Box>
+        </section>
+
+        {/* Differentiation Section */}
+        <section aria-labelledby="differentiation-heading">
+          <Box sx={{ py: { xs: 4, sm: 6, md: 8 } }}>
+            <DifferentiationSection
+              title={LANDING_PAGE_CONTENT.differentiation.title}
+              subtitle={LANDING_PAGE_CONTENT.differentiation.subtitle}
+              comparisons={LANDING_PAGE_CONTENT.differentiation.comparisons}
+              uniqueValue={LANDING_PAGE_CONTENT.differentiation.uniqueValue}
+            />
+          </Box>
+        </section>
+
+        {/* Final CTA Section */}
+        <section aria-labelledby="final-cta-heading">
+          <Box sx={{ bgcolor: 'primary.main', color: 'white', py: { xs: 6, sm: 8, md: 10 } }}>
+            <CTASection
+              title={LANDING_PAGE_CONTENT.finalCTA.title}
+              description={LANDING_PAGE_CONTENT.finalCTA.description}
+              ctaText={LANDING_PAGE_CONTENT.finalCTA.ctaText}
+              onCtaClick={handlePrimaryCTA}
+              variant="primary"
+            />
+          </Box>
+        </section>
+      </main>
+
+      {/* Footer - Updated branding */}
+      <footer role="contentinfo">
+        <Box component="div" sx={{ bgcolor: 'background.paper', py: 6 }}>
+          <Typography variant="body2" color="text.secondary" align="center">
+            © 2024 Review Alert. All rights reserved.
           </Typography>
-          <Typography variant="h5" component="p" color="textSecondary" paragraph>
-            Get alerts for new reviews across Chrome Web Store, Google Play, and iOS App Store.
-          </Typography>
-          {/* <Button variant="contained" color="primary" size="large" sx={{ mt: 2 }}>
-            Start Free Trial
-          </Button> */}
-          <AuthButton />
         </Box>
-
-        <Grid container spacing={4} sx={{ mb: 8 }}>
-          <Grid item xs={12} md={4}>
-            <Card raised>
-              <CardContent>
-                <Box sx={{ fontSize: '3rem', color: '#1976d2', marginBottom: '1rem' }}>
-                  <NotificationsActive fontSize="inherit" />
-                </Box>
-                <Typography variant="h5" component="h2" gutterBottom>
-                  Timely Alerts
-                </Typography>
-                <Typography variant="body1" color="textSecondary">
-                  Stop refreshing the page. Get alerts when there are new reviews.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Card raised>
-              <CardContent>
-                <Box sx={{ fontSize: '3rem', color: '#1976d2', marginBottom: '1rem' }}>
-                  <Star fontSize="inherit" />
-                </Box>
-                <Typography variant="h5" component="h2" gutterBottom>
-                  Multi-Store Support
-                </Typography>
-                <Typography variant="body1" color="textSecondary">
-                  Monitor reviews across Chrome Web Store, Google Play, and iOS App Store.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Card raised>
-              <CardContent>
-                <Box sx={{ fontSize: '3rem', color: '#1976d2', marginBottom: '1rem' }}>
-                  <Bolt fontSize="inherit" />
-                </Box>
-                <Typography variant="h5" component="h2" gutterBottom>
-                  Coming Soon: Insights
-                </Typography>
-                <Typography variant="body1" color="textSecondary">
-                  Get smart analysis and actionable insights from your reviews.*
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-
-        <Box sx={{ textAlign: 'center', mb: 8 }}>
-          <Typography variant="h4" component="h2" gutterBottom>
-            Ready to stay on top of your app reviews?
-          </Typography>
-          <GetStarted />
-        </Box>
-      </Container>
-
-      <Box component="footer" sx={{ bgcolor: 'background.paper', py: 6 }}>
-        <Typography variant="body2" color="text.secondary" align="center">
-          <small>* Not yet implemented. Coming soon</small>
-          © 2024 AppReviewAlert. All rights reserved.
-        </Typography>
-      </Box>
+      </footer>
     </div>
   );
 };
