@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Typography, Button, Container, Stack, Chip, Avatar, useTheme } from '@mui/material';
-import { RocketLaunch, TrendingUp, Star } from '@mui/icons-material';
+import { RocketLaunch, Star, Notifications, Analytics, CloudSync } from '@mui/icons-material';
 import { HeroSectionProps } from '@/types/landing';
 
 const HeroSection: React.FC<HeroSectionProps> = ({
@@ -15,7 +15,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 
 
   const trustIndicators = [
-    { icon: <TrendingUp />, text: 'AI-Powered Insights' }
+    { icon: <Notifications />, text: 'Smart Alerts' },
+    { icon: <Analytics />, text: 'Review Analytics' },
+    { icon: <CloudSync />, text: 'Multi-Store Support' }
   ];
 
   return (
