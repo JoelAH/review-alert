@@ -8,6 +8,7 @@ import {
   GamificationShowcase,
   AudienceSection,
   DifferentiationSection,
+  PricingSection,
   MidPageCTA,
   CTASection
 } from '@/components/landing';
@@ -165,6 +166,13 @@ const LandingPage = () => {
               comparisons={LANDING_PAGE_CONTENT.differentiation.comparisons}
               uniqueValue={LANDING_PAGE_CONTENT.differentiation.uniqueValue}
             />
+          </Box>
+        </section>
+
+        {/* Pricing Section */}
+        <section aria-labelledby="pricing-heading">
+          <Box sx={{ bgcolor: 'grey.50', py: { xs: 4, sm: 6, md: 8 } }}>
+            <PricingSection onGetStartedClick={handlePrimaryCTA} />
           </Box>
         </section>
 
