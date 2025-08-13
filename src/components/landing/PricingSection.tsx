@@ -14,7 +14,7 @@ const PricingSection = ({ onGetStartedClick }: PricingSectionProps) => {
     { text: 'Watch Apple App Store reviews', included: true },
     { text: 'Alerts every 4 hours', included: true },
     { text: 'Store reviews for 7 days', included: true },
-    { text: 'Real-time notifications', included: false },
+    { text: 'Hourly notifications', included: false },
     { text: 'AI-powered insights', included: false },
     { text: 'Unlimited review history', included: false },
     { text: 'Automated task creation', included: false }
@@ -24,7 +24,7 @@ const PricingSection = ({ onGetStartedClick }: PricingSectionProps) => {
     { text: 'Monitor Chrome Web Store reviews', included: true },
     { text: 'Track Google Play Store feedback', included: true },
     { text: 'Watch Apple App Store reviews', included: true },
-    { text: 'Real-time notifications', included: true },
+    { text: 'Hourly notifications', included: true },
     { text: 'AI-powered insights & analysis', included: true },
     { text: 'Unlimited review history', included: true },
     { text: 'Automated task creation', included: true },
