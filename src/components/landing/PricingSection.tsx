@@ -1,15 +1,39 @@
 'use client';
 
-import { Box, Container, Typography, Card, CardContent, Button } from '@mui/material';
-import { CheckCircle } from '@mui/icons-material';
+import { Box, Container, Typography, Card, CardContent, Button, Grid } from '@mui/material';
+import { CheckCircle, Close } from '@mui/icons-material';
 
 interface PricingSectionProps {
   onGetStartedClick: () => void;
 }
 
 const PricingSection = ({ onGetStartedClick }: PricingSectionProps) => {
+  const freeFeatures = [
+    { text: 'Monitor Chrome Web Store reviews', included: true },
+    { text: 'Track Google Play Store feedback', included: true },
+    { text: 'Watch Apple App Store reviews', included: true },
+    { text: 'Alerts every 4 hours', included: true },
+    { text: 'Store reviews for 7 days', included: true },
+    { text: 'Real-time notifications', included: false },
+    { text: 'AI-powered insights', included: false },
+    { text: 'Unlimited review history', included: false },
+    { text: 'Automated task creation', included: false }
+  ];
+
+  const proFeatures = [
+    { text: 'Monitor Chrome Web Store reviews', included: true },
+    { text: 'Track Google Play Store feedback', included: true },
+    { text: 'Watch Apple App Store reviews', included: true },
+    { text: 'Real-time notifications', included: true },
+    { text: 'AI-powered insights & analysis', included: true },
+    { text: 'Unlimited review history', included: true },
+    { text: 'Automated task creation', included: true },
+    { text: 'Advanced analytics dashboard', included: true },
+    { text: 'Priority support', included: true }
+  ];
+
   return (
-    <Container maxWidth="md" sx={{ textAlign: 'center' }}>
+    <Container maxWidth="lg" sx={{ textAlign: 'center' }}>
       <Typography
         variant="h2"
         component="h2"
@@ -21,7 +45,7 @@ const PricingSection = ({ onGetStartedClick }: PricingSectionProps) => {
           color: 'text.primary'
         }}
       >
-        Simple, Transparent Pricing
+        Choose Your Plan
       </Typography>
       
       <Typography
@@ -34,124 +58,182 @@ const PricingSection = ({ onGetStartedClick }: PricingSectionProps) => {
           lineHeight: 1.6
         }}
       >
-        Get started with review monitoring across all major app stores
+        Start free and upgrade when you need more powerful features
       </Typography>
 
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
-        <Card
-          sx={{
-            maxWidth: 400,
-            width: '100%',
-            border: '2px solid',
-            borderColor: 'primary.main',
-            borderRadius: 3,
-            position: 'relative',
-            overflow: 'visible'
-          }}
-        >
-          {/* Free Badge */}
-          <Box
+      <Grid container spacing={4} justifyContent="center">
+        {/* Free Plan */}
+        <Grid item xs={12} md={6} lg={5}>
+          <Card
             sx={{
-              position: 'absolute',
-              top: -12,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              bgcolor: 'success.main',
-              color: 'white',
-              px: 3,
-              py: 1,
-              borderRadius: 2,
-              fontSize: '0.875rem',
-              fontWeight: 600
+              height: '100%',
+              border: '1px solid',
+              borderColor: 'grey.300',
+              borderRadius: 3,
+              position: 'relative'
             }}
           >
-            FREE FOR NOW
-          </Box>
-
-          <CardContent sx={{ p: 4, pt: 5 }}>
-            <Typography variant="h4" component="h3" sx={{ fontWeight: 700, mb: 2 }}>
-              Pro Plan
-            </Typography>
-            
-            <Box sx={{ mb: 3 }}>
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h4" component="h3" sx={{ fontWeight: 700, mb: 2 }}>
+                Free
+              </Typography>
+              
               <Typography
                 variant="h3"
                 component="div"
                 sx={{
                   fontWeight: 800,
-                  color: 'text.secondary',
-                  textDecoration: 'line-through',
-                  opacity: 0.6
+                  mb: 1
                 }}
               >
-                $9.75
+                $0
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
                 per month
               </Typography>
-            </Box>
 
-            <Typography
-              variant="h4"
+              <Box sx={{ textAlign: 'left', mb: 4 }}>
+                {freeFeatures.map((feature, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    {feature.included ? (
+                      <CheckCircle sx={{ color: 'success.main', mr: 2, fontSize: '1.25rem' }} />
+                    ) : (
+                      <Close sx={{ color: 'grey.400', mr: 2, fontSize: '1.25rem' }} />
+                    )}
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        color: feature.included ? 'text.primary' : 'text.secondary',
+                        opacity: feature.included ? 1 : 0.6
+                      }}
+                    >
+                      {feature.text}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+
+              <Button
+                variant="outlined"
+                size="large"
+                fullWidth
+                onClick={onGetStartedClick}
+                sx={{
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  textTransform: 'none'
+                }}
+              >
+                Get Started Free
+              </Button>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Pro Plan */}
+        <Grid item xs={12} md={6} lg={5}>
+          <Card
+            sx={{
+              height: '100%',
+              border: '2px solid',
+              borderColor: 'primary.main',
+              borderRadius: 3,
+              position: 'relative',
+              overflow: 'visible'
+            }}
+          >
+            {/* Popular Badge */}
+            <Box
               sx={{
-                fontWeight: 700,
-                color: 'success.main',
-                mb: 4
-              }}
-            >
-              FREE
-            </Typography>
-
-            <Box sx={{ textAlign: 'left', mb: 4 }}>
-              {[
-                'Monitor Chrome Web Store reviews',
-                'Track Google Play Store feedback',
-                'Watch Apple App Store reviews',
-                'Real-time email notifications',
-                'Unlimited app tracking',
-                'Review analytics dashboard'
-              ].map((feature, index) => (
-                <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <CheckCircle sx={{ color: 'success.main', mr: 2, fontSize: '1.25rem' }} />
-                  <Typography variant="body1">{feature}</Typography>
-                </Box>
-              ))}
-            </Box>
-
-            <Button
-              variant="contained"
-              size="large"
-              fullWidth
-              onClick={onGetStartedClick}
-              sx={{
-                py: 1.5,
-                fontSize: '1.1rem',
-                fontWeight: 600,
+                position: 'absolute',
+                top: -12,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                bgcolor: 'primary.main',
+                color: 'white',
+                px: 3,
+                py: 1,
                 borderRadius: 2,
-                textTransform: 'none'
+                fontSize: '0.875rem',
+                fontWeight: 600
               }}
             >
-              Get Started Free
-            </Button>
+              MOST POPULAR
+            </Box>
 
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: 2, fontStyle: 'italic' }}
-            >
-              No credit card required • Start monitoring immediately
-            </Typography>
-          </CardContent>
-        </Card>
-      </Box>
+            <CardContent sx={{ p: 4, pt: 5 }}>
+              <Typography variant="h4" component="h3" sx={{ fontWeight: 700, mb: 2 }}>
+                Pro
+              </Typography>
+              
+              <Box sx={{ mb: 1 }}>
+                <Typography
+                  variant="h3"
+                  component="div"
+                  sx={{
+                    fontWeight: 800,
+                    color: 'text.secondary',
+                    textDecoration: 'line-through',
+                    opacity: 0.6
+                  }}
+                >
+                  $9.75
+                </Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                per month
+              </Typography>
+
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 700,
+                  color: 'success.main',
+                  mb: 4
+                }}
+              >
+                FREE DURING BETA
+              </Typography>
+
+              <Box sx={{ textAlign: 'left', mb: 4 }}>
+                {proFeatures.map((feature, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <CheckCircle sx={{ color: 'success.main', mr: 2, fontSize: '1.25rem' }} />
+                    <Typography variant="body1">{feature.text}</Typography>
+                  </Box>
+                ))}
+              </Box>
+
+              <Button
+                variant="contained"
+                size="large"
+                fullWidth
+                onClick={onGetStartedClick}
+                sx={{
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  textTransform: 'none'
+                }}
+              >
+                Start Pro Trial
+              </Button>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
       <Typography
         variant="body1"
         color="text.secondary"
-        sx={{ maxWidth: '500px', mx: 'auto' }}
+        sx={{ maxWidth: '600px', mx: 'auto', mt: 6 }}
       >
-        We're currently in beta and offering our full feature set completely free. 
-        Take advantage of this limited-time opportunity to set up your review monitoring system.
+        We're currently in beta and offering our Pro features completely free. 
+        Start with any plan now and take advantage of this limited-time opportunity 
+        to set up your complete review monitoring system.
       </Typography>
     </Container>
   );
