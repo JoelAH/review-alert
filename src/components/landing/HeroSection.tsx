@@ -1,31 +1,18 @@
 'use client';
 
 import { Box, Typography, Button, Container, Stack, Chip, Avatar, useTheme } from '@mui/material';
-import { RocketLaunch, Info, PlayCircle, TrendingUp, Star } from '@mui/icons-material';
-import { HeroSectionProps, SecondaryAction } from '@/types/landing';
+import { RocketLaunch, TrendingUp, Star } from '@mui/icons-material';
+import { HeroSectionProps } from '@/types/landing';
 
-interface EnhancedHeroSectionProps extends HeroSectionProps {
-  secondaryActions?: SecondaryAction[];
-}
-
-const HeroSection: React.FC<EnhancedHeroSectionProps> = ({
+const HeroSection: React.FC<HeroSectionProps> = ({
   title,
   subtitle,
   ctaText,
-  onCtaClick,
-  secondaryActions
+  onCtaClick
 }) => {
   const theme = useTheme();
 
-  const getSecondaryIcon = (text: string) => {
-    if (text.toLowerCase().includes('demo')) {
-      return <PlayCircle sx={{ mr: 1 }} aria-hidden="true" />;
-    }
-    if (text.toLowerCase().includes('learn') || text.toLowerCase().includes('more')) {
-      return <Info sx={{ mr: 1 }} aria-hidden="true" />;
-    }
-    return null;
-  };
+
 
   const trustIndicators = [
     { icon: <TrendingUp />, text: 'AI-Powered Insights' }
@@ -261,44 +248,7 @@ const HeroSection: React.FC<EnhancedHeroSectionProps> = ({
               {ctaText}
             </Button>
             
-            {secondaryActions && secondaryActions.map((action, index) => (
-              <Button
-                key={index}
-                variant="outlined"
-                size="large"
-                onClick={action.onClick}
-                startIcon={getSecondaryIcon(action.text)}
-                aria-label={`${action.text} about Review Alert`}
-                sx={{
-                  px: 6,
-                  py: 3,
-                  fontSize: '1.125rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  minWidth: { xs: '280px', sm: 'auto' },
-                  borderRadius: 4,
-                  borderWidth: 2,
-                  borderColor: theme.palette.primary.main,
-                  color: theme.palette.primary.main,
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  backdropFilter: 'blur(10px)',
-                  '&:hover': {
-                    borderWidth: 2,
-                    background: theme.palette.primary.main,
-                    color: 'white',
-                    transform: 'translateY(-2px)',
-                    boxShadow: `0 8px 24px ${theme.palette.primary.main}30`
-                  },
-                  '&:focus': {
-                    outline: '3px solid #FFD700',
-                    outlineOffset: '2px'
-                  },
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                {action.text}
-              </Button>
-            ))}
+
           </Stack>
 
 

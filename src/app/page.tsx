@@ -33,25 +33,12 @@ const LandingPage = () => {
     setTimeout(() => document.body.removeChild(announcement), 1000);
   };
 
-  const handleSecondaryCTA = (action: string) => {
-    console.log(`Secondary CTA clicked: ${action} - future integration`);
-    // Announce to screen readers
-    const announcement = document.createElement('div');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.setAttribute('aria-atomic', 'true');
-    announcement.className = 'sr-only';
-    announcement.textContent = `${action} feature will be available soon`;
-    document.body.appendChild(announcement);
-    setTimeout(() => document.body.removeChild(announcement), 1000);
-  };
 
-  const secondaryActions = [
-    { text: 'Learn More', onClick: () => handleSecondaryCTA('Learn More') },
-    { text: 'See Demo', onClick: () => handleSecondaryCTA('See Demo') }
-  ];
+
+
 
   return (
-    <div style={{ 
+    <div style={{
       minHeight: '100vh',
       width: '100%',
       margin: 0,
@@ -59,8 +46,8 @@ const LandingPage = () => {
       overflowX: 'hidden'
     }}>
       {/* Skip to main content link for screen readers */}
-      <a 
-        href="#main-content" 
+      <a
+        href="#main-content"
         style={{
           position: 'absolute',
           left: '-9999px',
@@ -85,9 +72,9 @@ const LandingPage = () => {
 
       {/* Header - Modern minimal design positioned over hero */}
       <header>
-        <AppBar 
-          position="absolute" 
-          color="transparent" 
+        <AppBar
+          position="absolute"
+          color="transparent"
           elevation={0}
           component="nav"
           role="banner"
@@ -99,11 +86,11 @@ const LandingPage = () => {
           }}
         >
           <Toolbar sx={{ py: 1 }}>
-            <Typography 
-              variant="h5" 
-              component="h1" 
-              sx={{ 
-                flexGrow: 1, 
+            <Typography
+              variant="h5"
+              component="h1"
+              sx={{
+                flexGrow: 1,
                 fontWeight: 800,
                 fontSize: { xs: '1.5rem', sm: '1.75rem' },
                 background: 'linear-gradient(135deg, #1976d2, #FF6B6B)',
@@ -128,7 +115,6 @@ const LandingPage = () => {
             subtitle={LANDING_PAGE_CONTENT.hero.subtitle}
             ctaText={LANDING_PAGE_CONTENT.hero.ctaText}
             onCtaClick={handlePrimaryCTA}
-            secondaryActions={secondaryActions}
           />
         </section>
 
@@ -159,10 +145,6 @@ const LandingPage = () => {
               description={LANDING_PAGE_CONTENT.ctaSections.midPage.description}
               primaryText={LANDING_PAGE_CONTENT.ctaSections.midPage.primary}
               onPrimaryClick={handlePrimaryCTA}
-              secondaryActions={[
-                { text: 'Explore Features', onClick: () => handleSecondaryCTA('Explore Features') },
-                { text: 'Watch Demo', onClick: () => handleSecondaryCTA('Watch Demo') }
-              ]}
             />
           </Box>
         </section>
@@ -194,9 +176,6 @@ const LandingPage = () => {
               description={LANDING_PAGE_CONTENT.finalCTA.description}
               ctaText={LANDING_PAGE_CONTENT.finalCTA.ctaText}
               onCtaClick={handlePrimaryCTA}
-              secondaryActions={[
-                { text: 'Learn More', onClick: () => handleSecondaryCTA('Learn More') }
-              ]}
               variant="primary"
             />
           </Box>
