@@ -1,0 +1,26 @@
+{
+  "enabled": true,
+  "name": "Format Code on Save",
+  "description": "Automatically formats code files when they are saved to maintain consistent styling and formatting across the codebase",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "src/**/*.js",
+      "src/**/*.jsx",
+      "src/**/*.scss",
+      "src/**/*.css",
+      "*.ts",
+      "*.tsx",
+      "*.js",
+      "*.jsx",
+      "*.json"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A file has been saved. Please format the code in the saved file to ensure consistent styling, proper indentation, and adherence to the project's coding standards. Focus on TypeScript/JavaScript formatting, React component structure, and SCSS/CSS formatting as appropriate for the file type."
+  }
+}

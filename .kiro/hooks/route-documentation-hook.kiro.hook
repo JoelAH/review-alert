@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Route Documentation",
+  "description": "Automatically documents new routes and their purpose in a routes.md file when route folders or files are created",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/app/**/route.ts",
+      "src/app/**/page.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new route file has been created. Please analyze the route file and update the routes.md file in the project root to document this route. Include the route path, HTTP methods (for API routes), purpose, and any important details about what the route does. If routes.md doesn't exist, create it with a proper structure listing all routes in the application."
+  }
+}
