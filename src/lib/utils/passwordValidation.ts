@@ -1,12 +1,5 @@
-/**
- * Password validation result interface
- */
-export interface PasswordValidationResult {
-  isValid: boolean;
-  strength: 'weak' | 'fair' | 'good' | 'strong';
-  message?: string;
-  errors: string[];
-}
+import { authConfig } from '@/lib/config/auth';
+import type { PasswordValidationResult } from '@/types/auth';
 
 /**
  * Password strength criteria
@@ -23,7 +16,7 @@ export interface PasswordCriteria {
  * Default password criteria based on Firebase Auth requirements and security best practices
  */
 export const DEFAULT_PASSWORD_CRITERIA: PasswordCriteria = {
-  minLength: 8, // Firebase minimum
+  minLength: authConfig.minPasswordLength, // From configuration
   requireUppercase: false, // Not required by Firebase, but recommended
   requireLowercase: false, // Not required by Firebase, but recommended
   requireNumbers: false, // Not required by Firebase, but recommended
@@ -55,6 +48,11 @@ export function validatePassword(
   // Check minimum length
   if (password.length < criteria.minLength) {
     errors.push(`Password must be at least ${criteria.minLength} characters long`);
+  }
+
+  // Check maximum length (from configuration)
+  if (password.length > authConfig.maxPasswordLength) {
+    errors.push(`Password must be no more than ${authConfig.maxPasswordLength} characters long`);
   }
 
   // Check for uppercase letters

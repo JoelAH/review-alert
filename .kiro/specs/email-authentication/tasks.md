@@ -77,7 +77,7 @@
   - Write tests for all error scenarios and recovery flows
   - _Requirements: 1.3, 1.4, 1.5, 2.3, 5.5_
 
-- [ ] 10. Add form accessibility and UX enhancements
+- [x] 10. Add form accessibility and UX enhancements
   - Implement keyboard navigation for all form elements
   - Add screen reader announcements for form state changes
   - Create focus management for error states
@@ -86,7 +86,7 @@
   - Write accessibility tests using testing library
   - _Requirements: 4.2, 4.4_
 
-- [ ] 11. Update constants and configuration
+- [x] 11. Update constants and configuration
   - Add new authentication-related constants
   - Update Firebase configuration if needed
   - Add environment variables for email validation settings

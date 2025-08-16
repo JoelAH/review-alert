@@ -1,13 +1,6 @@
-import { isDisposableEmailDomain } from '@/lib/constants/disposableEmails';
-
-/**
- * Email validation result interface
- */
-export interface EmailValidationResult {
-  isValid: boolean;
-  isDisposable: boolean;
-  message?: string;
-}
+import { isDisposableEmailDomain, isDisposableEmailDomainAsync } from '@/lib/constants/disposableEmails';
+import { authConfig } from '@/lib/config/auth';
+import type { EmailValidationResult } from '@/types/auth';
 
 /**
  * Email regex pattern that requires a TLD (more restrictive than RFC 5322)
@@ -33,6 +26,15 @@ export function validateEmail(email: string): EmailValidationResult {
     };
   }
 
+  // Check email length against configuration
+  if (trimmedEmail.length > authConfig.emailValidation.maxEmailLength) {
+    return {
+      isValid: false,
+      isDisposable: false,
+      message: `Email address is too long (maximum ${authConfig.emailValidation.maxEmailLength} characters)`
+    };
+  }
+
   // Check email format using regex
   if (!EMAIL_REGEX.test(trimmedEmail)) {
     return {
@@ -45,15 +47,76 @@ export function validateEmail(email: string): EmailValidationResult {
   // Extract domain from email
   const domain = trimmedEmail.split('@')[1];
   
-  // Check if domain is disposable
-  const isDisposable = isDisposableEmailDomain(domain);
+  // Check if domain is disposable (only if enabled in config)
+  if (authConfig.emailValidation.enableDisposableCheck) {
+    const isDisposable = isDisposableEmailDomain(domain);
+    
+    if (isDisposable) {
+      return {
+        isValid: false,
+        isDisposable: true,
+        message: 'Temporary or disposable email addresses are not allowed. Please use a permanent email address.'
+      };
+    }
+  }
+
+  // Email is valid and not disposable
+  return {
+    isValid: true,
+    isDisposable: false
+  };
+}
+
+/**
+ * Async version of email validation that can use external APIs
+ * @param email - The email address to validate
+ * @returns Promise<EmailValidationResult> with validation details
+ */
+export async function validateEmailAsync(email: string): Promise<EmailValidationResult> {
+  // Trim whitespace and convert to lowercase for consistent processing
+  const trimmedEmail = email.trim().toLowerCase();
   
-  if (isDisposable) {
+  // Check if email is empty
+  if (!trimmedEmail) {
     return {
       isValid: false,
-      isDisposable: true,
-      message: 'Temporary or disposable email addresses are not allowed. Please use a permanent email address.'
+      isDisposable: false,
+      message: 'Email address is required'
     };
+  }
+
+  // Check email length against configuration
+  if (trimmedEmail.length > authConfig.emailValidation.maxEmailLength) {
+    return {
+      isValid: false,
+      isDisposable: false,
+      message: `Email address is too long (maximum ${authConfig.emailValidation.maxEmailLength} characters)`
+    };
+  }
+
+  // Check email format using regex
+  if (!EMAIL_REGEX.test(trimmedEmail)) {
+    return {
+      isValid: false,
+      isDisposable: false,
+      message: 'Please enter a valid email address'
+    };
+  }
+
+  // Extract domain from email
+  const domain = trimmedEmail.split('@')[1];
+  
+  // Check if domain is disposable (only if enabled in config)
+  if (authConfig.emailValidation.enableDisposableCheck) {
+    const isDisposable = await isDisposableEmailDomainAsync(domain);
+    
+    if (isDisposable) {
+      return {
+        isValid: false,
+        isDisposable: true,
+        message: 'Temporary or disposable email addresses are not allowed. Please use a permanent email address.'
+      };
+    }
   }
 
   // Email is valid and not disposable

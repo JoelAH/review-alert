@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
   TextField,
@@ -45,10 +45,49 @@ export default function EmailAuthForm({
   const [emailValidation, setEmailValidation] = useState<EmailValidationResult | null>(null);
   const [passwordValidation, setPasswordValidation] = useState<PasswordValidationResult | null>(null);
   const [touched, setTouched] = useState({ email: false, password: false });
+  const [announceMessage, setAnnounceMessage] = useState('');
+  
+  // Refs for focus management
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
 
   const isSignup = mode === 'signup';
   const title = isSignup ? 'Create Account' : 'Sign In';
   const submitText = isSignup ? 'Create Account' : 'Sign In';
+
+  // Focus management for error states
+  useEffect(() => {
+    if (error && !loading) {
+      // Focus the first field with an error, or the first field if no specific field error
+      if (emailValidation && !emailValidation.isValid && touched.email) {
+        emailInputRef.current?.focus();
+      } else if (passwordValidation && !passwordValidation.isValid && touched.password) {
+        passwordInputRef.current?.focus();
+      }
+    }
+  }, [error, emailValidation, passwordValidation, touched, loading]);
+
+  // Announce validation changes to screen readers
+  useEffect(() => {
+    if (touched.email && emailValidation) {
+      if (!emailValidation.isValid) {
+        setAnnounceMessage(`Email error: ${emailValidation.message}`);
+      } else {
+        setAnnounceMessage('Email is valid');
+      }
+    }
+  }, [emailValidation, touched.email]);
+
+  useEffect(() => {
+    if (touched.password && passwordValidation && isSignup) {
+      if (!passwordValidation.isValid) {
+        setAnnounceMessage(`Password error: ${passwordValidation.message}`);
+      } else {
+        setAnnounceMessage(`Password strength is ${passwordValidation.strength}`);
+      }
+    }
+  }, [passwordValidation, touched.password, isSignup]);
 
   // Validate email on change
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,9 +135,36 @@ export default function EmailAuthForm({
     }
   };
 
-  // Toggle password visibility
+  // Toggle password visibility with announcement
   const handleTogglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+    const newShowPassword = !showPassword;
+    setShowPassword(newShowPassword);
+    setAnnounceMessage(newShowPassword ? 'Password is now visible' : 'Password is now hidden');
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    // Allow Enter to submit form when on submit button
+    if (event.key === 'Enter' && event.target === submitButtonRef.current) {
+      event.preventDefault();
+      if (!isSubmitDisabled()) {
+        handleSubmit(event as any);
+      }
+    }
+    
+    // Handle Escape key to clear current field
+    if (event.key === 'Escape') {
+      const target = event.target as HTMLInputElement;
+      if (target.name === 'email') {
+        setEmail('');
+        setEmailValidation(null);
+        setAnnounceMessage('Email field cleared');
+      } else if (target.name === 'password') {
+        setPassword('');
+        setPasswordValidation(null);
+        setAnnounceMessage('Password field cleared');
+      }
+    }
   };
 
   // Handle form submission
@@ -158,7 +224,31 @@ export default function EmailAuthForm({
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%', maxWidth: 400 }}>
+    <Box 
+      component="form" 
+      onSubmit={handleSubmit} 
+      onKeyDown={handleKeyDown}
+      sx={{ width: '100%', maxWidth: 400 }}
+      role="form"
+      aria-label={`${title} form`}
+    >
+      {/* Screen reader announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        style={{
+          position: 'absolute',
+          left: '-10000px',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden'
+        }}
+      >
+        {announceMessage}
+      </div>
+
       <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 3 }}>
         {title}
       </Typography>
@@ -200,15 +290,22 @@ export default function EmailAuthForm({
         helperText={getEmailError()}
         disabled={loading}
         autoComplete="email"
+        inputRef={emailInputRef}
+        required
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <EmailIcon color="action" />
+              <EmailIcon color="action" aria-hidden="true" />
             </InputAdornment>
           ),
         }}
         sx={{ mb: 2 }}
         aria-describedby={getEmailError() ? 'email-error' : undefined}
+        aria-invalid={touched.email && emailValidation ? !emailValidation.isValid : false}
+        inputProps={{
+          'aria-label': 'Email Address',
+          'data-testid': 'email-input'
+        }}
       />
 
       <TextField
@@ -224,20 +321,25 @@ export default function EmailAuthForm({
         helperText={getPasswordError()}
         disabled={loading}
         autoComplete={isSignup ? 'new-password' : 'current-password'}
+        inputRef={passwordInputRef}
+        required
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <LockIcon color="action" />
+              <LockIcon color="action" aria-hidden="true" />
             </InputAdornment>
           ),
           endAdornment: (
             <InputAdornment position="end">
               <IconButton
-                aria-label="toggle password visibility"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
                 onClick={handleTogglePasswordVisibility}
                 onMouseDown={(e) => e.preventDefault()}
                 edge="end"
                 disabled={loading}
+                tabIndex={0}
+                data-testid="password-visibility-toggle"
               >
                 {showPassword ? <VisibilityOff /> : <Visibility />}
               </IconButton>
@@ -246,11 +348,22 @@ export default function EmailAuthForm({
         }}
         sx={{ mb: 3 }}
         aria-describedby={getPasswordError() ? 'password-error' : undefined}
+        aria-invalid={touched.password && passwordValidation ? !passwordValidation.isValid : false}
+        inputProps={{
+          'aria-label': 'Password',
+          'data-testid': 'password-input',
+          minLength: isSignup ? 8 : undefined
+        }}
       />
 
       {/* Password strength indicator for signup */}
       {isSignup && passwordValidation && password && (
-        <Box sx={{ mb: 2 }}>
+        <Box 
+          sx={{ mb: 2 }}
+          role="status"
+          aria-live="polite"
+          aria-label="Password strength indicator"
+        >
           <Typography variant="caption" color="text.secondary">
             Password strength: 
             <Typography 
@@ -263,6 +376,7 @@ export default function EmailAuthForm({
                        passwordValidation.strength === 'good' ? 'info.main' : 'success.main',
                 fontWeight: 'medium'
               }}
+              data-testid="password-strength"
             >
               {passwordValidation.strength.charAt(0).toUpperCase() + passwordValidation.strength.slice(1)}
             </Typography>
@@ -276,14 +390,25 @@ export default function EmailAuthForm({
         variant="contained"
         size="large"
         disabled={isSubmitDisabled()}
+        ref={submitButtonRef}
         sx={{ 
           mb: 2,
           height: 48,
           position: 'relative'
         }}
+        aria-describedby={loading ? 'submit-loading' : undefined}
+        data-testid="submit-button"
       >
         {loading ? (
-          <CircularProgress size={24} color="inherit" />
+          <>
+            <CircularProgress 
+              size={24} 
+              color="inherit" 
+              aria-label="Submitting form"
+              id="submit-loading"
+            />
+            <span className="sr-only">Submitting {submitText.toLowerCase()}...</span>
+          </>
         ) : (
           submitText
         )}

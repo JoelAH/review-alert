@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
@@ -240,15 +240,17 @@ describe('EmailAuthForm', () => {
       );
 
       const passwordInput = screen.getByLabelText('Password') as HTMLInputElement;
-      const toggleButton = screen.getByLabelText('toggle password visibility');
+      const toggleButton = screen.getByLabelText('Show password');
 
       expect(passwordInput.type).toBe('password');
 
       await user.click(toggleButton);
       expect(passwordInput.type).toBe('text');
+      expect(screen.getByLabelText('Hide password')).toBeInTheDocument();
 
       await user.click(toggleButton);
       expect(passwordInput.type).toBe('password');
+      expect(screen.getByLabelText('Show password')).toBeInTheDocument();
     });
   });
 
@@ -330,7 +332,7 @@ describe('EmailAuthForm', () => {
       );
 
       // When loading, the button shows a progress indicator and is disabled
-      const submitButton = screen.getByRole('button', { name: '' }); // Submit button has no text when loading
+      const submitButton = screen.getByTestId('submit-button');
       expect(submitButton).toBeDisabled();
       expect(screen.getByRole('progressbar')).toBeInTheDocument();
     });
@@ -357,11 +359,13 @@ describe('EmailAuthForm', () => {
 
       const emailInput = screen.getByLabelText('Email Address');
       const passwordInput = screen.getByLabelText('Password');
-      const toggleButton = screen.getByLabelText('toggle password visibility');
+      const toggleButton = screen.getByLabelText('Show password');
 
       expect(emailInput).toHaveAttribute('type', 'email');
       expect(emailInput).toHaveAttribute('autoComplete', 'email');
+      expect(emailInput).toHaveAttribute('required');
       expect(passwordInput).toHaveAttribute('autoComplete', 'current-password');
+      expect(passwordInput).toHaveAttribute('required');
       expect(toggleButton).toBeInTheDocument();
     });
 
@@ -374,6 +378,186 @@ describe('EmailAuthForm', () => {
 
       const passwordInput = screen.getByLabelText('Password');
       expect(passwordInput).toHaveAttribute('autoComplete', 'new-password');
+      expect(passwordInput).toHaveAttribute('minLength', '8');
+    });
+
+    it('should have proper form role and aria-label', () => {
+      render(
+        <TestWrapper>
+          <EmailAuthForm {...defaultProps} mode="login" />
+        </TestWrapper>
+      );
+
+      const form = screen.getByRole('form');
+      expect(form).toHaveAttribute('aria-label', 'Sign In form');
+    });
+
+    it('should have screen reader announcements', () => {
+      render(
+        <TestWrapper>
+          <EmailAuthForm {...defaultProps} />
+        </TestWrapper>
+      );
+
+      const announceRegion = screen.getByRole('status');
+      expect(announceRegion).toHaveAttribute('aria-live', 'polite');
+      expect(announceRegion).toHaveAttribute('aria-atomic', 'true');
+    });
+
+    it('should announce password visibility changes', async () => {
+      const user = userEvent.setup();
+      render(
+        <TestWrapper>
+          <EmailAuthForm {...defaultProps} />
+        </TestWrapper>
+      );
+
+      const toggleButton = screen.getByLabelText('Show password');
+      
+      await user.click(toggleButton);
+      expect(screen.getByLabelText('Hide password')).toBeInTheDocument();
+      expect(toggleButton).toHaveAttribute('aria-pressed', 'true');
+
+      await user.click(toggleButton);
+      expect(screen.getByLabelText('Show password')).toBeInTheDocument();
+      expect(toggleButton).toHaveAttribute('aria-pressed', 'false');
+    });
+
+    it('should have proper aria-invalid attributes', async () => {
+      const user = userEvent.setup();
+      render(
+        <TestWrapper>
+          <EmailAuthForm {...defaultProps} />
+        </TestWrapper>
+      );
+
+      const emailInput = screen.getByLabelText('Email Address');
+      
+      await user.click(emailInput);
+      await user.tab();
+
+      await waitFor(() => {
+        expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+      });
+    });
+
+    it('should have password strength indicator with proper accessibility', async () => {
+      const user = userEvent.setup();
+      render(
+        <TestWrapper>
+          <EmailAuthForm {...defaultProps} mode="signup" />
+        </TestWrapper>
+      );
+
+      const passwordInput = screen.getByLabelText('Password');
+      
+      await user.type(passwordInput, 'password123');
+
+      await waitFor(() => {
+        const strengthIndicator = screen.getByRole('status', { name: 'Password strength indicator' });
+        expect(strengthIndicator).toHaveAttribute('aria-live', 'polite');
+        expect(screen.getByTestId('password-strength')).toBeInTheDocument();
+      });
+    });
+
+    it('should support keyboard navigation', async () => {
+      const user = userEvent.setup();
+      render(
+        <TestWrapper>
+          <EmailAuthForm {...defaultProps} />
+        </TestWrapper>
+      );
+
+      const emailInput = screen.getByTestId('email-input');
+      const passwordInput = screen.getByTestId('password-input');
+      const toggleButton = screen.getByTestId('password-visibility-toggle');
+
+      // Tab through form elements
+      await user.tab();
+      expect(emailInput).toHaveFocus();
+
+      await user.tab();
+      expect(passwordInput).toHaveFocus();
+
+      await user.tab();
+      expect(toggleButton).toHaveFocus();
+
+      // Submit button is disabled when form is empty, so it won't receive focus
+      // This is correct accessibility behavior
+    });
+
+    it('should clear fields with Escape key', async () => {
+      const user = userEvent.setup();
+      render(
+        <TestWrapper>
+          <EmailAuthForm {...defaultProps} />
+        </TestWrapper>
+      );
+
+      const emailInput = screen.getByTestId('email-input');
+      const passwordInput = screen.getByTestId('password-input');
+
+      await user.type(emailInput, 'test@example.com');
+      await user.type(passwordInput, 'password123');
+
+      expect(emailInput).toHaveValue('test@example.com');
+      expect(passwordInput).toHaveValue('password123');
+
+      // Clear email with Escape
+      await user.click(emailInput);
+      await user.keyboard('{Escape}');
+      expect(emailInput).toHaveValue('');
+
+      // Clear password with Escape
+      await user.click(passwordInput);
+      await user.keyboard('{Escape}');
+      expect(passwordInput).toHaveValue('');
+    });
+
+    it('should have proper loading state accessibility', () => {
+      render(
+        <TestWrapper>
+          <EmailAuthForm {...defaultProps} loading={true} />
+        </TestWrapper>
+      );
+
+      const loadingIndicator = screen.getByLabelText('Submitting form');
+      expect(loadingIndicator).toBeInTheDocument();
+      
+      const submitButton = screen.getByTestId('submit-button');
+      expect(submitButton).toHaveAttribute('aria-describedby', 'submit-loading');
+    });
+
+    it('should focus first error field when form has errors', async () => {
+      const user = userEvent.setup();
+      render(
+        <TestWrapper>
+          <EmailAuthForm {...defaultProps} error="Authentication failed" />
+        </TestWrapper>
+      );
+
+      const emailInput = screen.getByTestId('email-input');
+      
+      // Trigger validation error
+      await user.click(emailInput);
+      await user.tab();
+
+      await waitFor(() => {
+        expect(emailInput).toHaveFocus();
+      });
+    });
+
+    it('should have proper test IDs for testing', () => {
+      render(
+        <TestWrapper>
+          <EmailAuthForm {...defaultProps} />
+        </TestWrapper>
+      );
+
+      expect(screen.getByTestId('email-input')).toBeInTheDocument();
+      expect(screen.getByTestId('password-input')).toBeInTheDocument();
+      expect(screen.getByTestId('password-visibility-toggle')).toBeInTheDocument();
+      expect(screen.getByTestId('submit-button')).toBeInTheDocument();
     });
   });
 });
