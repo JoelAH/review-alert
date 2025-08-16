@@ -43,7 +43,7 @@
   - Write integration tests for complete signup flow
   - _Requirements: 1.1, 1.6, 1.7, 3.1, 3.3, 4.3_
 
-- [ ] 6. Create login page
+- [x] 6. Create login page
   - Build /login page using Next.js App Router
   - Integrate EmailAuthForm component in login mode
   - Add Google OAuth button alongside email form
