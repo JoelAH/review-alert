@@ -231,7 +231,7 @@ const PricingSection = ({ onGetStartedClick }: PricingSectionProps) => {
         color="text.secondary"
         sx={{ maxWidth: '600px', mx: 'auto', mt: 6 }}
       >
-        We're currently in beta and offering our Pro features completely free. 
+        We&apos;re currently in beta and offering our Pro features completely free. 
         Start with any plan now and take advantage of this limited-time opportunity 
         to set up your complete review monitoring system.
       </Typography>

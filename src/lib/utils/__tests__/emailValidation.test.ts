@@ -1,8 +1,7 @@
 import { 
   validateEmail, 
   isValidEmailFormat, 
-  extractEmailDomain,
-  EmailValidationResult 
+  extractEmailDomain
 } from '../emailValidation';
 
 describe('emailValidation', () => {

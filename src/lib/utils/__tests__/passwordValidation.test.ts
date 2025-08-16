@@ -194,7 +194,7 @@ describe('passwordValidation', () => {
     });
 
     it('should return gray for unknown strength', () => {
-      // @ts-ignore - testing invalid input
+      // @ts-expect-error - testing invalid input
       expect(getPasswordStrengthColor('unknown')).toBe('#757575');
     });
   });
@@ -208,7 +208,7 @@ describe('passwordValidation', () => {
     });
 
     it('should return Unknown for invalid strength', () => {
-      // @ts-ignore - testing invalid input
+      // @ts-expect-error - testing invalid input
       expect(getPasswordStrengthText('invalid')).toBe('Unknown');
     });
   });

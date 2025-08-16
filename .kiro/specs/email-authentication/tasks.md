@@ -33,7 +33,7 @@
   - Write unit tests for layout rendering and navigation
   - _Requirements: 3.5, 4.1, 4.3, 4.4_
 
-- [ ] 5. Create signup page
+- [x] 5. Create signup page
   - Build /signup page using Next.js App Router
   - Integrate EmailAuthForm component in signup mode
   - Add Google OAuth button alongside email form
