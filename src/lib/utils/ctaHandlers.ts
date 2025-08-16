@@ -17,7 +17,7 @@ export const createCTAHandlers = (): CTAHandlers => {
     // TODO: Replace with actual signup modal/page navigation
     console.log('Primary signup CTA clicked - ready for signup integration');
     
-    // For now, scroll to existing auth button or show coming soon message
+    // For now, scroll to existing Google auth button or show coming soon message
     const authButton = document.querySelector('[data-testid="auth-button"]');
     if (authButton) {
       authButton.scrollIntoView({ behavior: 'smooth' });
