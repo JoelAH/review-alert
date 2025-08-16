@@ -7,7 +7,7 @@
   - Write unit tests for validation functions
   - _Requirements: 1.2, 1.3, 1.4, 5.1, 5.2, 5.3_
 
-- [ ] 2. Extend Firebase authentication service
+- [x] 2. Extend Firebase authentication service
   - Add signUpWithEmail function to Firebase auth service
   - Add signInWithEmail function to Firebase auth service
   - Add sendPasswordResetEmail function for future use
@@ -15,7 +15,7 @@
   - Write unit tests for new authentication functions
   - _Requirements: 1.6, 2.2, 2.3_
 
-- [ ] 3. Create EmailAuthForm component
+- [x] 3. Create EmailAuthForm component
   - Build reusable form component with email and password fields
   - Implement client-side validation with real-time feedback
   - Add loading states and error display
@@ -24,7 +24,7 @@
   - Write unit tests for form validation and submission
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 4.1, 4.2, 4.4_
 
-- [ ] 4. Create AuthPageLayout component
+- [x] 4. Create AuthPageLayout component
   - Build consistent layout wrapper for authentication pages
   - Include Review Alert branding and navigation
   - Implement responsive design with mobile-first approach

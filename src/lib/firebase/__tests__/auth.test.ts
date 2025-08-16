@@ -63,7 +63,7 @@ describe('Firebase Auth Email Functions', () => {
       mockCreateUserWithEmailAndPassword.mockRejectedValue(mockError);
 
       await expect(signUpWithEmail('test@example.com', 'password123'))
-        .rejects.toThrow(mockError);
+        .rejects.toEqual(mockError);
     });
   });
 
@@ -93,7 +93,7 @@ describe('Firebase Auth Email Functions', () => {
       mockSignInWithEmailAndPassword.mockRejectedValue(mockError);
 
       await expect(signInWithEmail('test@example.com', 'password123'))
-        .rejects.toThrow(mockError);
+        .rejects.toEqual(mockError);
     });
   });
 
@@ -117,7 +117,7 @@ describe('Firebase Auth Email Functions', () => {
       mockSendPasswordResetEmail.mockRejectedValue(mockError);
 
       await expect(sendPasswordResetEmail('test@example.com'))
-        .rejects.toThrow(mockError);
+        .rejects.toEqual(mockError);
     });
   });
 
