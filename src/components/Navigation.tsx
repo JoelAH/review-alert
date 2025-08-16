@@ -52,7 +52,7 @@ export default function Navigation({
 
   return (
     <AppBar
-      position={transparent ? 'absolute' : 'static'}
+      position={transparent ? 'fixed' : 'static'}
       color="transparent"
       elevation={transparent ? 0 : 1}
       component="nav"
@@ -65,10 +65,14 @@ export default function Navigation({
         borderBottom: transparent
           ? '1px solid rgba(255, 255, 255, 0.2)'
           : `1px solid ${theme.palette.divider}`,
-        zIndex: 1000
+        zIndex: 1000,
+        top: 0,
+        left: 0,
+        right: 0,
+        minHeight: '64px'
       }}
     >
-      <Toolbar sx={{ py: 1 }}>
+      <Toolbar sx={{ py: 1, minHeight: '64px' }}>
         {/* Logo/Brand */}
         <Typography
           variant={isMobile ? 'h6' : 'h5'}

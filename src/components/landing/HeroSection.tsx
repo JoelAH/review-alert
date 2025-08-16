@@ -1,8 +1,9 @@
 'use client';
 
-import { Box, Typography, Button, Container, Stack, Chip, Avatar, useTheme } from '@mui/material';
+import { Box, Typography, Button, Container, Stack, Chip, Avatar, useTheme, useMediaQuery } from '@mui/material';
 import { RocketLaunch, Star, Notifications, Analytics, CloudSync } from '@mui/icons-material';
 import { HeroSectionProps } from '@/types/landing';
+import { useRouter } from 'next/navigation';
 
 const HeroSection: React.FC<HeroSectionProps> = ({
   title,
@@ -11,6 +12,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   onCtaClick
 }) => {
   const theme = useTheme();
+  const router = useRouter();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 
 
@@ -33,8 +36,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           ${theme.palette.primary.light}08 100%),
           linear-gradient(to bottom, #f8fafc, #ffffff)`,
         overflow: 'hidden',
-        marginTop: '-80px', // Offset for header height
-        paddingTop: '80px', // Add padding to account for header
+        marginTop: 0,
+        paddingTop: 0,
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -79,6 +82,77 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       />
 
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+        {/* Integrated Navigation */}
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          py: 2,
+          mb: 4
+        }}>
+          {/* Brand Logo */}
+          <Typography
+            variant={isMobile ? 'h6' : 'h5'}
+            component="button"
+            onClick={() => router.push('/')}
+            sx={{
+              fontWeight: 800,
+              fontSize: { xs: '1.25rem', sm: '1.75rem' },
+              background: 'linear-gradient(135deg, #1976d2, #FF6B6B)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              border: 'none',
+              backgroundColor: 'transparent',
+              cursor: 'pointer',
+              textAlign: 'left',
+              '&:hover': {
+                opacity: 0.8
+              },
+              '&:focus': {
+                outline: `2px solid ${theme.palette.primary.main}`,
+                outlineOffset: '2px'
+              }
+            }}
+            aria-label="Review Alert - Home"
+          >
+            Review Alert
+          </Typography>
+
+          {/* Auth Buttons */}
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="outlined"
+              color="primary"
+              size={isMobile ? 'small' : 'medium'}
+              onClick={() => router.push('/login')}
+              sx={{
+                minWidth: { xs: 'auto', sm: '80px' },
+                px: { xs: 1.5, sm: 2 },
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(10px)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 1)',
+                }
+              }}
+            >
+              {isMobile ? 'Login' : 'Sign In'}
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              size={isMobile ? 'small' : 'medium'}
+              onClick={() => router.push('/signup')}
+              sx={{
+                minWidth: { xs: 'auto', sm: '80px' },
+                px: { xs: 1.5, sm: 2 }
+              }}
+            >
+              {isMobile ? 'Sign Up' : 'Get Started'}
+            </Button>
+          </Stack>
+        </Box>
+
         <Box sx={{ textAlign: 'center', py: { xs: 6, md: 8 } }}>
           {/* Badge */}
           <Chip

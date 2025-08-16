@@ -14,7 +14,6 @@ import {
 } from '@/components/landing';
 import { LANDING_PAGE_CONTENT } from '@/lib/constants/landingContent';
 import { initKeyboardNavigation } from '@/lib/utils/keyboard';
-import Navigation from '@/components/Navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 
@@ -68,15 +67,6 @@ const LandingPage = () => {
       >
         Skip to main content
       </a>
-
-      {/* Header - Navigation with authentication state */}
-      <header>
-        <Navigation 
-          isAuthenticated={isAuthenticated}
-          currentPath="/"
-          transparent={true}
-        />
-      </header>
 
       {/* Main Content */}
       <main id="main-content" role="main">
