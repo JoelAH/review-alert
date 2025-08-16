@@ -20,14 +20,25 @@ import {
 import { validateEmail, EmailValidationResult } from '@/lib/utils/emailValidation';
 import { validatePassword, PasswordValidationResult } from '@/lib/utils/passwordValidation';
 
+import { EnhancedAuthError } from '@/lib/utils/authErrorHandler';
+
 export interface EmailAuthFormProps {
   mode: 'signup' | 'login';
   onSubmit: (email: string, password: string) => Promise<void>;
   loading?: boolean;
-  error?: string;
+  error?: string | EnhancedAuthError;
+  onRetry?: () => void;
+  onErrorAction?: (action: () => void) => void;
 }
 
-export default function EmailAuthForm({ mode, onSubmit, loading = false, error }: EmailAuthFormProps) {
+export default function EmailAuthForm({ 
+  mode, 
+  onSubmit, 
+  loading = false, 
+  error, 
+  onRetry,
+  onErrorAction 
+}: EmailAuthFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -153,8 +164,26 @@ export default function EmailAuthForm({ mode, onSubmit, loading = false, error }
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
+        <Alert 
+          severity="error" 
+          sx={{ mb: 2 }}
+          action={
+            typeof error === 'object' && error.retryable && onRetry ? (
+              <Button color="inherit" size="small" onClick={onRetry}>
+                Retry
+              </Button>
+            ) : typeof error === 'object' && error.action && onErrorAction ? (
+              <Button 
+                color="inherit" 
+                size="small" 
+                onClick={() => onErrorAction(error.action!.handler)}
+              >
+                {error.action.text}
+              </Button>
+            ) : undefined
+          }
+        >
+          {typeof error === 'string' ? error : error.userMessage}
         </Alert>
       )}
 

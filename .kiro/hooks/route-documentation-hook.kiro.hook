@@ -4,7 +4,7 @@
   "description": "Automatically documents new routes and their purpose in a routes.md file when route folders or files are created",
   "version": "1",
   "when": {
-    "type": "fileEdited",
+    "type": "userTriggered",
     "patterns": [
       "src/app/**/route.ts",
       "src/app/**/page.tsx"

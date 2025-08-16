@@ -3,13 +3,19 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import SignupPage from '../page';
-import { signUpWithEmail, signInWithGoogle, getAuthErrorMessage } from '@/lib/firebase/auth';
+import { signUpWithEmail, getAuthErrorMessage } from '@/lib/firebase/auth';
 import { signInToServer } from '@/lib/services/auth';
+import { handleGoogleSignIn } from '@/lib/utils/authHandlers';
 import { AuthError } from 'firebase/auth';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 // Mock dependencies
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
+}));
+
+jest.mock('@/lib/hooks/useAuth', () => ({
+  useAuth: jest.fn(),
 }));
 
 jest.mock('react-toastify', () => ({
@@ -22,8 +28,12 @@ jest.mock('react-toastify', () => ({
 
 jest.mock('@/lib/firebase/auth', () => ({
   signUpWithEmail: jest.fn(),
-  signInWithGoogle: jest.fn(),
   getAuthErrorMessage: jest.fn(),
+}));
+
+jest.mock('@/lib/utils/authHandlers', () => ({
+  handleGoogleSignIn: jest.fn(),
+  handleAuthError: jest.fn(),
 }));
 
 jest.mock('@/lib/services/auth', () => ({
@@ -88,12 +98,21 @@ describe('SignupPage', () => {
       replace: mockReplace,
     });
     
+    // Mock unauthenticated state by default
+    (useAuth as jest.Mock).mockReturnValue({
+      user: null,
+      loading: false,
+      isAuthenticated: false,
+    });
+    
     // Mock successful responses by default
     (signUpWithEmail as jest.Mock).mockResolvedValue({
       user: { uid: 'test-uid', email: 'test@example.com' }
     });
-    (signInWithGoogle as jest.Mock).mockResolvedValue({
-      user: { uid: 'test-uid', email: 'test@example.com' }
+    (handleGoogleSignIn as jest.Mock).mockImplementation(async (_router, options) => {
+      options.onSuccess();
+      // Simulate the redirect that handleGoogleSignIn would do
+      setTimeout(() => _router.replace('/dashboard'), 2000);
     });
     (signInToServer as jest.Mock).mockResolvedValue({});
   });
@@ -142,7 +161,8 @@ describe('SignupPage', () => {
     const mockError: AuthError = {
       code: 'auth/email-already-in-use',
       message: 'Email already in use',
-      name: 'FirebaseError'
+      name: 'FirebaseError',
+      customData: {}
     };
 
     (signUpWithEmail as jest.Mock).mockRejectedValue(mockError);
@@ -177,14 +197,14 @@ describe('SignupPage', () => {
     fireEvent.click(googleButton);
 
     await waitFor(() => {
-      expect(signInWithGoogle).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      expect(signInToServer).toHaveBeenCalledWith({
-        uid: 'test-uid',
-        email: 'test@example.com'
-      });
+      expect(handleGoogleSignIn).toHaveBeenCalledWith(
+        expect.any(Object), // router
+        expect.objectContaining({
+          redirectTo: '/dashboard',
+          onSuccess: expect.any(Function),
+          onError: expect.any(Function)
+        })
+      );
     });
 
     expect(toast.success).toHaveBeenCalledWith(
@@ -199,13 +219,14 @@ describe('SignupPage', () => {
   });
 
   it('handles Google signup error with email already in use', async () => {
-    const mockError: AuthError = {
-      code: 'auth/email-already-in-use',
-      message: 'Email already in use',
-      name: 'FirebaseError'
+    const mockError = {
+      message: 'You have already signed up! Please log into your account.',
+      code: 'auth/email-already-in-use'
     };
 
-    (signInWithGoogle as jest.Mock).mockRejectedValue(mockError);
+    (handleGoogleSignIn as jest.Mock).mockImplementation(async (_router, options) => {
+      options.onError(mockError);
+    });
 
     render(<SignupPage />);
 
@@ -223,23 +244,19 @@ describe('SignupPage', () => {
   });
 
   it('handles Google signup with other Firebase error', async () => {
-    const mockError: AuthError = {
-      code: 'auth/network-request-failed',
-      message: 'Network error',
-      name: 'FirebaseError'
+    const mockError = {
+      message: 'Network error. Please check your connection and try again.',
+      code: 'auth/network-request-failed'
     };
 
-    (signInWithGoogle as jest.Mock).mockRejectedValue(mockError);
-    (getAuthErrorMessage as jest.Mock).mockReturnValue('Network error. Please check your connection and try again.');
+    (handleGoogleSignIn as jest.Mock).mockImplementation(async (_router, options) => {
+      options.onError(mockError);
+    });
 
     render(<SignupPage />);
 
     const googleButton = screen.getByTestId('google-signup-button');
     fireEvent.click(googleButton);
-
-    await waitFor(() => {
-      expect(getAuthErrorMessage).toHaveBeenCalledWith(mockError);
-    });
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
@@ -318,5 +335,76 @@ describe('SignupPage', () => {
     const signInLink = screen.getByText('Sign in');
     expect(signInLink).toBeInTheDocument();
     expect(signInLink.closest('a')).toHaveAttribute('href', '/login');
+  });
+
+  describe('Navigation and Routing', () => {
+    it('renders breadcrumb navigation', () => {
+      render(<SignupPage />);
+      
+      expect(screen.getByRole('navigation', { name: /breadcrumb/i })).toBeInTheDocument();
+      expect(screen.getByText('Home')).toBeInTheDocument();
+      expect(screen.getByText('Sign Up')).toBeInTheDocument();
+    });
+
+    it('breadcrumb home link navigates to home page', () => {
+      render(<SignupPage />);
+      
+      const homeLink = screen.getByRole('link', { name: 'Home' });
+      expect(homeLink).toHaveAttribute('href', '/');
+    });
+
+    it('marks current page in breadcrumbs', () => {
+      render(<SignupPage />);
+      
+      const breadcrumbItems = screen.getAllByText('Sign Up');
+      const breadcrumbCurrentPage = breadcrumbItems.find(item => 
+        item.getAttribute('aria-current') === 'page'
+      );
+      expect(breadcrumbCurrentPage).toBeInTheDocument();
+    });
+
+    it('redirects authenticated users to dashboard', async () => {
+      // Mock authenticated state
+      (useAuth as jest.Mock).mockReturnValue({
+        user: { uid: 'test-user' },
+        loading: false,
+        isAuthenticated: true,
+      });
+
+      render(<SignupPage />);
+
+      // Should not render the signup form content
+      await waitFor(() => {
+        expect(screen.queryByText('Create Your Account')).not.toBeInTheDocument();
+      });
+    });
+
+    it('shows loading state while checking auth', () => {
+      // Mock loading state
+      (useAuth as jest.Mock).mockReturnValue({
+        user: null,
+        loading: true,
+        isAuthenticated: false,
+      });
+
+      render(<SignupPage />);
+
+      expect(screen.getByRole('progressbar')).toBeInTheDocument();
+      expect(screen.getByText('Loading...')).toBeInTheDocument();
+    });
+
+    it('renders signup form for unauthenticated users', () => {
+      // Mock unauthenticated state
+      (useAuth as jest.Mock).mockReturnValue({
+        user: null,
+        loading: false,
+        isAuthenticated: false,
+      });
+
+      render(<SignupPage />);
+
+      expect(screen.getByText('Create Your Account')).toBeInTheDocument();
+      expect(screen.getByTestId('email-auth-form')).toBeInTheDocument();
+    });
   });
 });

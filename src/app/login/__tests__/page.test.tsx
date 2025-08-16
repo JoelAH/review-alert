@@ -5,10 +5,15 @@ import { toast } from 'react-toastify';
 import LoginPage from '../page';
 import { signInWithEmail, signInWithGoogle } from '@/lib/firebase/auth';
 import { signInToServer } from '@/lib/services/auth';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 // Mock dependencies
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
+}));
+
+jest.mock('@/lib/hooks/useAuth', () => ({
+  useAuth: jest.fn(),
 }));
 
 jest.mock('react-toastify', () => ({
@@ -71,6 +76,13 @@ beforeEach(() => {
   (useRouter as jest.Mock).mockReturnValue({
     push: mockPush,
     replace: mockReplace,
+  });
+  
+  // Mock unauthenticated state by default
+  (useAuth as jest.Mock).mockReturnValue({
+    user: null,
+    loading: false,
+    isAuthenticated: false,
   });
 });
 
@@ -355,6 +367,78 @@ describe('LoginPage', () => {
       expect(getPasswordInput()).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /sign in$/i })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: /sign up/i })).toBeInTheDocument();
+    });
+  });
+
+  describe('Navigation and Routing', () => {
+    it('renders breadcrumb navigation', () => {
+      render(<LoginPage />);
+      
+      expect(screen.getByRole('navigation', { name: /breadcrumb/i })).toBeInTheDocument();
+      expect(screen.getByText('Home')).toBeInTheDocument();
+      expect(screen.getAllByText('Sign In')).toHaveLength(3); // Breadcrumb, form title, and button
+    });
+
+    it('breadcrumb home link navigates to home page', () => {
+      render(<LoginPage />);
+      
+      const homeLink = screen.getByRole('link', { name: 'Home' });
+      expect(homeLink).toHaveAttribute('href', '/');
+    });
+
+    it('marks current page in breadcrumbs', () => {
+      render(<LoginPage />);
+      
+      const breadcrumbItems = screen.getAllByText('Sign In');
+      const breadcrumbCurrentPage = breadcrumbItems.find(item => 
+        item.getAttribute('aria-current') === 'page'
+      );
+      expect(breadcrumbCurrentPage).toBeInTheDocument();
+    });
+
+    it('redirects authenticated users to dashboard', async () => {
+      // Mock authenticated state
+      (useAuth as jest.Mock).mockReturnValue({
+        user: { uid: 'test-user' },
+        loading: false,
+        isAuthenticated: true,
+      });
+
+      render(<LoginPage />);
+
+      // Should not render the login form content
+      await waitFor(() => {
+        expect(screen.queryByText('Welcome Back')).not.toBeInTheDocument();
+      });
+    });
+
+    it('shows loading state while checking auth', () => {
+      // Mock loading state
+      (useAuth as jest.Mock).mockReturnValue({
+        user: null,
+        loading: true,
+        isAuthenticated: false,
+      });
+
+      render(<LoginPage />);
+
+      expect(screen.getByRole('progressbar')).toBeInTheDocument();
+      expect(screen.getByText('Loading...')).toBeInTheDocument();
+    });
+
+    it('renders login form for unauthenticated users', () => {
+      // Mock unauthenticated state
+      (useAuth as jest.Mock).mockReturnValue({
+        user: null,
+        loading: false,
+        isAuthenticated: false,
+      });
+
+      render(<LoginPage />);
+
+      expect(screen.getByText('Welcome Back')).toBeInTheDocument();
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+      expect(getPasswordInput()).toBeInTheDocument();
     });
   });
 });

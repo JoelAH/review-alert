@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { AppBar, Toolbar, Typography, Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import {
   HeroSection,
   FeaturesGrid,
@@ -14,8 +14,12 @@ import {
 } from '@/components/landing';
 import { LANDING_PAGE_CONTENT } from '@/lib/constants/landingContent';
 import { initKeyboardNavigation } from '@/lib/utils/keyboard';
+import Navigation from '@/components/Navigation';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 const LandingPage = () => {
+  const { isAuthenticated } = useAuth();
+
   // Initialize keyboard navigation on component mount
   useEffect(() => {
     initKeyboardNavigation();
@@ -71,40 +75,13 @@ const LandingPage = () => {
         Skip to main content
       </a>
 
-      {/* Header - Modern minimal design positioned over hero */}
+      {/* Header - Navigation with authentication state */}
       <header>
-        <AppBar
-          position="absolute"
-          color="transparent"
-          elevation={0}
-          component="nav"
-          role="banner"
-          sx={{
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(10px)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-            zIndex: 10
-          }}
-        >
-          <Toolbar sx={{ py: 1 }}>
-            <Typography
-              variant="h5"
-              component="h1"
-              sx={{
-                flexGrow: 1,
-                fontWeight: 800,
-                fontSize: { xs: '1.5rem', sm: '1.75rem' },
-                background: 'linear-gradient(135deg, #1976d2, #FF6B6B)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}
-              aria-label="Review Alert - Home"
-            >
-              Review Alert
-            </Typography>
-          </Toolbar>
-        </AppBar>
+        <Navigation 
+          isAuthenticated={isAuthenticated}
+          currentPath="/"
+          transparent={true}
+        />
       </header>
 
       {/* Main Content */}

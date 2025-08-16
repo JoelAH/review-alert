@@ -8,117 +8,108 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import AuthPageLayout from '@/components/AuthPageLayout';
 import EmailAuthForm from '@/components/EmailAuthForm';
-import { signUpWithEmail, signInWithGoogle, getAuthErrorMessage } from '@/lib/firebase/auth';
-import { signInToServer } from '@/lib/services/auth';
-import { AuthError } from 'firebase/auth';
+import Breadcrumbs from '@/components/Breadcrumbs';
+import AuthRedirect from '@/components/AuthRedirect';
 import GoogleButton from 'react-google-button';
-import CONSTANTS from '@/lib/constants';
+import { 
+  handleGoogleSignIn, 
+  handleEmailSignUp
+} from '@/lib/utils/authHandlers';
+import { EnhancedAuthError } from '@/lib/utils/authErrorHandler';
 
 export default function SignupPage() {
   const router = useRouter();
   const [emailLoading, setEmailLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<EnhancedAuthError | string>('');
+  const [, setRetryCount] = useState(0);
 
-  // Handle email signup
+  // Handle email signup with enhanced error handling
   const handleEmailSignup = async (email: string, password: string) => {
     setEmailLoading(true);
     setError('');
 
-    try {
-      // Create user with Firebase Auth
-      const userCredential = await signUpWithEmail(email, password);
-      
-      if (!userCredential?.user) {
-        throw new Error('Failed to create user account');
+    await handleEmailSignUp(email, password, router, {
+      redirectTo: '/dashboard',
+      enableRetry: true,
+      onSuccess: () => {
+        toast.success('Account created successfully! Redirecting to dashboard...', {
+          position: 'top-right',
+          autoClose: 2000
+        });
+        setRetryCount(0);
+      },
+      onError: (enhancedError) => {
+        setError(enhancedError);
+        toast.error(enhancedError.userMessage, {
+          position: 'top-right'
+        });
+        setEmailLoading(false);
       }
-
-      // Sign in to server to create session
-      await signInToServer(userCredential.user);
-      
-      // Show success message
-      toast.success('Account created successfully! Redirecting to dashboard...', {
-        position: 'top-right',
-        autoClose: 2000
-      });
-
-      // Redirect to dashboard
-      setTimeout(() => {
-        router.replace('/dashboard');
-      }, 2000);
-
-    } catch (error) {
-      console.error('Email signup error:', error);
-      
-      let errorMessage = 'An error occurred during signup. Please try again.';
-      
-      if (error && typeof error === 'object' && 'code' in error) {
-        errorMessage = getAuthErrorMessage(error as AuthError);
-      }
-      
-      setError(errorMessage);
-      toast.error(errorMessage, {
-        position: 'top-right'
-      });
-    } finally {
-      setEmailLoading(false);
-    }
+    });
   };
 
-  // Handle Google signup
+  // Handle Google signup with enhanced error handling
   const handleGoogleSignup = async () => {
     setGoogleLoading(true);
     setError('');
 
-    try {
-      const userCredential = await signInWithGoogle();
-      
-      if (!userCredential?.user) {
-        throw new Error('Failed to sign up with Google');
+    await handleGoogleSignIn(router, {
+      redirectTo: '/dashboard',
+      enableRetry: true,
+      onSuccess: () => {
+        toast.success('Account created successfully! Redirecting to dashboard...', {
+          position: 'top-right',
+          autoClose: 2000
+        });
+        setRetryCount(0);
+      },
+      onError: (enhancedError) => {
+        setError(enhancedError);
+        toast.error(enhancedError.userMessage, {
+          position: 'top-right'
+        });
+        setGoogleLoading(false);
       }
+    });
+  };
 
-      // Sign in to server to create session
-      await signInToServer(userCredential.user);
-      
-      // Show success message
-      toast.success('Account created successfully! Redirecting to dashboard...', {
-        position: 'top-right',
-        autoClose: 2000
-      });
-
-      // Redirect to dashboard
-      setTimeout(() => {
-        router.replace('/dashboard');
-      }, 2000);
-
-    } catch (error) {
-      console.error('Google signup error:', error);
-      
-      let errorMessage = CONSTANTS.errors.defaultMessage;
-      
-      if (error && typeof error === 'object' && 'code' in error) {
-        const authError = error as AuthError;
-        if (authError.code === CONSTANTS.errors.firebase.EMAIL_USED) {
-          errorMessage = 'You have already signed up! Please log into your account.';
-        } else {
-          errorMessage = getAuthErrorMessage(authError);
-        }
-      }
-      
-      setError(errorMessage);
-      toast.error(errorMessage, {
+  // Handle retry for failed operations
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    setError('');
+    
+    // Determine which operation to retry based on current state
+    if (emailLoading) {
+      // This would need the last email/password values - in a real implementation
+      // you'd store these or restructure the component
+      toast.info('Please try submitting the form again.', {
         position: 'top-right'
       });
-    } finally {
-      setGoogleLoading(false);
+    } else if (googleLoading) {
+      handleGoogleSignup();
     }
+  };
+
+  // Handle error action buttons
+  const handleErrorAction = (action: () => void) => {
+    action();
   };
 
   const isLoading = emailLoading || googleLoading;
 
+  const breadcrumbItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Sign Up', current: true }
+  ];
+
   return (
-    <>
+    <AuthRedirect redirectTo="/dashboard">
       <ToastContainer />
+      
+      {/* Breadcrumb Navigation */}
+      <Breadcrumbs items={breadcrumbItems} />
+      
       <AuthPageLayout
         title="Create Your Account"
         subtitle="Start monitoring your app reviews across multiple stores"
@@ -135,6 +126,8 @@ export default function SignupPage() {
             onSubmit={handleEmailSignup}
             loading={emailLoading}
             error={error}
+            onRetry={handleRetry}
+            onErrorAction={handleErrorAction}
           />
 
           {/* Divider */}
@@ -164,6 +157,6 @@ export default function SignupPage() {
           </Box>
         </Box>
       </AuthPageLayout>
-    </>
+    </AuthRedirect>
   );
 }
