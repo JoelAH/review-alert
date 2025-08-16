@@ -10,9 +10,11 @@ import { Box } from '@mui/material';
 import { HeroSection, CTASection, MidPageCTA } from '@/components/landing';
 import { LANDING_PAGE_CONTENT } from '@/lib/constants/landingContent';
 import { createCTAHandlers, trackCTAClick } from '@/lib/utils/ctaHandlers';
+import { useRouter } from 'next/navigation';
 
 const CTAIntegrationExample: React.FC = () => {
-  const ctaHandlers = createCTAHandlers();
+  const router = useRouter();
+  const ctaHandlers = createCTAHandlers(router);
 
   // Enhanced handlers with analytics tracking
   const handleHeroPrimary = () => {

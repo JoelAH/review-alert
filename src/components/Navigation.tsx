@@ -10,7 +10,6 @@ import {
   useTheme,
   useMediaQuery
 } from '@mui/material';
-import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export interface NavigationProps {
@@ -59,14 +58,14 @@ export default function Navigation({
       component="nav"
       role="banner"
       sx={{
-        background: transparent 
-          ? 'rgba(255, 255, 255, 0.8)' 
+        background: transparent
+          ? 'rgba(255, 255, 255, 0.8)'
           : theme.palette.background.paper,
         backdropFilter: transparent ? 'blur(10px)' : 'none',
-        borderBottom: transparent 
-          ? '1px solid rgba(255, 255, 255, 0.2)' 
+        borderBottom: transparent
+          ? '1px solid rgba(255, 255, 255, 0.2)'
           : `1px solid ${theme.palette.divider}`,
-        zIndex: 10
+        zIndex: 1000
       }}
     >
       <Toolbar sx={{ py: 1 }}>
@@ -105,60 +104,54 @@ export default function Navigation({
           {!isAuthenticated ? (
             <>
               {/* Login Button */}
-              <NextLink href="/login" passHref legacyBehavior>
-                <Button
-                  component="a"
-                  variant={currentPath === '/login' ? 'contained' : 'outlined'}
-                  color="primary"
-                  size={isMobile ? 'small' : 'medium'}
-                  sx={{
-                    minWidth: { xs: 'auto', sm: '80px' },
-                    px: { xs: 1.5, sm: 2 }
-                  }}
-                  aria-current={currentPath === '/login' ? 'page' : undefined}
-                >
-                  {isMobile ? 'Login' : 'Sign In'}
-                </Button>
-              </NextLink>
+              <Button
+                variant={currentPath === '/login' ? 'contained' : 'outlined'}
+                color="primary"
+                size={isMobile ? 'small' : 'medium'}
+                onClick={() => router.push('/login')}
+                sx={{
+                  minWidth: { xs: 'auto', sm: '80px' },
+                  px: { xs: 1.5, sm: 2 }
+                }}
+                aria-current={currentPath === '/login' ? 'page' : undefined}
+              >
+                {isMobile ? 'Login' : 'Sign In'}
+              </Button>
 
               {/* Signup Button */}
-              <NextLink href="/signup" passHref legacyBehavior>
-                <Button
-                  component="a"
-                  variant={currentPath === '/signup' ? 'contained' : 'contained'}
-                  color="primary"
-                  size={isMobile ? 'small' : 'medium'}
-                  sx={{
-                    minWidth: { xs: 'auto', sm: '80px' },
-                    px: { xs: 1.5, sm: 2 },
-                    ...(currentPath === '/signup' && {
-                      backgroundColor: theme.palette.primary.dark
-                    })
-                  }}
-                  aria-current={currentPath === '/signup' ? 'page' : undefined}
-                >
-                  {isMobile ? 'Sign Up' : 'Get Started'}
-                </Button>
-              </NextLink>
+              <Button
+                variant={currentPath === '/signup' ? 'contained' : 'contained'}
+                color="primary"
+                size={isMobile ? 'small' : 'medium'}
+                onClick={() => router.push('/signup')}
+                sx={{
+                  minWidth: { xs: 'auto', sm: '80px' },
+                  px: { xs: 1.5, sm: 2 },
+                  ...(currentPath === '/signup' && {
+                    backgroundColor: theme.palette.primary.dark
+                  })
+                }}
+                aria-current={currentPath === '/signup' ? 'page' : undefined}
+              >
+                {isMobile ? 'Sign Up' : 'Get Started'}
+              </Button>
             </>
           ) : (
             <>
               {/* Dashboard Link (if not already on dashboard) */}
               {currentPath !== '/dashboard' && (
-                <NextLink href="/dashboard" passHref legacyBehavior>
-                  <Button
-                    component="a"
-                    variant="outlined"
-                    color="primary"
-                    size={isMobile ? 'small' : 'medium'}
-                    sx={{
-                      minWidth: { xs: 'auto', sm: '100px' },
-                      px: { xs: 1.5, sm: 2 }
-                    }}
-                  >
-                    Dashboard
-                  </Button>
-                </NextLink>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  size={isMobile ? 'small' : 'medium'}
+                  onClick={() => router.push('/dashboard')}
+                  sx={{
+                    minWidth: { xs: 'auto', sm: '100px' },
+                    px: { xs: 1.5, sm: 2 }
+                  }}
+                >
+                  Dashboard
+                </Button>
               )}
 
               {/* Sign Out Button */}

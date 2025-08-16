@@ -16,26 +16,20 @@ import { LANDING_PAGE_CONTENT } from '@/lib/constants/landingContent';
 import { initKeyboardNavigation } from '@/lib/utils/keyboard';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 
 const LandingPage = () => {
   const { isAuthenticated } = useAuth();
+  const router = useRouter();
 
   // Initialize keyboard navigation on component mount
   useEffect(() => {
     initKeyboardNavigation();
   }, []);
 
-  // CTA handlers - placeholder functions for future signup integration
+  // CTA handlers - navigate to signup page
   const handlePrimaryCTA = () => {
-    console.log('Primary CTA clicked - future signup integration');
-    // Announce to screen readers
-    const announcement = document.createElement('div');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.setAttribute('aria-atomic', 'true');
-    announcement.className = 'sr-only';
-    announcement.textContent = 'Sign up process will be available soon';
-    document.body.appendChild(announcement);
-    setTimeout(() => document.body.removeChild(announcement), 1000);
+    router.push('/signup');
   };
 
 
