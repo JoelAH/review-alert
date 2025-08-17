@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Dead Code Scanner",
+  "description": "Manual trigger to analyze the codebase for dead code, unused imports, unreferenced files, and orphaned components",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "src/**/*.js",
+      "src/**/*.jsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Analyze the codebase for dead code and unreferenced files. Look for:\n1. Unused imports and exports\n2. Unreferenced functions, components, and variables\n3. Orphaned files that aren't imported anywhere\n4. Dead code branches and unused utility functions\n5. Unused TypeScript types and interfaces\n6. Components that are defined but never used\n\nProvide a detailed report with:\n- List of potentially dead code with file locations\n- Unused imports that can be removed\n- Files that appear to be orphaned\n- Recommendations for cleanup\n- Any false positives to be aware of\n\nFocus on the src/ directory and consider the Next.js App Router structure, React components, TypeScript files, and the project's architecture."
+  }
+}

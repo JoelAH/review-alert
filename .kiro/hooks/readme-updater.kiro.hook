@@ -1,0 +1,26 @@
+{
+  "enabled": true,
+  "name": "README Updater",
+  "description": "Automatically creates or updates a comprehensive README.md file when project structure, dependencies, or core functionality changes",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "package.json",
+      "tsconfig.json",
+      "next.config.mjs",
+      "src/app/layout.tsx",
+      "src/app/page.tsx",
+      "src/lib/firebase/config.ts",
+      "src/lib/db/db.ts",
+      "src/components/clientDashboard.tsx",
+      "src/lib/models/server/user.ts",
+      ".env",
+      "README.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Create or update a comprehensive README.md file for the Review Alert project. The README should include:\n\n1. **Project Title & Description** - Clear overview of Review Alert as a multi-store app review monitoring platform\n2. **Features** - Core functionality including Google OAuth, multi-store tracking (Chrome Web Store, Google Play, App Store), real-time alerts\n3. **Technology Stack** - Next.js 14, React 18, TypeScript, Material-UI, Firebase Auth, MongoDB, SCSS\n4. **Prerequisites** - Node.js version, required accounts (Firebase, MongoDB)\n5. **Installation & Setup** - Step-by-step setup including environment variables from .env.local template\n6. **Environment Variables** - Complete list with descriptions of Firebase config, MongoDB URI, etc.\n7. **Development Commands** - npm run dev (port 8000), build, start, lint\n8. **Project Structure** - Overview of src/ organization with App Router structure\n9. **Authentication Flow** - How Google OAuth integration works\n10. **Database Schema** - Brief overview of user and review models\n11. **API Endpoints** - Available routes and their purposes\n12. **Deployment** - Basic deployment considerations\n13. **Contributing** - Guidelines for development\n14. **License** - If applicable\n\nMake the README professional, well-formatted with proper markdown, and suitable for both developers joining the project and users wanting to understand the application. Include relevant badges if appropriate and ensure all technical details are accurate based on the current project structure."
+  }
+}

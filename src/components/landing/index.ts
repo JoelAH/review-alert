@@ -5,6 +5,7 @@ export { default as FeaturesGrid } from './FeaturesGrid';
 export { default as GamificationShowcase } from './GamificationShowcase';
 export { default as AudienceSection } from './AudienceSection';
 export { default as DifferentiationSection } from './DifferentiationSection';
+export { default as PricingSection } from './PricingSection';
 export { default as CTASection } from './CTASection';
 export { default as MidPageCTA } from './MidPageCTA';
 

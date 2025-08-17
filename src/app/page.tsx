@@ -1,36 +1,34 @@
 'use client';
 
 import { useEffect } from 'react';
-import { AppBar, Toolbar, Typography, Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import {
   HeroSection,
   FeaturesGrid,
   GamificationShowcase,
   AudienceSection,
   DifferentiationSection,
+  PricingSection,
   MidPageCTA,
   CTASection
 } from '@/components/landing';
 import { LANDING_PAGE_CONTENT } from '@/lib/constants/landingContent';
 import { initKeyboardNavigation } from '@/lib/utils/keyboard';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 
 const LandingPage = () => {
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+
   // Initialize keyboard navigation on component mount
   useEffect(() => {
     initKeyboardNavigation();
   }, []);
 
-  // CTA handlers - placeholder functions for future signup integration
+  // CTA handlers - navigate to signup page
   const handlePrimaryCTA = () => {
-    console.log('Primary CTA clicked - future signup integration');
-    // Announce to screen readers
-    const announcement = document.createElement('div');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.setAttribute('aria-atomic', 'true');
-    announcement.className = 'sr-only';
-    announcement.textContent = 'Sign up process will be available soon';
-    document.body.appendChild(announcement);
-    setTimeout(() => document.body.removeChild(announcement), 1000);
+    router.push('/signup');
   };
 
 
@@ -69,42 +67,6 @@ const LandingPage = () => {
       >
         Skip to main content
       </a>
-
-      {/* Header - Modern minimal design positioned over hero */}
-      <header>
-        <AppBar
-          position="absolute"
-          color="transparent"
-          elevation={0}
-          component="nav"
-          role="banner"
-          sx={{
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(10px)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-            zIndex: 10
-          }}
-        >
-          <Toolbar sx={{ py: 1 }}>
-            <Typography
-              variant="h5"
-              component="h1"
-              sx={{
-                flexGrow: 1,
-                fontWeight: 800,
-                fontSize: { xs: '1.5rem', sm: '1.75rem' },
-                background: 'linear-gradient(135deg, #1976d2, #FF6B6B)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}
-              aria-label="Review Alert - Home"
-            >
-              Review Alert
-            </Typography>
-          </Toolbar>
-        </AppBar>
-      </header>
 
       {/* Main Content */}
       <main id="main-content" role="main">
@@ -165,6 +127,13 @@ const LandingPage = () => {
               comparisons={LANDING_PAGE_CONTENT.differentiation.comparisons}
               uniqueValue={LANDING_PAGE_CONTENT.differentiation.uniqueValue}
             />
+          </Box>
+        </section>
+
+        {/* Pricing Section */}
+        <section aria-labelledby="pricing-heading">
+          <Box sx={{ bgcolor: 'grey.50', py: { xs: 4, sm: 6, md: 8 } }}>
+            <PricingSection onGetStartedClick={handlePrimaryCTA} />
           </Box>
         </section>
 

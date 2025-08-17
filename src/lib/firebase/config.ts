@@ -23,4 +23,5 @@ if (typeof window !== "undefined" && newApp && "measurementId" in firebaseConfig
 
 
 export const firebaseAuth = getAuth(firebaseApp);
+export const auth = firebaseAuth; // Export as 'auth' for compatibility
 export const firebaseStorage = getStorage(firebaseApp);

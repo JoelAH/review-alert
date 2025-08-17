@@ -6,13 +6,17 @@
     "dev": "next dev -p 8000",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
-  "dependencies": {"@emotion/cache": "^11.11.0",
+  "dependencies": {
+    "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
     "@fontsource/roboto": "^5.0.13",
-    "@mui/icons-material": "^5.16.5",
+    "@mui/icons-material": "^5.18.0",
     "@mui/lab": "^5.0.0-alpha.173",
     "@mui/material": "^5.16.5",
     "@mui/material-nextjs": "^5.15.11",
@@ -20,21 +24,28 @@
     "firebase": "^10.12.4",
     "firebase-admin": "^12.2.0",
     "mongoose": "^8.5.2",
+    "next": "14.2.8",
+    "react": "^18",
+    "react-dom": "^18",
     "react-google-button": "^0.8.0",
     "react-toastify": "^10.0.5",
     "server-only": "^0.0.1",
-    "sharp": "^0.33.5",
-    "react": "^18",
-    "react-dom": "^18",
-    "next": "14.2.8"
+    "sharp": "^0.33.5"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@testing-library/jest-dom": "^6.7.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "14.2.8",
-    "sass": "^1.77.6"
+    "jest": "^30.0.5",
+    "jest-axe": "^10.0.0",
+    "jest-environment-jsdom": "^30.0.5",
+    "sass": "^1.77.6",
+    "typescript": "^5"
   }
 }

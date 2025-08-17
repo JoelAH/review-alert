@@ -1,9 +1,10 @@
 /**
  * CTA Handler utilities for landing page actions
- * Prepared for future signup page/modal integration
+ * Provides navigation functions for landing page CTAs
  */
 
-// Future integration points - these will be implemented when signup flow is ready
+import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+
 export interface CTAHandlers {
   handlePrimarySignup: () => void;
   handleLearnMore: () => void;
@@ -11,27 +12,14 @@ export interface CTAHandlers {
   handleGetStarted: () => void;
 }
 
-// Placeholder handlers that can be easily replaced with actual functionality
-export const createCTAHandlers = (): CTAHandlers => {
+// Navigation-based handlers for landing page CTAs
+export const createCTAHandlers = (router: AppRouterInstance): CTAHandlers => {
   const handlePrimarySignup = () => {
-    // TODO: Replace with actual signup modal/page navigation
-    console.log('Primary signup CTA clicked - ready for signup integration');
-    
-    // For now, scroll to existing auth button or show coming soon message
-    const authButton = document.querySelector('[data-testid="auth-button"]');
-    if (authButton) {
-      authButton.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      // Fallback: show alert that can be replaced with modal
-      alert('Signup coming soon! For now, use the Google sign-in button above.');
-    }
+    router.push('/signup');
   };
 
   const handleLearnMore = () => {
-    // TODO: Replace with actual learn more page/modal
-    console.log('Learn More CTA clicked');
-    
-    // For now, scroll to features section
+    // Scroll to features section
     const featuresSection = document.querySelector('[data-section="features"]');
     if (featuresSection) {
       featuresSection.scrollIntoView({ behavior: 'smooth' });
@@ -39,25 +27,15 @@ export const createCTAHandlers = (): CTAHandlers => {
   };
 
   const handleSeeDemo = () => {
-    // TODO: Replace with actual demo modal/page
-    console.log('See Demo CTA clicked');
-    
-    // For now, scroll to gamification showcase
+    // Scroll to gamification showcase
     const gamificationSection = document.querySelector('[data-section="gamification"]');
     if (gamificationSection) {
       gamificationSection.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      // Fallback message
-      alert('Demo coming soon! Explore the features below to see what Review Alert can do.');
     }
   };
 
   const handleGetStarted = () => {
-    // TODO: Replace with actual get started flow
-    console.log('Get Started CTA clicked');
-    
-    // For now, same as primary signup
-    handlePrimarySignup();
+    router.push('/signup');
   };
 
   return {

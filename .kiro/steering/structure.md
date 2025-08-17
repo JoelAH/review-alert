@@ -22,10 +22,12 @@ Next.js App Router structure:
 
 ### Components (`src/components/`)
 Reusable React components:
-- **authButton.tsx** - Google OAuth sign-in button
+- **GoogleAuthButton.tsx** - Google OAuth sign-in button with shared authentication logic
 - **clientDashboard.tsx** - Main dashboard interface
-- **getStarted.tsx** - Onboarding component
+- **getStarted.tsx** - Onboarding component with shared authentication logic
 - **signOut.tsx** - Sign out functionality
+- **EmailAuthForm.tsx** - Email/password authentication form
+- **AuthPageLayout.tsx** - Consistent layout for authentication pages
 
 ### Library (`src/lib/`)
 Core business logic and utilities:
@@ -49,6 +51,14 @@ Core business logic and utilities:
 - **auth.ts** - Authentication service layer
 - **middleware.ts** - Request middleware
 - **request.ts** - HTTP request utilities
+
+#### Utils (`src/lib/utils/`)
+- **authHandlers.ts** - Shared authentication logic and error handling
+- **emailValidation.ts** - Email format and disposable domain validation
+- **passwordValidation.ts** - Password strength validation
+- **ctaHandlers.ts** - Landing page CTA handlers
+- **keyboard.ts** - Keyboard navigation utilities
+- **performance.ts** - Performance optimization utilities
 
 ### Actions (`src/actions/`)
 Server actions for form handling and data mutations

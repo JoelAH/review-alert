@@ -1,10 +1,9 @@
 import ClientDashboard from "@/components/clientDashboard";
-import SignOut from "@/components/signOut";
 import dbConnect from "@/lib/db/db";
 import { getUser } from "@/lib/db/user";
 import { formatUser, User } from "@/lib/models/server/user";
 import { checkAuth } from "@/lib/services/middleware";
-import { AppBar, Toolbar, Typography } from "@mui/material";
+import DashboardNavigation from "@/components/DashboardNavigation";
 
 export default async function Dashboard() {
     const userClaims = await checkAuth();
@@ -18,14 +17,7 @@ export default async function Dashboard() {
 
     return (
         <>
-            <AppBar position="static" color="transparent" elevation={0}>
-                <Toolbar>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#1976d2', fontWeight: 'bold' }}>
-                        App Review <span style={{ color: '#FF6B6B' }}>Alert</span>
-                    </Typography>
-                    <SignOut />
-                </Toolbar>
-            </AppBar>
+            <DashboardNavigation />
             <ClientDashboard user={user}/>
         </>
     )

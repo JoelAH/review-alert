@@ -2,34 +2,25 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import GoogleButton from 'react-google-button';
 import { toast, ToastContainer } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
-import { Button } from "@mui/material";
 import { handleGoogleSignIn, handleAuthError } from '@/lib/utils/authHandlers';
 
-export interface GetStartedProps {
-  /** Button text */
-  children?: React.ReactNode;
-  /** Button variant */
-  variant?: 'text' | 'outlined' | 'contained';
-  /** Button color */
-  color?: 'inherit' | 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning';
-  /** Button size */
-  size?: 'small' | 'medium' | 'large';
+export interface GoogleAuthButtonProps {
+  /** Custom styling for the Google button */
+  style?: React.CSSProperties;
   /** Redirect path after successful authentication */
   redirectTo?: string;
   /** Show toast notifications */
   showToast?: boolean;
 }
 
-export default function GetStarted({ 
-  children = "Get Started Now",
-  variant = "contained",
-  color = "primary",
-  size = "large",
-  redirectTo = "/dashboard",
-  showToast = true
-}: GetStartedProps) {
+export default function GoogleAuthButton({ 
+  style = { margin: '0 auto' },
+  redirectTo = '/dashboard',
+  showToast = true 
+}: GoogleAuthButtonProps) {
     const router = useRouter();
     const [errors, setErrors] = useState<string>('');
 
@@ -52,14 +43,7 @@ export default function GetStarted({
     return (
         <>
             {showToast && <ToastContainer />}
-            <Button 
-              onClick={onGoogleSignIn} 
-              variant={variant} 
-              color={color} 
-              size={size}
-            >
-                {children}
-            </Button>
+            <GoogleButton onClick={onGoogleSignIn} style={style} />
         </>
     )
 }
