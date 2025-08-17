@@ -15,8 +15,10 @@ export async function checkAuth(isAuthPage?: boolean) {
         if (isAuthPage) {
             return null;
         } else {
-            return redirect('/');
+            return redirect('/login');
         }
+    } else if (isAuthPage) {
+        return redirect('/dashboard');
     }
     //Use Firebase Admin to validate the session cookie
     let decodedClaims;
@@ -31,8 +33,10 @@ export async function checkAuth(isAuthPage?: boolean) {
         if (isAuthPage) {
             return null;
         } else {
-            return redirect('/');
+            return redirect('/login');
         }
+    } else if (isAuthPage) {
+        return redirect('/dashboard');
     }
 
     return decodedClaims;

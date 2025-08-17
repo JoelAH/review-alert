@@ -2,12 +2,12 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import SignupPage from '../page';
 import { signUpWithEmail, getAuthErrorMessage } from '@/lib/firebase/auth';
 import { signInToServer } from '@/lib/services/auth';
 import { handleGoogleSignIn } from '@/lib/utils/authHandlers';
 import { AuthError } from 'firebase/auth';
 import { useAuth } from '@/lib/hooks/useAuth';
+import SignupClient from '../client';
 
 // Mock dependencies
 jest.mock('next/navigation', () => ({
@@ -118,7 +118,7 @@ describe('SignupPage', () => {
   });
 
   it('renders signup page with correct layout and components', () => {
-    render(<SignupPage />);
+    render(<SignupClient />);
 
     expect(screen.getByTestId('auth-page-layout')).toBeInTheDocument();
     expect(screen.getByText('Create Your Account')).toBeInTheDocument();
@@ -130,7 +130,7 @@ describe('SignupPage', () => {
   });
 
   it('handles successful email signup', async () => {
-    render(<SignupPage />);
+    render(<SignupClient />);
 
     const emailSubmitButton = screen.getByTestId('email-submit-button');
     fireEvent.click(emailSubmitButton);
@@ -162,13 +162,13 @@ describe('SignupPage', () => {
       code: 'auth/email-already-in-use',
       message: 'Email already in use',
       name: 'FirebaseError',
-      customData: {}
+      customData: { appName: 'ReviewAlert' }
     };
 
     (signUpWithEmail as jest.Mock).mockRejectedValue(mockError);
     (getAuthErrorMessage as jest.Mock).mockReturnValue('An account with this email address already exists. Please sign in instead.');
 
-    render(<SignupPage />);
+    render(<SignupClient />);
 
     const emailSubmitButton = screen.getByTestId('email-submit-button');
     fireEvent.click(emailSubmitButton);
@@ -191,7 +191,7 @@ describe('SignupPage', () => {
   });
 
   it('handles successful Google signup', async () => {
-    render(<SignupPage />);
+    render(<SignupClient />);
 
     const googleButton = screen.getByTestId('google-signup-button');
     fireEvent.click(googleButton);
@@ -228,7 +228,7 @@ describe('SignupPage', () => {
       options.onError(mockError);
     });
 
-    render(<SignupPage />);
+    render(<SignupClient />);
 
     const googleButton = screen.getByTestId('google-signup-button');
     fireEvent.click(googleButton);
@@ -253,7 +253,7 @@ describe('SignupPage', () => {
       options.onError(mockError);
     });
 
-    render(<SignupPage />);
+    render(<SignupClient />);
 
     const googleButton = screen.getByTestId('google-signup-button');
     fireEvent.click(googleButton);
@@ -271,7 +271,7 @@ describe('SignupPage', () => {
   it('handles server sign-in failure after successful Firebase signup', async () => {
     (signInToServer as jest.Mock).mockRejectedValue(new Error('Server error'));
 
-    render(<SignupPage />);
+    render(<SignupClient />);
 
     const emailSubmitButton = screen.getByTestId('email-submit-button');
     fireEvent.click(emailSubmitButton);
@@ -291,7 +291,7 @@ describe('SignupPage', () => {
   });
 
   it('disables buttons during loading states', async () => {
-    render(<SignupPage />);
+    render(<SignupClient />);
 
     const emailSubmitButton = screen.getByTestId('email-submit-button');
     const googleButton = screen.getByTestId('google-signup-button');
@@ -309,7 +309,7 @@ describe('SignupPage', () => {
   it('handles missing user from Firebase response', async () => {
     (signUpWithEmail as jest.Mock).mockResolvedValue({ user: null });
 
-    render(<SignupPage />);
+    render(<SignupClient />);
 
     const emailSubmitButton = screen.getByTestId('email-submit-button');
     fireEvent.click(emailSubmitButton);
@@ -326,12 +326,12 @@ describe('SignupPage', () => {
   });
 
   it('displays toast container', () => {
-    render(<SignupPage />);
+    render(<SignupClient />);
     expect(screen.getByTestId('toast-container')).toBeInTheDocument();
   });
 
   it('shows correct alternate action link', () => {
-    render(<SignupPage />);
+    render(<SignupClient />);
     const signInLink = screen.getByText('Sign in');
     expect(signInLink).toBeInTheDocument();
     expect(signInLink.closest('a')).toHaveAttribute('href', '/login');
@@ -339,7 +339,7 @@ describe('SignupPage', () => {
 
   describe('Navigation and Routing', () => {
     it('renders breadcrumb navigation', () => {
-      render(<SignupPage />);
+      render(<SignupClient />);
       
       expect(screen.getByRole('navigation', { name: /breadcrumb/i })).toBeInTheDocument();
       expect(screen.getByText('Home')).toBeInTheDocument();
@@ -347,14 +347,14 @@ describe('SignupPage', () => {
     });
 
     it('breadcrumb home link navigates to home page', () => {
-      render(<SignupPage />);
+      render(<SignupClient />);
       
       const homeLink = screen.getByRole('link', { name: 'Home' });
       expect(homeLink).toHaveAttribute('href', '/');
     });
 
     it('marks current page in breadcrumbs', () => {
-      render(<SignupPage />);
+      render(<SignupClient />);
       
       const breadcrumbItems = screen.getAllByText('Sign Up');
       const breadcrumbCurrentPage = breadcrumbItems.find(item => 
@@ -371,7 +371,7 @@ describe('SignupPage', () => {
         isAuthenticated: true,
       });
 
-      render(<SignupPage />);
+      render(<SignupClient />);
 
       // Should not render the signup form content
       await waitFor(() => {
@@ -387,7 +387,7 @@ describe('SignupPage', () => {
         isAuthenticated: false,
       });
 
-      render(<SignupPage />);
+      render(<SignupClient />);
 
       expect(screen.getByRole('progressbar')).toBeInTheDocument();
       expect(screen.getByText('Loading...')).toBeInTheDocument();
@@ -401,7 +401,7 @@ describe('SignupPage', () => {
         isAuthenticated: false,
       });
 
-      render(<SignupPage />);
+      render(<SignupClient />);
 
       expect(screen.getByText('Create Your Account')).toBeInTheDocument();
       expect(screen.getByTestId('email-auth-form')).toBeInTheDocument();

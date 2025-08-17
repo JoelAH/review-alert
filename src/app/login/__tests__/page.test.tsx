@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import LoginPage from '../page';
+import LoginClient from '../client';
 import { signInWithEmail, signInWithGoogle } from '@/lib/firebase/auth';
 import { signInToServer } from '@/lib/services/auth';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -91,7 +91,7 @@ const getPasswordInput = () => screen.getByLabelText('Password');
 
 describe('LoginPage', () => {
   it('renders login form with correct title and subtitle', () => {
-    render(<LoginPage />);
+    render(<LoginClient/>);
     
     expect(screen.getByText('Welcome Back')).toBeInTheDocument();
     expect(screen.getByText('Sign in to continue monitoring your app reviews')).toBeInTheDocument();
@@ -100,7 +100,7 @@ describe('LoginPage', () => {
   });
 
   it('renders email form and Google button', () => {
-    render(<LoginPage />);
+    render(<LoginClient/>);
     
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(getPasswordInput()).toBeInTheDocument();
@@ -117,7 +117,7 @@ describe('LoginPage', () => {
       (signInWithEmail as jest.Mock).mockResolvedValue(mockUserCredential);
       (signInToServer as jest.Mock).mockResolvedValue(undefined);
 
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       // Fill in the form
       fireEvent.change(screen.getByLabelText(/email/i), {
@@ -153,7 +153,7 @@ describe('LoginPage', () => {
 
       (signInWithEmail as jest.Mock).mockRejectedValue(mockError);
 
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       // Fill in the form
       fireEvent.change(screen.getByLabelText(/email/i), {
@@ -181,7 +181,7 @@ describe('LoginPage', () => {
 
       (signInWithEmail as jest.Mock).mockRejectedValue(mockError);
 
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       // Fill in the form
       fireEvent.change(screen.getByLabelText(/email/i), {
@@ -206,7 +206,7 @@ describe('LoginPage', () => {
         new Promise(resolve => setTimeout(resolve, 100))
       );
 
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       // Fill in the form
       fireEvent.change(screen.getByLabelText(/email/i), {
@@ -235,7 +235,7 @@ describe('LoginPage', () => {
       (signInWithGoogle as jest.Mock).mockResolvedValue(mockUserCredential);
       (signInToServer as jest.Mock).mockResolvedValue(undefined);
 
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       // Click Google login button
       fireEvent.click(screen.getByTestId('google-login-button'));
@@ -263,7 +263,7 @@ describe('LoginPage', () => {
 
       (signInWithGoogle as jest.Mock).mockRejectedValue(mockError);
 
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       // Click Google login button
       fireEvent.click(screen.getByTestId('google-login-button'));
@@ -283,7 +283,7 @@ describe('LoginPage', () => {
         new Promise(resolve => setTimeout(resolve, 100))
       );
 
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       // Click Google login button
       fireEvent.click(screen.getByTestId('google-login-button'));
@@ -295,7 +295,7 @@ describe('LoginPage', () => {
 
   describe('Navigation', () => {
     it('has correct link to signup page', () => {
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       const signupLink = screen.getByRole('link', { name: /sign up/i });
       expect(signupLink).toHaveAttribute('href', '/signup');
@@ -311,7 +311,7 @@ describe('LoginPage', () => {
 
       (signInWithEmail as jest.Mock).mockRejectedValue(mockError);
 
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       // Fill in the form
       fireEvent.change(screen.getByLabelText(/email/i), {
@@ -337,7 +337,7 @@ describe('LoginPage', () => {
       (signInWithEmail as jest.Mock).mockResolvedValue(mockUserCredential);
       (signInToServer as jest.Mock).mockRejectedValue(new Error('Server error'));
 
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       // Fill in the form
       fireEvent.change(screen.getByLabelText(/email/i), {
@@ -361,7 +361,7 @@ describe('LoginPage', () => {
 
   describe('Accessibility', () => {
     it('has proper ARIA labels and roles', () => {
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
       expect(getPasswordInput()).toBeInTheDocument();
@@ -372,7 +372,7 @@ describe('LoginPage', () => {
 
   describe('Navigation and Routing', () => {
     it('renders breadcrumb navigation', () => {
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       expect(screen.getByRole('navigation', { name: /breadcrumb/i })).toBeInTheDocument();
       expect(screen.getByText('Home')).toBeInTheDocument();
@@ -380,14 +380,14 @@ describe('LoginPage', () => {
     });
 
     it('breadcrumb home link navigates to home page', () => {
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       const homeLink = screen.getByRole('link', { name: 'Home' });
       expect(homeLink).toHaveAttribute('href', '/');
     });
 
     it('marks current page in breadcrumbs', () => {
-      render(<LoginPage />);
+      render(<LoginClient/>);
       
       const breadcrumbItems = screen.getAllByText('Sign In');
       const breadcrumbCurrentPage = breadcrumbItems.find(item => 
@@ -404,7 +404,7 @@ describe('LoginPage', () => {
         isAuthenticated: true,
       });
 
-      render(<LoginPage />);
+      render(<LoginClient/>);
 
       // Should not render the login form content
       await waitFor(() => {
@@ -420,7 +420,7 @@ describe('LoginPage', () => {
         isAuthenticated: false,
       });
 
-      render(<LoginPage />);
+      render(<LoginClient/>);
 
       expect(screen.getByRole('progressbar')).toBeInTheDocument();
       expect(screen.getByText('Loading...')).toBeInTheDocument();
@@ -434,7 +434,7 @@ describe('LoginPage', () => {
         isAuthenticated: false,
       });
 
-      render(<LoginPage />);
+      render(<LoginClient/>);
 
       expect(screen.getByText('Welcome Back')).toBeInTheDocument();
       expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
