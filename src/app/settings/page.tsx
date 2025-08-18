@@ -1,11 +1,11 @@
-import NewDashboard from "@/components/NewDashboard";
+import ClientDashboard from "@/components/clientDashboard";
 import dbConnect from "@/lib/db/db";
 import { getUser } from "@/lib/db/user";
 import { formatUser, User } from "@/lib/models/server/user";
 import { checkAuth } from "@/lib/services/middleware";
 import DashboardNavigation from "@/components/DashboardNavigation";
 
-export default async function Dashboard() {
+export default async function Settings() {
     const userClaims = await checkAuth();
     await dbConnect();
 
@@ -18,7 +18,7 @@ export default async function Dashboard() {
     return (
         <>
             <DashboardNavigation />
-            <NewDashboard user={user}/>
+            <ClientDashboard user={user}/>
         </>
     )
 }

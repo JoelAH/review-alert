@@ -69,7 +69,7 @@ export default function ClientDashboard({ user }: { user: User | null }) {
         <Container maxWidth="md">
             <Box sx={{ my: 4 }}>
                 <Typography variant="h4" component="h1" gutterBottom>
-                    Dashboard
+                    Settings
                 </Typography>
                 <Typography variant="h6" component="h1" gutterBottom>
                     {
