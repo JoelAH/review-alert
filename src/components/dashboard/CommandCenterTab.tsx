@@ -10,22 +10,36 @@ import {
     Grid,
     Card,
     CardContent,
-    Stack,
     useTheme,
-    useMediaQuery,
     Divider,
+    Button,
+    IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Alert,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import AndroidIcon from '@mui/icons-material/Android';
 import AppleIcon from '@mui/icons-material/Apple';
 import ExtensionIcon from '@mui/icons-material/Extension';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import { User } from '@/lib/models/client/user';
 import { useFormState, useFormStatus } from 'react-dom';
 import { LoadingButton } from '@mui/lab';
-import { onSaveInfo } from '@/actions/onSaveInfo';
+import { onSaveEmail } from '@/actions/onSaveEmail';
+import { onSaveApp } from '@/actions/onSaveApp';
+import { onDeleteApp } from '@/actions/onDeleteApp';
 
-function ConfirmSubmit(): JSX.Element {
+function SaveEmailButton(): JSX.Element {
     const { pending } = useFormStatus();
 
     return (
@@ -37,12 +51,32 @@ function ConfirmSubmit(): JSX.Element {
             type='submit'
             variant="contained"
             startIcon={<SaveIcon />}
+        >
+            <span>Save Email</span>
+        </LoadingButton>
+    );
+}
+
+function SaveAppButton({ disabled = false }: { disabled?: boolean }): JSX.Element {
+    const { pending } = useFormStatus();
+
+    return (
+        <LoadingButton
+            disabled={pending || disabled}
+            loading={pending}
+            color='primary'
+            size="medium"
+            type='submit'
+            variant="contained"
+            startIcon={<SaveIcon />}
             fullWidth
         >
-            <span>Save Configuration</span>
+            <span>Save App</span>
         </LoadingButton>
-    )
+    );
 }
+
+
 
 function getStoreInfo(store: string) {
     switch (store) {
@@ -73,42 +107,85 @@ function getStoreInfo(store: string) {
     }
 }
 
+type StoreType = 'ChromeExt' | 'GooglePlay' | 'AppleStore';
+
+interface AppDialogState {
+    open: boolean;
+    store: StoreType | null;
+    url: string;
+    isEdit: boolean;
+    editingAppId?: string;
+}
+
 export default function CommandCenterTab({ user }: { user: User | null }) {
     const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     
     const [email, setEmail] = useState('');
-    const [chromeLink, setChromeLink] = useState('');
-    const [playStoreLink, setPlayStoreLink] = useState('');
-    const [appStoreLink, setAppStoreLink] = useState('');
-
-    const [chromeLinkId, setChromeLinkId] = useState('');
-    const [playStoreLinkId, setPlayStoreLinkId] = useState('');
-    const [appStoreLinkId, setAppStoreLinkId] = useState('');
-
     const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [state, formAction] = useFormState(onSaveInfo, {});
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    
+    // Dialog state for app management
+    const [appDialog, setAppDialog] = useState<AppDialogState>({
+        open: false,
+        store: null,
+        url: '',
+        isEdit: false,
+        editingAppId: undefined
+    });
+
+    // Form states
+    const [emailState, emailAction] = useFormState(onSaveEmail, {});
+    const [appState, appAction] = useFormState(onSaveApp, {});
+    const [deleteState, deleteAction] = useFormState(onDeleteApp, {});
 
     useEffect(() => {
-        if (state?.success) {
+        if (emailState?.success) {
+            setSnackbarMessage(emailState.message);
             setOpenSnackbar(true);
         }
-    }, [state])
+    }, [emailState]);
+
+    useEffect(() => {
+        if (appState?.success) {
+            setSnackbarMessage(appState.message);
+            setOpenSnackbar(true);
+            setAppDialog({ open: false, store: null, url: '', isEdit: false, editingAppId: undefined });
+        }
+    }, [appState]);
+
+    useEffect(() => {
+        if (deleteState?.success) {
+            setSnackbarMessage(deleteState.message);
+            setOpenSnackbar(true);
+        }
+    }, [deleteState]);
 
     useEffect(() => {
         if (user) {
             setEmail(user.email || '');
-            setPlayStoreLink(user.apps?.find(app => app.store === 'GooglePlay')?.url || '');
-            setAppStoreLink(user.apps?.find(app => app.store === 'AppleStore')?.url || '');
-            setChromeLink(user.apps?.find(app => app.store === 'ChromeExt')?.url || '');
-
-            setPlayStoreLinkId(user.apps?.find(app => app.store === 'GooglePlay')?._id || '');
-            setAppStoreLinkId(user.apps?.find(app => app.store === 'AppleStore')?._id || '');
-            setChromeLinkId(user.apps?.find(app => app.store === 'ChromeExt')?._id || '');
         }
-    }, [user])
+    }, [user]);
 
     const trackedApps = user?.apps || [];
+
+    const handleOpenAppDialog = (store: StoreType | null = null, isEdit: boolean = false, appId?: string) => {
+        let existingApp;
+        if (isEdit && appId) {
+            existingApp = user?.apps?.find(app => app._id === appId);
+        }
+        
+        setAppDialog({
+            open: true,
+            store: store || existingApp?.store || null,
+            url: existingApp?.url || '',
+            isEdit,
+            editingAppId: appId
+        });
+    };
+
+    const handleCloseAppDialog = () => {
+        setAppDialog({ open: false, store: null, url: '', isEdit: false, editingAppId: undefined });
+    };
 
     return (
         <Box>
@@ -117,90 +194,26 @@ export default function CommandCenterTab({ user }: { user: User | null }) {
                     Settings & Configuration
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Manage your app tracking and notification preferences
+                    Manage your notification email and tracked apps individually
                 </Typography>
             </Box>
 
             <Grid container spacing={3}>
-                {/* Current Apps Overview */}
-                {trackedApps.length > 0 && (
-                    <Grid item xs={12}>
-                        <Paper elevation={1} sx={{ p: 3, mb: 2 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                                <NotificationsIcon color="primary" />
-                                <Typography variant="h6">
-                                    Currently Tracking
-                                </Typography>
-                            </Box>
-                            <Grid container spacing={2}>
-                                {trackedApps.map((app, index) => {
-                                    const storeInfo = getStoreInfo(app.store);
-                                    return (
-                                        <Grid item xs={12} sm={6} md={4} key={index}>
-                                            <Card 
-                                                elevation={0} 
-                                                sx={{ 
-                                                    border: 1, 
-                                                    borderColor: 'divider',
-                                                    backgroundColor: theme.palette.grey[50]
-                                                }}
-                                            >
-                                                <CardContent sx={{ p: 2 }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                                        {storeInfo.icon}
-                                                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                                            {storeInfo.name}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Typography 
-                                                        variant="caption" 
-                                                        color="text.secondary"
-                                                        sx={{ 
-                                                            display: 'block',
-                                                            overflow: 'hidden',
-                                                            textOverflow: 'ellipsis',
-                                                            whiteSpace: 'nowrap'
-                                                        }}
-                                                    >
-                                                        {app.url}
-                                                    </Typography>
-                                                </CardContent>
-                                            </Card>
-                                        </Grid>
-                                    );
-                                })}
-                            </Grid>
-                            <Box sx={{ mt: 2, p: 2, backgroundColor: theme.palette.primary.main + '10', borderRadius: 1 }}>
-                                <Typography variant="body2" color="primary" sx={{ fontWeight: 500 }}>
-                                    ✓ You&apos;re receiving notifications every 4 hours for new reviews
-                                </Typography>
-                            </Box>
-                        </Paper>
-                    </Grid>
-                )}
-
-                {/* Configuration Form */}
+                {/* Email Configuration */}
                 <Grid item xs={12}>
                     <Paper elevation={1} sx={{ p: 3 }}>
-                        <Typography variant="h6" gutterBottom>
-                            {trackedApps.length > 0 ? 'Update Configuration' : 'Initial Setup'}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                            <NotificationsIcon color="primary" />
+                            <Typography variant="h6">
+                                Notification Email
+                            </Typography>
+                        </Box>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                            {trackedApps.length > 0 
-                                ? 'Modify your app links and notification settings'
-                                : 'Add your app store links and email to get started'
-                            }
+                            We&apos;ll send review alerts to this email address every 4 hours
                         </Typography>
 
-                        <Box component="form" action={formAction} noValidate autoComplete="off">
-                            {/* Email Configuration */}
-                            <Box sx={{ mb: 4 }}>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-                                    Notification Email
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                    We&apos;ll send review alerts to this email address
-                                </Typography>
+                        <Box component="form" action={emailAction} noValidate autoComplete="off">
+                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
                                 <TextField
                                     name='email'
                                     fullWidth
@@ -209,122 +222,229 @@ export default function CommandCenterTab({ user }: { user: User | null }) {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     variant="outlined"
+                                    size="small"
                                 />
+                                <SaveEmailButton />
                             </Box>
 
-                            <Divider sx={{ my: 3 }} />
-
-                            {/* App Store Links */}
-                            <Box sx={{ mb: 4 }}>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-                                    App Store Links
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                                    Add links to your apps on different platforms
-                                </Typography>
-
-                                <Stack spacing={3}>
-                                    {/* Chrome Web Store */}
-                                    <Box>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                            <ExtensionIcon sx={{ color: '#4285F4' }} />
-                                            <Typography variant="subtitle2">Chrome Web Store</Typography>
-                                        </Box>
-                                        <input name='chromeId' type='hidden' value={chromeLinkId || state?.user?.chromeId} />
-                                        <TextField
-                                            name='chrome'
-                                            fullWidth
-                                            label="Chrome Extension Link"
-                                            placeholder='https://chromewebstore.google.com/detail/your-extension/...'
-                                            value={chromeLink}
-                                            onChange={(e) => setChromeLink(e.target.value)}
-                                            variant="outlined"
-                                            size={isMobile ? "medium" : "small"}
-                                        />
-                                    </Box>
-
-                                    {/* Google Play Store */}
-                                    <Box>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                            <AndroidIcon sx={{ color: '#4CAF50' }} />
-                                            <Typography variant="subtitle2">Google Play Store</Typography>
-                                        </Box>
-                                        <input name='googleId' type='hidden' value={playStoreLinkId || state?.user?.googleId} />
-                                        <TextField
-                                            name='google'
-                                            fullWidth
-                                            label="Android App Link"
-                                            placeholder='https://play.google.com/store/apps/details?id=your.app.package'
-                                            value={playStoreLink}
-                                            onChange={(e) => setPlayStoreLink(e.target.value)}
-                                            variant="outlined"
-                                            size={isMobile ? "medium" : "small"}
-                                        />
-                                    </Box>
-
-                                    {/* Apple App Store */}
-                                    <Box>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                            <AppleIcon sx={{ color: '#000' }} />
-                                            <Typography variant="subtitle2">Apple App Store</Typography>
-                                        </Box>
-                                        <input name='appleId' type='hidden' value={appStoreLinkId || state?.user?.appleId} />
-                                        <TextField
-                                            name='apple'
-                                            fullWidth
-                                            label="iOS App Link"
-                                            placeholder='https://apps.apple.com/app/your-app/id123456789'
-                                            value={appStoreLink}
-                                            onChange={(e) => setAppStoreLink(e.target.value)}
-                                            variant="outlined"
-                                            size={isMobile ? "medium" : "small"}
-                                        />
-                                    </Box>
-                                </Stack>
-                            </Box>
-
-                            <Box sx={{ mt: 3 }}>
-                                <ConfirmSubmit />
-                            </Box>
-
-                            {state?.errors?.length > 0 && (
-                                <Box sx={{ mt: 2 }}>
-                                    <Paper 
-                                        elevation={0} 
-                                        sx={{ 
-                                            p: 2, 
-                                            backgroundColor: theme.palette.error.main + '10',
-                                            border: 1,
-                                            borderColor: theme.palette.error.main + '30'
-                                        }}
-                                    >
-                                        <Typography variant="subtitle2" color="error" sx={{ mb: 1 }}>
-                                            Please fix the following issues:
-                                        </Typography>
-                                        <ul style={{ margin: 0, paddingLeft: 20 }}>
-                                            {state.errors.map((error: string, index: number) => (
-                                                <li key={index}>
-                                                    <Typography variant="body2" color="error">
-                                                        {error}
-                                                    </Typography>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </Paper>
-                                </Box>
+                            {emailState?.errors?.length > 0 && (
+                                <Alert severity="error" sx={{ mt: 2 }}>
+                                    {emailState.errors[0]}
+                                </Alert>
                             )}
                         </Box>
                     </Paper>
                 </Grid>
+
+                {/* Current Apps Overview */}
+                <Grid item xs={12}>
+                    <Paper elevation={1} sx={{ p: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                            <Typography variant="h6">
+                                Tracked Apps
+                            </Typography>
+                        </Box>
+
+                        {trackedApps.length > 0 ? (
+                            <>
+                                <Grid container spacing={2}>
+                                    {trackedApps.map((app, index) => {
+                                        const storeInfo = getStoreInfo(app.store);
+                                        return (
+                                            <Grid item xs={12} sm={6} md={4} key={index}>
+                                                <Card 
+                                                    elevation={0} 
+                                                    sx={{ 
+                                                        border: 1, 
+                                                        borderColor: 'divider',
+                                                        backgroundColor: theme.palette.grey[50]
+                                                    }}
+                                                >
+                                                    <CardContent sx={{ p: 2 }}>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                {storeInfo.icon}
+                                                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                                                    {storeInfo.name}
+                                                                </Typography>
+                                                            </Box>
+                                                            <Box>
+                                                                <IconButton 
+                                                                    size="small" 
+                                                                    onClick={() => handleOpenAppDialog(null, true, app._id)}
+                                                                    sx={{ mr: 0.5 }}
+                                                                >
+                                                                    <EditIcon fontSize="small" />
+                                                                </IconButton>
+                                                                <Box component="form" action={deleteAction} sx={{ display: 'inline' }}>
+                                                                    <input type="hidden" name="appId" value={app._id} />
+                                                                    <IconButton 
+                                                                        size="small" 
+                                                                        color="error"
+                                                                        type="submit"
+                                                                    >
+                                                                        <DeleteIcon fontSize="small" />
+                                                                    </IconButton>
+                                                                </Box>
+                                                            </Box>
+                                                        </Box>
+                                                        <Typography 
+                                                            variant="caption" 
+                                                            color="text.secondary"
+                                                            sx={{ 
+                                                                display: 'block',
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                whiteSpace: 'nowrap'
+                                                            }}
+                                                        >
+                                                            {app.url}
+                                                        </Typography>
+                                                    </CardContent>
+                                                </Card>
+                                            </Grid>
+                                        );
+                                    })}
+                                </Grid>
+                                <Box sx={{ mt: 2, p: 2, backgroundColor: theme.palette.primary.main + '10', borderRadius: 1 }}>
+                                    <Typography variant="body2" color="primary" sx={{ fontWeight: 500 }}>
+                                        ✓ You&apos;re receiving notifications every 4 hours for new reviews
+                                    </Typography>
+                                </Box>
+                            </>
+                        ) : (
+                            <Box sx={{ textAlign: 'center', py: 4 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                    No apps are currently being tracked
+                                </Typography>
+                            </Box>
+                        )}
+
+                        {/* Add App Button */}
+                        <Divider sx={{ my: 3 }} />
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Button
+                                variant="contained"
+                                startIcon={<AddIcon />}
+                                onClick={() => handleOpenAppDialog()}
+                                sx={{ py: 1.5, px: 4 }}
+                            >
+                                Add New App
+                            </Button>
+                        </Box>
+                    </Paper>
+                </Grid>
             </Grid>
+
+            {/* App Dialog */}
+            <Dialog 
+                open={appDialog.open} 
+                onClose={handleCloseAppDialog}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>
+                    {appDialog.isEdit ? 'Edit App' : 'Add New App'}
+                </DialogTitle>
+                <Box component="form" action={appAction}>
+                    <DialogContent>
+                        <input type="hidden" name="store" value={appDialog.store || ''} />
+                        <input type="hidden" name="appId" value={appDialog.editingAppId || ''} />
+                        
+                        {/* Store Selector - only show for new apps */}
+                        {!appDialog.isEdit && (
+                            <FormControl fullWidth sx={{ mb: 2 }}>
+                                <InputLabel>App Store</InputLabel>
+                                <Select
+                                    value={appDialog.store || ''}
+                                    label="App Store"
+                                    onChange={(e) => setAppDialog(prev => ({ 
+                                        ...prev, 
+                                        store: e.target.value as StoreType,
+                                        url: '' // Reset URL when store changes
+                                    }))}
+                                >
+                                    <MenuItem value="ChromeExt">
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <ExtensionIcon sx={{ color: '#4285F4' }} />
+                                            Chrome Web Store
+                                        </Box>
+                                    </MenuItem>
+                                    <MenuItem value="GooglePlay">
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <AndroidIcon sx={{ color: '#4CAF50' }} />
+                                            Google Play Store
+                                        </Box>
+                                    </MenuItem>
+                                    <MenuItem value="AppleStore">
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <AppleIcon sx={{ color: '#000' }} />
+                                            Apple App Store
+                                        </Box>
+                                    </MenuItem>
+                                </Select>
+                            </FormControl>
+                        )}
+
+                        {/* Store info for edit mode */}
+                        {appDialog.isEdit && appDialog.store && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
+                                {getStoreInfo(appDialog.store).icon}
+                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                    {getStoreInfo(appDialog.store).name}
+                                </Typography>
+                            </Box>
+                        )}
+                        
+                        <TextField
+                            name="url"
+                            fullWidth
+                            label="App URL"
+                            placeholder={getPlaceholder(appDialog.store)}
+                            value={appDialog.url}
+                            onChange={(e) => setAppDialog(prev => ({ ...prev, url: e.target.value }))}
+                            variant="outlined"
+                            disabled={!appDialog.store}
+                            helperText={!appDialog.store && !appDialog.isEdit ? "Please select an app store first" : ""}
+                        />
+
+                        {appState?.errors?.length > 0 && (
+                            <Alert severity="error" sx={{ mt: 2 }}>
+                                <ul style={{ margin: 0, paddingLeft: 20 }}>
+                                    {appState.errors.map((error: string, index: number) => (
+                                        <li key={index}>{error}</li>
+                                    ))}
+                                </ul>
+                            </Alert>
+                        )}
+                    </DialogContent>
+                    <DialogActions sx={{ p: 3, pt: 1 }}>
+                        <Button onClick={handleCloseAppDialog}>Cancel</Button>
+                        <SaveAppButton disabled={!appDialog.store} />
+                    </DialogActions>
+                </Box>
+            </Dialog>
 
             <Snackbar
                 open={openSnackbar}
                 autoHideDuration={6000}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                 onClose={() => setOpenSnackbar(false)}
-                message="Configuration saved successfully!"
+                message={snackbarMessage}
             />
         </Box>
     );
+
+    function getPlaceholder(store: StoreType | null): string {
+        switch (store) {
+            case 'ChromeExt':
+                return 'https://chromewebstore.google.com/detail/your-extension/...';
+            case 'GooglePlay':
+                return 'https://play.google.com/store/apps/details?id=your.app.package';
+            case 'AppleStore':
+                return 'https://apps.apple.com/app/your-app/id123456789';
+            default:
+                return '';
+        }
+    }
 }

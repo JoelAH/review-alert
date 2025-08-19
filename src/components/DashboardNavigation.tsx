@@ -13,11 +13,10 @@ import {
 } from '@mui/material';
 import { signOut } from '@/lib/firebase/auth';
 import { signOutOfServer } from '@/lib/services/auth';
-import SettingsIcon from '@mui/icons-material/Settings';
 
 /**
  * Navigation component specifically for authenticated dashboard pages
- * Includes dashboard/settings navigation and sign out functionality
+ * Includes sign out functionality
  */
 export default function DashboardNavigation() {
   const router = useRouter();
@@ -100,22 +99,6 @@ export default function DashboardNavigation() {
               Dashboard
             </Button>
           )}
-
-          {/* Settings Link */}
-          <Button
-            variant={pathname === '/settings' ? 'contained' : 'outlined'}
-            color="primary"
-            size={isMobile ? 'small' : 'medium'}
-            onClick={() => router.push('/settings')}
-            startIcon={!isMobile ? <SettingsIcon /> : undefined}
-            sx={{
-              minWidth: { xs: 'auto', sm: '100px' },
-              px: { xs: 1.5, sm: 2 }
-            }}
-            aria-current={pathname === '/settings' ? 'page' : undefined}
-          >
-            {isMobile ? <SettingsIcon /> : 'Settings'}
-          </Button>
 
           {/* Sign Out Button */}
           <Button
