@@ -1,3 +1,12 @@
+/**
+ * @deprecated This action has been replaced by separate actions:
+ * - onSaveEmail.ts for email updates
+ * - onSaveApp.ts for individual app management
+ * - onDeleteApp.ts for app removal
+ * 
+ * This file is kept for backward compatibility but should not be used in new code.
+ */
+
 "use server";
 
 import dbConnect from "@/lib/db/db";
@@ -11,8 +20,10 @@ import { Types } from "mongoose";
 const EMAIL_TEST = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const URL_TEST = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
 
-
-export async function onSaveInfo(prevState: any, formData: FormData): Promise<any> {
+/**
+ * @deprecated Use onSaveEmail and onSaveApp actions instead
+ */
+export async function onSaveInfo(_prevState: any, formData: FormData): Promise<any> {
     const decoded = await checkAuth();
     if (!decoded) {
         redirect('/');
@@ -32,31 +43,24 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
     if (!email || !EMAIL_TEST.test(email)) {
         errors.push('Please submit a valid email address');
     }
-    if (
-        google && (!URL_TEST.test(google))
-    ) {
+    if (google && (!URL_TEST.test(google))) {
         errors.push("Please submit a valid play store link")
     }
-    if (
-        apple && !URL_TEST.test(apple)
-    ) {
+    if (apple && !URL_TEST.test(apple)) {
         errors.push("Please submit a valid apple store link")
     }
-    if (
-        chrome && !URL_TEST.test(chrome)
-    ) {
+    if (chrome && !URL_TEST.test(chrome)) {
         errors.push("Please submit a valid chrome store link")
     }
 
     if (errors.length) {
-        return {
-            errors
-        }
+        return { errors }
     }
 
     const user = await getUser(decoded.uid);
     let dirtyIds: string[] = [];
     let saved;
+    
     if (user) {
         user.email = email;
         const apps = [];
@@ -73,7 +77,6 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
                     dirtyIds.push(chromeId);
                 }
             }
-
             apps.push(chromeApp);
         }
 
@@ -92,7 +95,6 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
                     dirtyIds.push(googleId);
                 }
             }
-
             apps.push(googleApp)
         }
 
@@ -106,7 +108,6 @@ export async function onSaveInfo(prevState: any, formData: FormData): Promise<an
                     dirtyIds.push(appleId);
                 }
             }
-
             apps.push(appleApp);
         }
 
