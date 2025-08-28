@@ -308,7 +308,7 @@ export default function CommandCenterTab({ user }: { user: User | null }) {
                                 </Grid>
                                 <Box sx={{ mt: 2, p: 2, backgroundColor: theme.palette.primary.main + '10', borderRadius: 1 }}>
                                     <Typography variant="body2" color="primary" sx={{ fontWeight: 500 }}>
-                                        ✓ You&apos;re receiving notifications every 4 hours for new reviews
+                                        ✓ You&apos;re receiving notifications for new reviews
                                     </Typography>
                                 </Box>
                             </>
