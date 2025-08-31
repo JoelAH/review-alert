@@ -1,88 +1,61 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     Box,
     Typography,
-    Card,
-    CardContent,
     Grid,
-    Chip,
-    Avatar,
-    Stack,
-    useTheme,
-    useMediaQuery,
+    Button,
+    CircularProgress,
+    Alert,
     Paper,
+    useTheme,
 } from '@mui/material';
 import { User } from '@/lib/models/client/user';
-import StarIcon from '@mui/icons-material/Star';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
-import AndroidIcon from '@mui/icons-material/Android';
-import AppleIcon from '@mui/icons-material/Apple';
-import ExtensionIcon from '@mui/icons-material/Extension';
-
-// Mock data for demonstration
-const mockReviews = [
-    {
-        id: 1,
-        appName: "My Chrome Extension",
-        store: "ChromeExt",
-        rating: 5,
-        reviewer: "John D.",
-        comment: "Amazing extension! Really helps with productivity.",
-        date: "2 hours ago",
-        isNew: true,
-    },
-    {
-        id: 2,
-        appName: "My Android App",
-        store: "GooglePlay",
-        rating: 4,
-        reviewer: "Sarah M.",
-        comment: "Great app, but could use some UI improvements.",
-        date: "5 hours ago",
-        isNew: true,
-    },
-    {
-        id: 3,
-        appName: "My iOS App",
-        store: "AppleStore",
-        rating: 5,
-        reviewer: "Mike R.",
-        comment: "Perfect! Exactly what I was looking for.",
-        date: "1 day ago",
-        isNew: false,
-    },
-];
-
-function getStoreIcon(store: string) {
-    switch (store) {
-        case 'GooglePlay':
-            return <AndroidIcon sx={{ color: '#4CAF50' }} />;
-        case 'AppleStore':
-            return <AppleIcon sx={{ color: '#000' }} />;
-        case 'ChromeExt':
-            return <ExtensionIcon sx={{ color: '#4285F4' }} />;
-        default:
-            return <ExtensionIcon />;
-    }
-}
-
-function renderStars(rating: number) {
-    return (
-        <Stack direction="row" spacing={0.5}>
-            {[1, 2, 3, 4, 5].map((star) => (
-                star <= rating ? 
-                    <StarIcon key={star} sx={{ color: '#FFD700', fontSize: '1rem' }} /> :
-                    <StarBorderIcon key={star} sx={{ color: '#E0E0E0', fontSize: '1rem' }} />
-            ))}
-        </Stack>
-    );
-}
+import { Review } from '@/lib/models/client/review';
+import { useReviews, ReviewFilters as ReviewFiltersType } from '@/lib/hooks/useReviews';
+import { useAuth } from '@/lib/hooks/useAuth';
+import ReviewOverview from './ReviewOverview';
+import ReviewFilters from './ReviewFilters';
+import ReviewCard from './ReviewCard';
+import { Platform } from './types';
 
 export default function FeedTab({ user }: { user: User | null }) {
     const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const { isAuthenticated } = useAuth();
+    
+    // State for filters
+    const [filters, setFilters] = useState<ReviewFiltersType>({});
+    
+    // Use the reviews hook for data fetching
+    const {
+        reviews,
+        loading,
+        error,
+        hasMore,
+        totalCount,
+        overview,
+        loadMore,
+        refresh,
+        setFilters: updateFilters,
+        clearError
+    } = useReviews(filters);
+
+    // Handle filter changes
+    const handleFiltersChange = useCallback((newFilters: ReviewFiltersType) => {
+        setFilters(newFilters);
+        updateFilters(newFilters);
+    }, [updateFilters]);
+
+    // Handle load more button click
+    const handleLoadMore = useCallback(() => {
+        loadMore();
+    }, [loadMore]);
+
+    // Handle refresh
+    const handleRefresh = useCallback(() => {
+        refresh();
+    }, [refresh]);
 
     // Show setup message if user hasn't configured apps
     if (!user?.apps || user.apps.length === 0) {
@@ -111,108 +84,150 @@ export default function FeedTab({ user }: { user: User | null }) {
         );
     }
 
+    // Show authentication required message
+    if (!isAuthenticated) {
+        return (
+            <Box sx={{ textAlign: 'center', py: 8 }}>
+                <Typography variant="h6" gutterBottom>
+                    Authentication Required
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                    Please sign in to view your reviews.
+                </Typography>
+            </Box>
+        );
+    }
+
+    // Helper function to get app name and platform for a review
+    const getAppInfoForReview = (review: Review): { appName: string; platform: Platform } => {
+        // Try to find the app from user's apps based on appId
+        const userApp = user?.apps?.find(app => app._id === review.appId || app.appId === review.appId);
+        
+        if (userApp) {
+            return {
+                appName: `App (${userApp.store})`, // Since we don't have app names in the current model
+                platform: userApp.store as Platform
+            };
+        }
+        
+        // Fallback if app not found - try to extract from URL or use default
+        return {
+            appName: 'Unknown App',
+            platform: 'ChromeExt'
+        };
+    };
+
     return (
         <Box>
+            {/* Header */}
             <Box sx={{ mb: 3 }}>
                 <Typography variant="h6" gutterBottom>
-                    Recent Reviews
+                    Review Feed
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Latest feedback from your {user.apps.length} tracked app{user.apps.length > 1 ? 's' : ''}
+                    Monitor feedback from your {user.apps.length} tracked app{user.apps.length > 1 ? 's' : ''}
                 </Typography>
             </Box>
 
-            <Grid container spacing={2}>
-                {mockReviews.map((review) => (
-                    <Grid item xs={12} key={review.id}>
-                        <Card 
-                            elevation={1}
-                            sx={{ 
-                                position: 'relative',
-                                '&:hover': {
-                                    elevation: 2,
-                                    transform: 'translateY(-1px)',
-                                    transition: 'all 0.2s ease-in-out',
-                                }
-                            }}
-                        >
-                            {review.isNew && (
-                                <Chip
-                                    label="New"
-                                    size="small"
-                                    color="primary"
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 12,
-                                        right: 12,
-                                        zIndex: 1,
-                                    }}
-                                />
-                            )}
-                            <CardContent>
-                                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                                    <Avatar sx={{ bgcolor: theme.palette.grey[100] }}>
-                                        {getStoreIcon(review.store)}
-                                    </Avatar>
-                                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                                        <Box sx={{ 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            gap: 1, 
-                                            mb: 1,
-                                            flexWrap: isMobile ? 'wrap' : 'nowrap'
-                                        }}>
-                                            <Typography 
-                                                variant="subtitle2" 
-                                                sx={{ 
-                                                    fontWeight: 600,
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                    whiteSpace: isMobile ? 'normal' : 'nowrap'
-                                                }}
-                                            >
-                                                {review.appName}
-                                            </Typography>
-                                            {renderStars(review.rating)}
-                                        </Box>
-                                        <Typography 
-                                            variant="body2" 
-                                            sx={{ mb: 1, lineHeight: 1.5 }}
-                                        >
-                                            &quot;{review.comment}&quot;
-                                        </Typography>
-                                        <Box sx={{ 
-                                            display: 'flex', 
-                                            justifyContent: 'space-between', 
-                                            alignItems: 'center',
-                                            flexWrap: 'wrap',
-                                            gap: 1
-                                        }}>
-                                            <Typography 
-                                                variant="caption" 
-                                                color="text.secondary"
-                                            >
-                                                By {review.reviewer}
-                                            </Typography>
-                                            <Typography 
-                                                variant="caption" 
-                                                color="text.secondary"
-                                            >
-                                                {review.date}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                </Box>
-                            </CardContent>
-                        </Card>
-                    </Grid>
-                ))}
-            </Grid>
+            {/* Error Alert */}
+            {error && (
+                <Alert 
+                    severity="error" 
+                    sx={{ mb: 3 }}
+                    onClose={clearError}
+                    action={
+                        <Button color="inherit" size="small" onClick={handleRefresh}>
+                            Retry
+                        </Button>
+                    }
+                >
+                    {error}
+                </Alert>
+            )}
 
-            {mockReviews.length === 0 && (
+            {/* Overview Section */}
+            {overview && (
+                <ReviewOverview
+                    totalReviews={totalCount}
+                    sentimentBreakdown={overview.sentimentBreakdown}
+                    platformBreakdown={overview.platformBreakdown}
+                    questBreakdown={overview.questBreakdown}
+                />
+            )}
+
+            {/* Filters Section */}
+            <ReviewFilters
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+            />
+
+            {/* Loading State for Initial Load */}
+            {loading && reviews.length === 0 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress />
+                </Box>
+            )}
+
+            {/* Reviews List */}
+            {reviews.length > 0 && (
+                <Grid container spacing={2}>
+                    {reviews.map((review) => {
+                        const { appName, platform } = getAppInfoForReview(review);
+                        return (
+                            <Grid item xs={12} key={review._id}>
+                                <ReviewCard
+                                    review={review}
+                                    appName={appName}
+                                    platform={platform}
+                                />
+                            </Grid>
+                        );
+                    })}
+                </Grid>
+            )}
+
+            {/* Load More Button */}
+            {hasMore && reviews.length > 0 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                    <Button
+                        variant="outlined"
+                        onClick={handleLoadMore}
+                        disabled={loading}
+                        startIcon={loading ? <CircularProgress size={20} /> : null}
+                    >
+                        {loading ? 'Loading...' : 'Load More Reviews'}
+                    </Button>
+                </Box>
+            )}
+
+            {/* Empty States */}
+            {!loading && reviews.length === 0 && !error && (
                 <Box sx={{ textAlign: 'center', py: 6 }}>
-                    <Typography variant="body1" color="text.secondary">
-                        No reviews yet. We&apos;ll notify you when new reviews come in!
+                    <Typography variant="h6" gutterBottom color="text.secondary">
+                        {Object.keys(filters).some(key => filters[key as keyof ReviewFiltersType]) 
+                            ? 'No reviews match your filters' 
+                            : 'No reviews yet'
+                        }
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {Object.keys(filters).some(key => filters[key as keyof ReviewFiltersType])
+                            ? 'Try adjusting your filters to see more reviews.'
+                            : 'We&apos;ll notify you when new reviews come in!'
+                        }
+                    </Typography>
+                    {Object.keys(filters).some(key => filters[key as keyof ReviewFiltersType]) && (
+                        <Button variant="outlined" onClick={() => handleFiltersChange({})}>
+                            Clear All Filters
+                        </Button>
+                    )}
+                </Box>
+            )}
+
+            {/* End of List Indicator */}
+            {!hasMore && reviews.length > 0 && (
+                <Box sx={{ textAlign: 'center', py: 3 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        You&apos;ve reached the end of your reviews
                     </Typography>
                 </Box>
             )}
