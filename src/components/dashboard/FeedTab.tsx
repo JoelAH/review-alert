@@ -235,119 +235,144 @@ export default function FeedTab({ user }: { user: User | null }) {
                             />
                         ) : null}
 
-                        {/* Filters Section with Skeleton */}
-                        {initialLoading ? (
-                            <ReviewFiltersSkeleton />
-                        ) : (
-                            <ReviewFilters
-                                filters={filters}
-                                onFiltersChange={handleFiltersChange}
-                            />
-                        )}
-
-                        {/* Reviews List - Use virtual scrolling for large lists */}
-                        {reviews.length > 0 && (
-                            reviews.length > VIRTUAL_SCROLL_THRESHOLD ? (
-                                <VirtualizedReviewList
-                                    reviews={reviews}
-                                    getAppInfoForReview={getAppInfoForReview}
-                                    height={600}
-                                    itemHeight={200}
-                                />
-                            ) : (
-                                <Grid container spacing={2}>
-                                    {reviews.map((review) => {
-                                        const { appName, platform } = getAppInfoForReview(review);
-                                        return (
-                                            <Grid item xs={12} key={review._id}>
-                                                <ReviewCard
-                                                    review={review}
-                                                    appName={appName}
-                                                    platform={platform}
-                                                />
-                                            </Grid>
-                                        );
-                                    })}
-                                </Grid>
-                            )
-                        )}
-
-                        {/* Loading More Skeleton */}
-                        {loadingMore && (
-                            <ReviewListSkeleton count={2} />
-                        )}
-
-                        {/* Load More Button */}
-                        {hasMore && reviews.length > 0 && !loadingMore && (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-                                <Button
-                                    variant="outlined"
-                                    onClick={handleLoadMore}
-                                    disabled={loading}
-                                    startIcon={loading ? <CircularProgress size={20} /> : null}
-                                >
-                                    Load More Reviews
-                                </Button>
-                            </Box>
-                        )}
-
-                        {/* Pagination Loading Indicator */}
-                        {loadingMore && (
-                            <PaginationSkeleton />
-                        )}
-
-                        {/* Enhanced Empty States */}
-                        {!initialLoading && !loading && reviews.length === 0 && !hasError && (
-                            <Paper 
-                                elevation={0} 
-                                sx={{ 
-                                    textAlign: 'center', 
-                                    py: 8, 
-                                    backgroundColor: theme.palette.grey[50],
-                                    border: `1px dashed ${theme.palette.grey[300]}`,
-                                    borderRadius: 2
-                                }}
-                            >
-                                <Typography variant="h6" gutterBottom color="text.secondary">
-                                    {Object.keys(filters).some(key => filters[key as keyof ReviewFiltersType]) 
-                                        ? 'No reviews match your filters' 
-                                        : 'No reviews yet'
-                                    }
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400, mx: 'auto' }}>
-                                    {Object.keys(filters).some(key => filters[key as keyof ReviewFiltersType])
-                                        ? 'Try adjusting your filters to see more reviews, or check back later for new feedback.'
-                                        : 'Once your apps start receiving reviews, they\'ll appear here. We\'ll notify you when new reviews come in!'
-                                    }
-                                </Typography>
-                                {Object.keys(filters).some(key => filters[key as keyof ReviewFiltersType]) ? (
-                                    <Button 
-                                        variant="contained" 
-                                        onClick={() => handleFiltersChange({})}
-                                        sx={{ mr: 1 }}
-                                    >
-                                        Clear All Filters
-                                    </Button>
+                        {/* Main Content Area with Responsive Layout */}
+                        <Box sx={{ 
+                            display: 'flex', 
+                            flexDirection: { xs: 'column', lg: 'row' },
+                            gap: 3,
+                            alignItems: 'flex-start'
+                        }}>
+                            {/* Filters Sidebar - Left side on desktop, top on mobile */}
+                            <Box sx={{ 
+                                width: { xs: '100%', lg: '320px' },
+                                flexShrink: 0,
+                                position: { lg: 'sticky' },
+                                top: { lg: 24 },
+                                alignSelf: { lg: 'flex-start' }
+                            }}>
+                                {initialLoading ? (
+                                    <ReviewFiltersSkeleton />
                                 ) : (
-                                    <Button 
-                                        variant="outlined" 
-                                        onClick={handleRefresh}
-                                        startIcon={<RefreshRounded />}
-                                    >
-                                        Check for Reviews
-                                    </Button>
+                                    <ReviewFilters
+                                        filters={filters}
+                                        onFiltersChange={handleFiltersChange}
+                                    />
                                 )}
-                            </Paper>
-                        )}
-
-                        {/* End of List Indicator */}
-                        {!hasMore && reviews.length > 0 && !loadingMore && (
-                            <Box sx={{ textAlign: 'center', py: 3 }}>
-                                <Typography variant="body2" color="text.secondary">
-                                    You&apos;ve reached the end of your reviews ({totalCount} total)
-                                </Typography>
                             </Box>
-                        )}
+
+                            {/* Reviews Content Area */}
+                            <Box sx={{ 
+                                flex: 1,
+                                minWidth: 0, // Prevents flex item from overflowing
+                                maxWidth: { lg: 'calc(100% - 344px)' } // Account for sidebar width + gap
+                            }}>
+                                {/* Reviews List - Use virtual scrolling for large lists */}
+                                {reviews.length > 0 && (
+                                    reviews.length > VIRTUAL_SCROLL_THRESHOLD ? (
+                                        <VirtualizedReviewList
+                                            reviews={reviews}
+                                            getAppInfoForReview={getAppInfoForReview}
+                                            height={600}
+                                            itemHeight={200}
+                                        />
+                                    ) : (
+                                        <Grid container spacing={2}>
+                                            {reviews.map((review) => {
+                                                const { appName, platform } = getAppInfoForReview(review);
+                                                return (
+                                                    <Grid item xs={12} key={review._id}>
+                                                        <ReviewCard
+                                                            review={review}
+                                                            appName={appName}
+                                                            platform={platform}
+                                                        />
+                                                    </Grid>
+                                                );
+                                            })}
+                                        </Grid>
+                                    )
+                                )}
+
+                                {/* Loading More Skeleton */}
+                                {loadingMore && (
+                                    <ReviewListSkeleton count={2} />
+                                )}
+
+                                {/* Load More Button */}
+                                {hasMore && reviews.length > 0 && !loadingMore && (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                                        <Button
+                                            variant="outlined"
+                                            onClick={handleLoadMore}
+                                            disabled={loading}
+                                            startIcon={loading ? <CircularProgress size={20} /> : null}
+                                        >
+                                            Load More Reviews
+                                        </Button>
+                                    </Box>
+                                )}
+
+                                {/* Pagination Loading Indicator */}
+                                {loadingMore && (
+                                    <PaginationSkeleton />
+                                )}
+
+                                {/* Enhanced Empty States */}
+                                {!initialLoading && !loading && reviews.length === 0 && !hasError && (
+                                    <Paper 
+                                        elevation={0} 
+                                        sx={{ 
+                                            textAlign: 'center', 
+                                            py: 8, 
+                                            backgroundColor: theme.palette.grey[50],
+                                            border: `1px dashed ${theme.palette.grey[300]}`,
+                                            borderRadius: 2
+                                        }}
+                                    >
+                                        <Typography variant="h6" gutterBottom color="text.secondary">
+                                            {Object.keys(filters).some(key => filters[key as keyof ReviewFiltersType]) 
+                                                ? 'No reviews match your filters' 
+                                                : 'No reviews yet'
+                                            }
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400, mx: 'auto' }}>
+                                            {Object.keys(filters).some(key => filters[key as keyof ReviewFiltersType])
+                                                ? 'Try adjusting your filters to see more reviews, or check back later for new feedback.'
+                                                : 'Once your apps start receiving reviews, they\'ll appear here. We\'ll notify you when new reviews come in!'
+                                            }
+                                        </Typography>
+                                        {Object.keys(filters).some(key => filters[key as keyof ReviewFiltersType]) ? (
+                                            <Button 
+                                                variant="contained" 
+                                                onClick={() => handleFiltersChange({})}
+                                                sx={{ mr: 1 }}
+                                            >
+                                                Clear All Filters
+                                            </Button>
+                                        ) : (
+                                            <Button 
+                                                variant="outlined" 
+                                                onClick={handleRefresh}
+                                                startIcon={<RefreshRounded />}
+                                            >
+                                                Check for Reviews
+                                            </Button>
+                                        )}
+                                    </Paper>
+                                )}
+
+                                {/* End of List Indicator */}
+                                {!hasMore && reviews.length > 0 && !loadingMore && (
+                                    <Box sx={{ textAlign: 'center', py: 3 }}>
+                                        <Typography variant="body2" color="text.secondary">
+                                            You&apos;ve reached the end of your reviews ({totalCount} total)
+                                        </Typography>
+                                    </Box>
+                                )}
+                            </Box>
+                        </Box>
+
+
                     </>
                 )}
             </Box>

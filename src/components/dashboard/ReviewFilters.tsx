@@ -138,7 +138,7 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = React.memo(({ filters, onFil
 
       <Grid container spacing={2}>
         {/* Search Field */}
-        <Grid item xs={12} md={6} lg={3}>
+        <Grid item xs={12} md={6} lg={12}>
           <TextField
             fullWidth
             label="Search reviews"
@@ -151,7 +151,7 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = React.memo(({ filters, onFil
         </Grid>
 
         {/* Platform Filter */}
-        <Grid item xs={12} md={6} lg={2}>
+        <Grid item xs={12} md={6} lg={12}>
           <FormControl fullWidth size="small">
             <InputLabel id="platform-filter-label">Platform</InputLabel>
             <Select
@@ -169,7 +169,7 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = React.memo(({ filters, onFil
         </Grid>
 
         {/* Rating Filter */}
-        <Grid item xs={12} md={6} lg={2}>
+        <Grid item xs={12} md={6} lg={12}>
           <FormControl fullWidth size="small">
             <InputLabel id="rating-filter-label">Rating</InputLabel>
             <Select
@@ -189,7 +189,7 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = React.memo(({ filters, onFil
         </Grid>
 
         {/* Sentiment Filter */}
-        <Grid item xs={12} md={6} lg={2}>
+        <Grid item xs={12} md={6} lg={12}>
           <FormControl fullWidth size="small">
             <InputLabel id="sentiment-filter-label">Sentiment</InputLabel>
             <Select
@@ -206,7 +206,7 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = React.memo(({ filters, onFil
         </Grid>
 
         {/* Quest Type Filter */}
-        <Grid item xs={12} md={6} lg={3}>
+        <Grid item xs={12} md={6} lg={12}>
           <FormControl fullWidth size="small">
             <InputLabel id="quest-filter-label">Quest Type</InputLabel>
             <Select
