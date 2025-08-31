@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
     Box,
     Typography,
@@ -29,11 +29,16 @@ import {
 import ReviewOverview from './ReviewOverview';
 import ReviewFilters from './ReviewFilters';
 import ReviewCard from './ReviewCard';
+import VirtualizedReviewList from './VirtualizedReviewList';
 import { Platform } from './types';
+import { usePerformanceMonitor } from '@/lib/utils/performanceMonitor';
+
+const VIRTUAL_SCROLL_THRESHOLD = 50; // Use virtual scrolling when more than 50 reviews
 
 export default function FeedTab({ user }: { user: User | null }) {
     const theme = useTheme();
     const { isAuthenticated } = useAuth();
+    const { startRender, endRender } = usePerformanceMonitor('FeedTab');
     
     // State for filters
     const [filters, setFilters] = useState<ReviewFiltersType>({});
@@ -57,6 +62,34 @@ export default function FeedTab({ user }: { user: User | null }) {
         retry
     } = useReviews(filters);
 
+    // Memoize app lookup map for better performance
+    const appLookupMap = useMemo(() => {
+        const map = new Map<string, { appName: string; platform: Platform }>();
+        user?.apps?.forEach(app => {
+            map.set(app._id, {
+                appName: `App (${app.store})`, // Since we don't have app names in the current model
+                platform: app.store as Platform
+            });
+            // Also map by appId if different from _id
+            if (app.appId && app.appId !== app._id) {
+                map.set(app.appId, {
+                    appName: `App (${app.store})`,
+                    platform: app.store as Platform
+                });
+            }
+        });
+        return map;
+    }, [user?.apps]);
+
+    // Helper function to get app name and platform for a review
+    const getAppInfoForReview = useCallback((review: Review): { appName: string; platform: Platform } => {
+        const appInfo = appLookupMap.get(review.appId);
+        return appInfo || {
+            appName: 'Unknown App',
+            platform: 'ChromeExt'
+        };
+    }, [appLookupMap]);
+
     // Handle filter changes
     const handleFiltersChange = useCallback((newFilters: ReviewFiltersType) => {
         setFilters(newFilters);
@@ -72,6 +105,14 @@ export default function FeedTab({ user }: { user: User | null }) {
     const handleRefresh = useCallback(() => {
         refresh();
     }, [refresh]);
+
+    // Performance monitoring
+    useEffect(() => {
+        startRender();
+        return () => {
+            endRender();
+        };
+    });
 
     // Show setup message if user hasn't configured apps
     if (!user?.apps || user.apps.length === 0) {
@@ -113,25 +154,6 @@ export default function FeedTab({ user }: { user: User | null }) {
             </Box>
         );
     }
-
-    // Helper function to get app name and platform for a review
-    const getAppInfoForReview = (review: Review): { appName: string; platform: Platform } => {
-        // Try to find the app from user's apps based on appId
-        const userApp = user?.apps?.find(app => app._id === review.appId || app.appId === review.appId);
-        
-        if (userApp) {
-            return {
-                appName: `App (${userApp.store})`, // Since we don't have app names in the current model
-                platform: userApp.store as Platform
-            };
-        }
-        
-        // Fallback if app not found - try to extract from URL or use default
-        return {
-            appName: 'Unknown App',
-            platform: 'ChromeExt'
-        };
-    };
 
     return (
         <ErrorBoundary>
@@ -223,22 +245,31 @@ export default function FeedTab({ user }: { user: User | null }) {
                             />
                         )}
 
-                        {/* Reviews List */}
+                        {/* Reviews List - Use virtual scrolling for large lists */}
                         {reviews.length > 0 && (
-                            <Grid container spacing={2}>
-                                {reviews.map((review) => {
-                                    const { appName, platform } = getAppInfoForReview(review);
-                                    return (
-                                        <Grid item xs={12} key={review._id}>
-                                            <ReviewCard
-                                                review={review}
-                                                appName={appName}
-                                                platform={platform}
-                                            />
-                                        </Grid>
-                                    );
-                                })}
-                            </Grid>
+                            reviews.length > VIRTUAL_SCROLL_THRESHOLD ? (
+                                <VirtualizedReviewList
+                                    reviews={reviews}
+                                    getAppInfoForReview={getAppInfoForReview}
+                                    height={600}
+                                    itemHeight={200}
+                                />
+                            ) : (
+                                <Grid container spacing={2}>
+                                    {reviews.map((review) => {
+                                        const { appName, platform } = getAppInfoForReview(review);
+                                        return (
+                                            <Grid item xs={12} key={review._id}>
+                                                <ReviewCard
+                                                    review={review}
+                                                    appName={appName}
+                                                    platform={platform}
+                                                />
+                                            </Grid>
+                                        );
+                                    })}
+                                </Grid>
+                            )
                         )}
 
                         {/* Loading More Skeleton */}

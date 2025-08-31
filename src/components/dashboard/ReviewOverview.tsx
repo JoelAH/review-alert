@@ -23,7 +23,7 @@ import {
 } from '@mui/icons-material';
 import { ReviewOverviewProps } from './types';
 
-const ReviewOverview: React.FC<ReviewOverviewProps> = ({
+const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
   totalReviews,
   sentimentBreakdown,
   platformBreakdown,
@@ -297,6 +297,8 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+ReviewOverview.displayName = 'ReviewOverview';
 
 export default ReviewOverview;

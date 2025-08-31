@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Review } from '@/lib/models/client/review';
 import { useAuth } from './useAuth';
 import { NotificationService } from '@/lib/services/notifications';
 import { ApiRetryMechanism } from '@/lib/utils/retryMechanism';
+import { ReviewsService, ReviewsCache } from '@/lib/services/reviews';
 
 export interface ReviewFilters {
   platform?: 'GooglePlay' | 'AppleStore' | 'ChromeExt';
@@ -110,6 +111,7 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
 
   /**
    * Fetch reviews from the API with current filters and pagination
+   * Includes caching for improved performance
    */
   const fetchReviews = useCallback(async (
     currentPage: number,
@@ -122,6 +124,23 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
       setHasError(true);
       NotificationService.error('Please sign in to view your reviews');
       return;
+    }
+
+    // Generate cache key for this request
+    const cacheKey = ReviewsService.buildCacheKey(currentPage, currentFilters);
+    
+    // Check cache first (only for non-append requests to avoid stale pagination)
+    if (!append) {
+      const cachedData = ReviewsCache.get(cacheKey);
+      if (cachedData) {
+        console.log('Using cached data for:', cacheKey);
+        setReviews(cachedData.reviews);
+        setHasMore(cachedData.hasMore);
+        setTotalCount(cachedData.totalCount);
+        setOverview(cachedData.overview);
+        setPage(currentPage);
+        return;
+      }
     }
 
     // Cancel any ongoing request
@@ -145,45 +164,20 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
       setHasError(false);
       setRetryCount(0);
 
-      // Build query parameters
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: DEFAULT_LIMIT.toString(),
-      });
-
-      // Add filters to query params
-      if (currentFilters.platform) {
-        params.append('platform', currentFilters.platform);
-      }
-      if (currentFilters.rating) {
-        params.append('rating', currentFilters.rating.toString());
-      }
-      if (currentFilters.sentiment) {
-        params.append('sentiment', currentFilters.sentiment);
-      }
-      if (currentFilters.quest) {
-        params.append('quest', currentFilters.quest);
-      }
-
-      // Use retry mechanism for the API call
+      // Use retry mechanism for the API call with the ReviewsService
       const data = await retryMechanismRef.current!.execute(async () => {
-        const response = await fetch(`/api/reviews?${params.toString()}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+        return ReviewsService.fetchReviews({
+          page: currentPage,
+          limit: DEFAULT_LIMIT,
+          filters: currentFilters,
           signal: abortControllerRef.current!.signal,
         });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const error = new Error(errorData.error || `HTTP error! status: ${response.status}`);
-          (error as any).status = response.status;
-          throw error;
-        }
-
-        return response.json();
       });
+
+      // Cache the response (only for non-append requests)
+      if (!append) {
+        ReviewsCache.set(cacheKey, data);
+      }
 
       // Update state based on whether we're appending or replacing
       if (append) {
@@ -291,6 +285,13 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
     setRetryCount(0);
   }, []);
 
+  /**
+   * Clear cache when filters change significantly
+   */
+  const clearCache = useCallback(() => {
+    ReviewsCache.clear();
+  }, []);
+
   // Initial load effect
   useEffect(() => {
     if (isAuthenticated && isInitialLoadRef.current) {
@@ -313,7 +314,8 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
     };
   }, []);
 
-  return {
+  // Memoize the return object to prevent unnecessary re-renders
+  return useMemo(() => ({
     // State
     reviews,
     loading,
@@ -333,7 +335,26 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
     setFilters,
     clearError,
     retry,
-  };
+    clearCache,
+  }), [
+    reviews,
+    loading,
+    initialLoading,
+    loadingMore,
+    error,
+    hasError,
+    retryCount,
+    hasMore,
+    totalCount,
+    overview,
+    page,
+    loadMore,
+    refresh,
+    setFilters,
+    clearError,
+    retry,
+    clearCache,
+  ]);
 }
 
 /**

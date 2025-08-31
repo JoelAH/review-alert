@@ -88,6 +88,9 @@ describe('ReviewFilters', () => {
       const searchInput = screen.getByLabelText(/search reviews/i);
       await userEvent.clear(searchInput);
 
+      // Wait for debounce delay
+      await new Promise(resolve => setTimeout(resolve, 600));
+
       expect(mockOnFiltersChange).toHaveBeenLastCalledWith({
         search: undefined
       });

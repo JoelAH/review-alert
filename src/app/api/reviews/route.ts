@@ -197,14 +197,15 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
     const hasMore = skip + limit < totalCount;
 
-    // Fetch reviews with pagination
+    // Fetch reviews with pagination and optimized query
     let reviews;
     try {
       reviews = await ReviewModel.find(filter)
-        .sort({ date: -1 })
+        .sort({ date: -1, _id: -1 }) // Add _id for consistent sorting
         .skip(skip)
         .limit(limit)
-        .lean();
+        .lean() // Use lean() for better performance
+        .hint({ user: 1, date: -1 }); // Hint to use the user + date index
     } catch (error) {
       console.error("Error fetching reviews:", error);
       return NextResponse.json(
@@ -235,22 +236,57 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Calculate overview statistics for all user's reviews (not just filtered)
-    let allUserReviews;
+    // Calculate overview statistics using aggregation for better performance
+    let overviewStats;
     try {
-      allUserReviews = await ReviewModel.find({ user: user._id }).lean();
+      overviewStats = await ReviewModel.aggregate([
+        { $match: { user: user._id } },
+        {
+          $group: {
+            _id: null,
+            totalReviews: { $sum: 1 },
+            positiveReviews: {
+              $sum: { $cond: [{ $eq: ["$sentiment", "POSITIVE"] }, 1, 0] }
+            },
+            negativeReviews: {
+              $sum: { $cond: [{ $eq: ["$sentiment", "NEGATIVE"] }, 1, 0] }
+            },
+            bugReviews: {
+              $sum: { $cond: [{ $eq: ["$quest", "BUG"] }, 1, 0] }
+            },
+            featureRequestReviews: {
+              $sum: { $cond: [{ $eq: ["$quest", "FEATURE_REQUEST"] }, 1, 0] }
+            },
+            otherReviews: {
+              $sum: { $cond: [{ $eq: ["$quest", "OTHER"] }, 1, 0] }
+            },
+            reviewsByApp: { $push: "$appId" }
+          }
+        }
+      ]);
     } catch (error) {
-      console.error("Error fetching user reviews for overview:", error);
+      console.error("Error calculating overview statistics:", error);
       return NextResponse.json(
         { error: "Error calculating overview statistics" },
         { status: 500 }
       );
     }
 
+    // Use aggregated data for overview statistics
+    const stats = overviewStats[0] || {
+      totalReviews: 0,
+      positiveReviews: 0,
+      negativeReviews: 0,
+      bugReviews: 0,
+      featureRequestReviews: 0,
+      otherReviews: 0,
+      reviewsByApp: []
+    };
+
     // Sentiment breakdown
     const sentimentBreakdown = {
-      positive: allUserReviews.filter((r: any) => r.sentiment === ReviewSentiment.POSITIVE).length,
-      negative: allUserReviews.filter((r: any) => r.sentiment === ReviewSentiment.NEGATIVE).length,
+      positive: stats.positiveReviews,
+      negative: stats.negativeReviews,
     };
 
     // Platform breakdown - need to map appIds to platforms
@@ -265,8 +301,9 @@ export async function GET(request: NextRequest) {
       ChromeExt: 0,
     };
 
-    allUserReviews.forEach((review: any) => {
-      const platform = appIdToPlatform.get(review.appId.toString());
+    // Count reviews by platform using the aggregated app IDs
+    stats.reviewsByApp.forEach((appId: any) => {
+      const platform = appIdToPlatform.get(appId.toString());
       if (platform && platformBreakdown.hasOwnProperty(platform)) {
         platformBreakdown[platform as keyof typeof platformBreakdown]++;
       }
@@ -274,9 +311,9 @@ export async function GET(request: NextRequest) {
 
     // Quest breakdown
     const questBreakdown = {
-      bug: allUserReviews.filter((r: any) => r.quest === ReviewQuest.BUG).length,
-      featureRequest: allUserReviews.filter((r: any) => r.quest === ReviewQuest.FEATURE_REQUEST).length,
-      other: allUserReviews.filter((r: any) => r.quest === ReviewQuest.OTHER).length,
+      bug: stats.bugReviews,
+      featureRequest: stats.featureRequestReviews,
+      other: stats.otherReviews,
     };
 
     const response: ReviewsResponse = {

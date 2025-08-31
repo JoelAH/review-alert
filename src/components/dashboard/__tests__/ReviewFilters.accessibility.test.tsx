@@ -215,6 +215,10 @@ describe('ReviewFilters Accessibility', () => {
 
       // Test that non-empty values work correctly
       fireEvent.change(searchInput, { target: { value: 'test' } });
+      
+      // Wait for debounce delay
+      await new Promise(resolve => setTimeout(resolve, 600));
+      
       expect(mockOnFiltersChange).toHaveBeenCalledWith({ search: 'test' });
     });
 

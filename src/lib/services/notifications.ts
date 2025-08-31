@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { toast, ToastOptions, Id } from 'react-toastify';
 
 /**
@@ -158,14 +159,14 @@ export class NotificationService {
    */
   static retryError(message: string, onRetry: () => void, options?: ToastOptions): Id {
     return toast.error(
-      <div>
-        <div>{message}</div>
-        <button
-          onClick={() => {
+      React.createElement('div', null,
+        React.createElement('div', null, message),
+        React.createElement('button', {
+          onClick: () => {
             onRetry();
             this.dismissAll();
-          }}
-          style={{
+          },
+          style: {
             marginTop: '8px',
             padding: '4px 8px',
             backgroundColor: 'transparent',
@@ -174,11 +175,9 @@ export class NotificationService {
             color: 'inherit',
             cursor: 'pointer',
             fontSize: '12px',
-          }}
-        >
-          Retry
-        </button>
-      </div>,
+          }
+        }, 'Retry')
+      ),
       {
         ...this.DEFAULT_OPTIONS,
         autoClose: false,

@@ -8,7 +8,6 @@ import {
   Box,
   Rating,
   Tooltip,
-  Chip,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -21,10 +20,10 @@ import {
   HelpOutline as QuestionIcon,
   Circle as CircleIcon,
 } from '@mui/icons-material';
-import { Review, ReviewSentiment, ReviewQuest, ReviewPriority } from '@/lib/models/client/review';
+import { ReviewSentiment, ReviewQuest, ReviewPriority } from '@/lib/models/client/review';
 import { ReviewCardProps } from './types';
 
-const ReviewCard: React.FC<ReviewCardProps> = ({ review, appName, platform }) => {
+const ReviewCard: React.FC<ReviewCardProps> = React.memo(({ review, appName, platform }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -278,6 +277,8 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, appName, platform }) =>
       </Card>
     </Tooltip>
   );
-};
+});
+
+ReviewCard.displayName = 'ReviewCard';
 
 export default ReviewCard;

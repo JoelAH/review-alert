@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import {
   Box,
   FormControl,
@@ -15,49 +15,71 @@ import {
 } from '@mui/material';
 import { ReviewFiltersProps } from './types';
 
-const ReviewFilters: React.FC<ReviewFiltersProps> = ({ filters, onFiltersChange }) => {
-  const handlePlatformChange = (event: SelectChangeEvent<string>) => {
+const SEARCH_DEBOUNCE_DELAY = 500; // ms
+
+const ReviewFilters: React.FC<ReviewFiltersProps> = React.memo(({ filters, onFiltersChange }) => {
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const handlePlatformChange = useCallback((event: SelectChangeEvent<string>) => {
     const value = event.target.value;
     onFiltersChange({
       ...filters,
       platform: value === 'all' ? undefined : value as 'GooglePlay' | 'AppleStore' | 'ChromeExt'
     });
-  };
+  }, [filters, onFiltersChange]);
 
-  const handleRatingChange = (event: SelectChangeEvent<string>) => {
+  const handleRatingChange = useCallback((event: SelectChangeEvent<string>) => {
     const value = event.target.value;
     onFiltersChange({
       ...filters,
       rating: value === 'all' ? undefined : parseInt(value)
     });
-  };
+  }, [filters, onFiltersChange]);
 
-  const handleSentimentChange = (event: SelectChangeEvent<string>) => {
+  const handleSentimentChange = useCallback((event: SelectChangeEvent<string>) => {
     const value = event.target.value;
     onFiltersChange({
       ...filters,
       sentiment: value === 'all' ? undefined : value as 'POSITIVE' | 'NEGATIVE'
     });
-  };
+  }, [filters, onFiltersChange]);
 
-  const handleQuestChange = (event: SelectChangeEvent<string>) => {
+  const handleQuestChange = useCallback((event: SelectChangeEvent<string>) => {
     const value = event.target.value;
     onFiltersChange({
       ...filters,
       quest: value === 'all' ? undefined : value as 'BUG' | 'FEATURE_REQUEST' | 'OTHER'
     });
-  };
+  }, [filters, onFiltersChange]);
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    onFiltersChange({
-      ...filters,
-      search: event.target.value || undefined
-    });
-  };
+  const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const searchValue = event.target.value;
+    
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Set new timeout for debounced search
+    searchTimeoutRef.current = setTimeout(() => {
+      onFiltersChange({
+        ...filters,
+        search: searchValue || undefined
+      });
+    }, SEARCH_DEBOUNCE_DELAY);
+  }, [filters, onFiltersChange]);
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     onFiltersChange({});
-  };
+  }, [onFiltersChange]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const getActiveFiltersCount = () => {
     return Object.values(filters).filter(value => value !== undefined && value !== '').length;
@@ -247,6 +269,8 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = ({ filters, onFiltersChange 
       )}
     </Box>
   );
-};
+});
+
+ReviewFilters.displayName = 'ReviewFilters';
 
 export default ReviewFilters;
