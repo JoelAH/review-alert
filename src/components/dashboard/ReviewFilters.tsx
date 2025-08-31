@@ -53,12 +53,12 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = React.memo(({ filters, onFil
 
   const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event.target.value;
-    
+
     // Clear existing timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    
+
     // Set new timeout for debounced search
     searchTimeoutRef.current = setTimeout(() => {
       onFiltersChange({
@@ -152,75 +152,151 @@ const ReviewFilters: React.FC<ReviewFiltersProps> = React.memo(({ filters, onFil
 
         {/* Platform Filter */}
         <Grid item xs={12} md={6} lg={12}>
-          <FormControl fullWidth size="small">
-            <InputLabel id="platform-filter-label">Platform</InputLabel>
-            <Select
-              labelId="platform-filter-label"
+          <Box>
+            <Typography variant="body2" sx={{ mb: 0.5, color: 'text.secondary', fontSize: '0.75rem' }}>
+              Platform
+            </Typography>
+            <select
               value={filters.platform || 'all'}
-              label="Platform"
-              onChange={handlePlatformChange}
+              onChange={(e) => handlePlatformChange({ target: { value: e.target.value } } as SelectChangeEvent<string>)}
+              style={{
+                width: '100%',
+                padding: '8.5px 14px',
+                border: '1px solid rgba(0, 0, 0, 0.23)',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#1976d2';
+                e.target.style.borderWidth = '2px';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(0, 0, 0, 0.23)';
+                e.target.style.borderWidth = '1px';
+              }}
             >
-              <MenuItem value="all">All Platforms</MenuItem>
-              <MenuItem value="GooglePlay">Google Play</MenuItem>
-              <MenuItem value="AppleStore">Apple App Store</MenuItem>
-              <MenuItem value="ChromeExt">Chrome Web Store</MenuItem>
-            </Select>
-          </FormControl>
+              <option value="all">All Platforms</option>
+              <option value="GooglePlay">Google Play</option>
+              <option value="AppleStore">Apple App Store</option>
+              <option value="ChromeExt">Chrome Web Store</option>
+            </select>
+          </Box>
         </Grid>
 
         {/* Rating Filter */}
         <Grid item xs={12} md={6} lg={12}>
-          <FormControl fullWidth size="small">
-            <InputLabel id="rating-filter-label">Rating</InputLabel>
-            <Select
-              labelId="rating-filter-label"
+          <Box>
+            <Typography variant="body2" sx={{ mb: 0.5, color: 'text.secondary', fontSize: '0.75rem' }}>
+              Rating
+            </Typography>
+            <select
               value={filters.rating?.toString() || 'all'}
-              label="Rating"
-              onChange={handleRatingChange}
+              onChange={(e) => handleRatingChange({ target: { value: e.target.value } } as SelectChangeEvent<string>)}
+              style={{
+                width: '100%',
+                padding: '8.5px 14px',
+                border: '1px solid rgba(0, 0, 0, 0.23)',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#1976d2';
+                e.target.style.borderWidth = '2px';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(0, 0, 0, 0.23)';
+                e.target.style.borderWidth = '1px';
+              }}
             >
-              <MenuItem value="all">All Ratings</MenuItem>
-              <MenuItem value="5">5 Stars</MenuItem>
-              <MenuItem value="4">4 Stars</MenuItem>
-              <MenuItem value="3">3 Stars</MenuItem>
-              <MenuItem value="2">2 Stars</MenuItem>
-              <MenuItem value="1">1 Star</MenuItem>
-            </Select>
-          </FormControl>
+              <option value="all">All Ratings</option>
+              <option value="5">5 Stars</option>
+              <option value="4">4 Stars</option>
+              <option value="3">3 Stars</option>
+              <option value="2">2 Stars</option>
+              <option value="1">1 Star</option>
+            </select>
+          </Box>
         </Grid>
 
         {/* Sentiment Filter */}
         <Grid item xs={12} md={6} lg={12}>
-          <FormControl fullWidth size="small">
-            <InputLabel id="sentiment-filter-label">Sentiment</InputLabel>
-            <Select
-              labelId="sentiment-filter-label"
+          <Box>
+            <Typography variant="body2" sx={{ mb: 0.5, color: 'text.secondary', fontSize: '0.75rem' }}>
+              Sentiment
+            </Typography>
+            <select
               value={filters.sentiment || 'all'}
-              label="Sentiment"
-              onChange={handleSentimentChange}
+              onChange={(e) => handleSentimentChange({ target: { value: e.target.value } } as SelectChangeEvent<string>)}
+              style={{
+                width: '100%',
+                padding: '8.5px 14px',
+                border: '1px solid rgba(0, 0, 0, 0.23)',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#1976d2';
+                e.target.style.borderWidth = '2px';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(0, 0, 0, 0.23)';
+                e.target.style.borderWidth = '1px';
+              }}
             >
-              <MenuItem value="all">All Sentiment</MenuItem>
-              <MenuItem value="POSITIVE">Positive</MenuItem>
-              <MenuItem value="NEGATIVE">Negative</MenuItem>
-            </Select>
-          </FormControl>
+              <option value="all">All Sentiment</option>
+              <option value="POSITIVE">Positive</option>
+              <option value="NEGATIVE">Negative</option>
+            </select>
+          </Box>
         </Grid>
 
         {/* Quest Type Filter */}
         <Grid item xs={12} md={6} lg={12}>
-          <FormControl fullWidth size="small">
-            <InputLabel id="quest-filter-label">Quest Type</InputLabel>
-            <Select
-              labelId="quest-filter-label"
+          <Box>
+            <Typography variant="body2" sx={{ mb: 0.5, color: 'text.secondary', fontSize: '0.75rem' }}>
+              Quest Type
+            </Typography>
+            <select
               value={filters.quest || 'all'}
-              label="Quest Type"
-              onChange={handleQuestChange}
+              onChange={(e) => handleQuestChange({ target: { value: e.target.value } } as SelectChangeEvent<string>)}
+              style={{
+                width: '100%',
+                padding: '8.5px 14px',
+                border: '1px solid rgba(0, 0, 0, 0.23)',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#1976d2';
+                e.target.style.borderWidth = '2px';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(0, 0, 0, 0.23)';
+                e.target.style.borderWidth = '1px';
+              }}
             >
-              <MenuItem value="all">All Types</MenuItem>
-              <MenuItem value="BUG">Bug Reports</MenuItem>
-              <MenuItem value="FEATURE_REQUEST">Feature Requests</MenuItem>
-              <MenuItem value="OTHER">Other</MenuItem>
-            </Select>
-          </FormControl>
+              <option value="all">All Types</option>
+              <option value="BUG">Bug Reports</option>
+              <option value="FEATURE_REQUEST">Feature Requests</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </Box>
         </Grid>
       </Grid>
 
