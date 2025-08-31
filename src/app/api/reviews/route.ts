@@ -258,7 +258,7 @@ export async function GET(request: NextRequest) {
               $sum: { $cond: [{ $eq: ["$quest", "FEATURE_REQUEST"] }, 1, 0] }
             },
             otherReviews: {
-              $sum: { $cond: [{ $or: [{ $eq: ["$quest", "OTHER"] }, { $eq: [ { $type : "$quest"}, 'missing'] }] }, 1, 0] }
+              $sum: { $cond: [{ $or: [{ $eq: ["$quest", "OTHER"] }, { $eq: [{ $type: "$quest" }, 'missing'] }] }, 1, 0] }
             },
             reviewsByApp: { $push: "$appId" }
           }
