@@ -111,142 +111,35 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
         </Typography>
 
         <Grid container spacing={3}>
-          {/* Total Reviews */}
-          <Grid item xs={12} md={3}>
+          {/* Top Row: Total Reviews and Quest Type Pie Chart */}
+          <Grid item xs={12} md={6}>
             <Box
               sx={{
                 textAlign: 'center',
-                p: 2,
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                borderRadius: 2,
-                border: '1px solid rgba(0, 0, 0, 0.1)',
-              }}
-            >
-              <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: theme.palette.primary.main, fontSize: '3rem' }}>
-                {totalReviews.toLocaleString()}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total Reviews
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Sentiment Breakdown */}
-          <Grid item xs={12} md={3}>
-            <Box
-              sx={{
-                p: 2,
+                p: 3,
                 backgroundColor: 'rgba(255, 255, 255, 0.8)',
                 borderRadius: 2,
                 border: '1px solid rgba(0, 0, 0, 0.1)',
                 height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              <Typography variant="h2" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
-                Sentiment
-              </Typography>
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                  <PositiveIcon sx={{ color: '#4CAF50', mr: 1, fontSize: 20 }} />
-                  <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                    Positive
-                  </Typography>
-                  <Chip
-                    label={`${sentimentBreakdown.positive} (${positivePercentage.toFixed(1)}%)`}
-                    size="small"
-                    sx={{ backgroundColor: '#4CAF50', color: 'white', fontSize: '0.75rem' }}
-                  />
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={positivePercentage}
-                  aria-label={`Positive sentiment: ${positivePercentage.toFixed(1)}%`}
-                  sx={{
-                    height: 6,
-                    borderRadius: 3,
-                    backgroundColor: 'rgba(76, 175, 80, 0.2)',
-                    '& .MuiLinearProgress-bar': { backgroundColor: '#4CAF50' },
-                  }}
-                />
-              </Box>
               <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                  <NegativeIcon sx={{ color: '#F44336', mr: 1, fontSize: 20 }} />
-                  <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                    Negative
-                  </Typography>
-                  <Chip
-                    label={`${sentimentBreakdown.negative} (${negativePercentage.toFixed(1)}%)`}
-                    size="small"
-                    sx={{ backgroundColor: '#F44336', color: 'white', fontSize: '0.75rem' }}
-                  />
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={negativePercentage}
-                  aria-label={`Negative sentiment: ${negativePercentage.toFixed(1)}%`}
-                  sx={{
-                    height: 6,
-                    borderRadius: 3,
-                    backgroundColor: 'rgba(244, 67, 54, 0.2)',
-                    '& .MuiLinearProgress-bar': { backgroundColor: '#F44336' },
-                  }}
-                />
+                <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: theme.palette.primary.main, fontSize: '4rem' }}>
+                  {totalReviews.toLocaleString()}
+                </Typography>
+                <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 600 }}>
+                  Total Reviews
+                </Typography>
               </Box>
             </Box>
           </Grid>
 
-          {/* Platform Distribution */}
-          <Grid item xs={12} md={3}>
-            <Box
-              sx={{
-                p: 2,
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                borderRadius: 2,
-                border: '1px solid rgba(0, 0, 0, 0.1)',
-                height: '100%',
-              }}
-            >
-              <Typography variant="h2" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
-                Platforms
-              </Typography>
-              {platformData.map((platform) => (
-                <Box key={platform.key} sx={{ mb: 1.5 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                    {platform.icon}
-                    <Typography variant="body2" sx={{ ml: 1, flexGrow: 1, fontSize: '0.875rem' }}>
-                      {platform.name}
-                    </Typography>
-                    <Chip
-                      label={`${platform.count} (${platform.percentage.toFixed(1)}%)`}
-                      size="small"
-                      sx={{
-                        backgroundColor: platform.color,
-                        color: platform.key === 'AppleStore' ? 'white' : 'white',
-                        fontSize: '0.7rem',
-                        height: 20,
-                      }}
-                    />
-                  </Box>
-                  <LinearProgress
-                    variant="determinate"
-                    value={platform.percentage}
-                    aria-label={`${platform.name}: ${platform.percentage.toFixed(1)}%`}
-                    sx={{
-                      height: 4,
-                      borderRadius: 2,
-                      backgroundColor: `${platform.color}20`,
-                      '& .MuiLinearProgress-bar': { backgroundColor: platform.color },
-                    }}
-                  />
-                </Box>
-              ))}
-            </Box>
-          </Grid>
-
-          {/* Quest Type Distribution */}
+          {/* Quest Type Pie Chart */}
           {questBreakdown && (
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={6}>
               <Box
                 sx={{
                   p: 2,
@@ -254,45 +147,208 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
                   borderRadius: 2,
                   border: '1px solid rgba(0, 0, 0, 0.1)',
                   height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
               >
                 <Typography variant="h2" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
                   Quest Types
                 </Typography>
-                {questData.map((quest, index) => (
-                  <Box key={index} sx={{ mb: 1.5 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                      {quest.icon}
-                      <Typography variant="body2" sx={{ ml: 1, flexGrow: 1, fontSize: '0.875rem' }}>
+                
+                {/* Simple CSS Pie Chart */}
+                <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                  <Box sx={{ position: 'relative', width: 120, height: 120, mx: 'auto' }}>
+                    {/* Pie Chart using conic-gradient */}
+                    <Box
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '50%',
+                        background: `conic-gradient(
+                          #F44336 0deg ${(questBreakdown.bug / totalReviews) * 360}deg,
+                          #FF9800 ${(questBreakdown.bug / totalReviews) * 360}deg ${((questBreakdown.bug + questBreakdown.featureRequest) / totalReviews) * 360}deg,
+                          #9E9E9E ${((questBreakdown.bug + questBreakdown.featureRequest) / totalReviews) * 360}deg 360deg
+                        )`,
+                        position: 'relative',
+                      }}
+                    >
+                      {/* Center circle */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          width: '60%',
+                          height: '60%',
+                          backgroundColor: 'white',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexDirection: 'column',
+                        }}
+                      >
+                        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>
+                          {totalReviews}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Total
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+
+                {/* Legend */}
+                <Box sx={{ mt: 2 }}>
+                  {questData.map((quest, index) => (
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                      <Box
+                        sx={{
+                          width: 12,
+                          height: 12,
+                          backgroundColor: quest.color,
+                          borderRadius: '50%',
+                          mr: 1,
+                        }}
+                      />
+                      <Typography variant="caption" sx={{ flexGrow: 1, fontSize: '0.75rem' }}>
                         {quest.name}
                       </Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                        {quest.count}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </Grid>
+          )}
+
+          {/* Second Row: Sentiment Counters - Horizontal Layout */}
+          <Grid item xs={12}>
+            <Box
+              sx={{
+                p: 2,
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                borderRadius: 2,
+                border: '1px solid rgba(0, 0, 0, 0.1)',
+              }}
+            >
+              <Typography variant="h2" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem', mb: 2 }}>
+                Sentiment Analysis
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 3 }}>
+                {/* Positive Counter */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    textAlign: 'center',
+                    p: 2,
+                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                    borderRadius: 2,
+                    border: '2px solid #4CAF50',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 2,
+                  }}
+                >
+                  <PositiveIcon sx={{ color: '#4CAF50', fontSize: 48 }} />
+                  <Box sx={{ textAlign: 'left' }}>
+                    <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#4CAF50', fontSize: '2.5rem' }}>
+                      {sentimentBreakdown.positive}
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600 }}>
+                      Positive Reviews
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {positivePercentage.toFixed(1)}% of total
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Negative Counter */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    textAlign: 'center',
+                    p: 2,
+                    backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                    borderRadius: 2,
+                    border: '2px solid #F44336',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 2,
+                  }}
+                >
+                  <NegativeIcon sx={{ color: '#F44336', fontSize: 48 }} />
+                  <Box sx={{ textAlign: 'left' }}>
+                    <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#F44336', fontSize: '2.5rem' }}>
+                      {sentimentBreakdown.negative}
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600 }}>
+                      Negative Reviews
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {negativePercentage.toFixed(1)}% of total
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          </Grid>
+
+          {/* Third Row: Platform Distribution - Horizontal Layout */}
+          <Grid item xs={12}>
+            <Box
+              sx={{
+                p: 2,
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                borderRadius: 2,
+                border: '1px solid rgba(0, 0, 0, 0.1)',
+              }}
+            >
+              <Typography variant="h2" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem', mb: 2 }}>
+                Platform Distribution
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 3 }}>
+                {platformData.map((platform) => (
+                  <Box key={platform.key} sx={{ flex: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      {platform.icon}
+                      <Typography variant="body1" sx={{ ml: 1, flexGrow: 1, fontWeight: 600 }}>
+                        {platform.name}
+                      </Typography>
                       <Chip
-                        label={`${quest.count} (${quest.percentage.toFixed(1)}%)`}
+                        label={`${platform.count} (${platform.percentage.toFixed(1)}%)`}
                         size="small"
                         sx={{
-                          backgroundColor: quest.color,
+                          backgroundColor: platform.color,
                           color: 'white',
-                          fontSize: '0.7rem',
-                          height: 20,
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
                         }}
                       />
                     </Box>
                     <LinearProgress
                       variant="determinate"
-                      value={quest.percentage}
-                      aria-label={`${quest.name}: ${quest.percentage.toFixed(1)}%`}
+                      value={platform.percentage}
+                      aria-label={`${platform.name}: ${platform.percentage.toFixed(1)}%`}
                       sx={{
-                        height: 4,
-                        borderRadius: 2,
-                        backgroundColor: `${quest.color}20`,
-                        '& .MuiLinearProgress-bar': { backgroundColor: quest.color },
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: `${platform.color}20`,
+                        '& .MuiLinearProgress-bar': { backgroundColor: platform.color },
                       }}
                     />
                   </Box>
                 ))}
               </Box>
-            </Grid>
-          )}
+            </Box>
+          </Grid>
         </Grid>
       </CardContent>
     </Card>
