@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
 
     // Filter by quest
     if (quest && Object.values(ReviewQuest).includes(quest as ReviewQuest)) {
-      filter.quest = quest;
+      filter.quest = quest === 'OTHER' ? { '$exists': false } : quest;
     }
 
     // Get total count for pagination
@@ -258,7 +258,7 @@ export async function GET(request: NextRequest) {
               $sum: { $cond: [{ $eq: ["$quest", "FEATURE_REQUEST"] }, 1, 0] }
             },
             otherReviews: {
-              $sum: { $cond: [{ $eq: ["$quest", "OTHER"] }, 1, 0] }
+              $sum: { $cond: [{ $or: [{ $eq: ["$quest", "OTHER"] }, { $eq: [ { $type : "$quest"}, 'missing'] }] }, 1, 0] }
             },
             reviewsByApp: { $push: "$appId" }
           }

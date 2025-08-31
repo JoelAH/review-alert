@@ -10,15 +10,15 @@ export enum ReviewSentiment {
 }
 
 export enum ReviewQuest {
-  BUG = "bug",
-  FEATURE_REQUEST = "feature request",
-  OTHER = "other"
+  BUG = "BUG",
+  FEATURE_REQUEST = "FEATURE_REQUEST",
+  OTHER = "OTHER"
 }
 
 export enum ReviewPriority {
-  HIGH = "high",
-  MEDIUM = "medium",
-  LOW = "low"
+  HIGH = "HIGH",
+  MEDIUM = "MEDIUM",
+  LOW = "LOW"
 }
 
 export const ReviewSchema = new Schema({

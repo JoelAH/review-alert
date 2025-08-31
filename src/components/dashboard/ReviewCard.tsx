@@ -77,7 +77,11 @@ const ReviewCard: React.FC<ReviewCardProps> = React.memo(({ review, appName, pla
           </Tooltip>
         );
       default:
-        return null;
+        return (
+          <Tooltip title="Other Feedback" arrow>
+            <QuestionIcon sx={{ color: theme.palette.info.main, fontSize: isMobile ? 16 : 18 }} />
+          </Tooltip>
+        );
     }
   };
 
