@@ -1,5 +1,21 @@
 import '@testing-library/jest-dom'
 
+// Polyfills for Node.js environment
+const { TextEncoder, TextDecoder } = require('util');
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
+// Mock Firebase auth
+jest.mock('firebase/auth', () => ({
+  onAuthStateChanged: jest.fn(),
+  getAuth: jest.fn(),
+}));
+
+// Mock Firebase config
+jest.mock('@/lib/firebase/config', () => ({
+  auth: {},
+}));
+
 // Set up environment variables for testing
 process.env.EMAIL_DISPOSABLE_CHECK_ENABLED = 'true';
 process.env.EMAIL_DISPOSABLE_CACHE_ENABLED = 'true';
