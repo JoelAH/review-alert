@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Review } from '@/lib/models/client/review';
 import { useAuth } from './useAuth';
+import { NotificationService } from '@/lib/services/notifications';
+import { ApiRetryMechanism } from '@/lib/utils/retryMechanism';
 
 export interface ReviewFilters {
   platform?: 'GooglePlay' | 'AppleStore' | 'ChromeExt';
@@ -39,7 +41,11 @@ export interface ReviewsResponse {
 export interface UseReviewsState {
   reviews: Review[];
   loading: boolean;
+  initialLoading: boolean;
+  loadingMore: boolean;
   error: string | null;
+  hasError: boolean;
+  retryCount: number;
   hasMore: boolean;
   totalCount: number;
   overview: ReviewOverview | null;
@@ -51,16 +57,18 @@ export interface UseReviewsActions {
   refresh: () => void;
   setFilters: (filters: ReviewFilters) => void;
   clearError: () => void;
+  retry: () => void;
 }
 
 export interface UseReviewsReturn extends UseReviewsState, UseReviewsActions {}
 
 const DEBOUNCE_DELAY = 300; // ms
 const DEFAULT_LIMIT = 20;
+const MAX_RETRY_ATTEMPTS = 3;
 
 /**
  * Custom hook for fetching reviews with pagination and filtering
- * Includes debounced API calls and comprehensive error handling
+ * Includes debounced API calls, comprehensive error handling, and retry mechanisms
  */
 export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn {
   const { isAuthenticated } = useAuth();
@@ -68,7 +76,11 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
   // State management
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [overview, setOverview] = useState<ReviewOverview | null>(null);
@@ -79,6 +91,22 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
   const abortControllerRef = useRef<AbortController>();
   const isInitialLoadRef = useRef(true);
+  const retryMechanismRef = useRef<ApiRetryMechanism>();
+
+  // Initialize retry mechanism
+  useEffect(() => {
+    retryMechanismRef.current = new ApiRetryMechanism({
+      maxAttempts: MAX_RETRY_ATTEMPTS,
+      onRetry: (error, attempt) => {
+        console.log(`Retrying API call (attempt ${attempt}):`, error);
+        setRetryCount(attempt);
+      },
+      onMaxAttemptsReached: (error) => {
+        console.error('Max retry attempts reached:', error);
+        NotificationService.handleApiError(error, 'Failed to load reviews after multiple attempts');
+      },
+    });
+  }, []);
 
   /**
    * Fetch reviews from the API with current filters and pagination
@@ -89,7 +117,10 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
     append: boolean = false
   ) => {
     if (!isAuthenticated) {
-      setError('User not authenticated');
+      const errorMsg = 'User not authenticated';
+      setError(errorMsg);
+      setHasError(true);
+      NotificationService.error('Please sign in to view your reviews');
       return;
     }
 
@@ -102,8 +133,17 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
     abortControllerRef.current = new AbortController();
 
     try {
+      // Set appropriate loading states
+      if (currentPage === 1 && !append) {
+        setInitialLoading(true);
+      } else if (append) {
+        setLoadingMore(true);
+      }
+      
       setLoading(true);
       setError(null);
+      setHasError(false);
+      setRetryCount(0);
 
       // Build query parameters
       const params = new URLSearchParams({
@@ -125,20 +165,25 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
         params.append('quest', currentFilters.quest);
       }
 
-      const response = await fetch(`/api/reviews?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: abortControllerRef.current.signal,
+      // Use retry mechanism for the API call
+      const data = await retryMechanismRef.current!.execute(async () => {
+        const response = await fetch(`/api/reviews?${params.toString()}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: abortControllerRef.current!.signal,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const error = new Error(errorData.error || `HTTP error! status: ${response.status}`);
+          (error as any).status = response.status;
+          throw error;
+        }
+
+        return response.json();
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-
-      const data: ReviewsResponse = await response.json();
 
       // Update state based on whether we're appending or replacing
       if (append) {
@@ -152,6 +197,11 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
       setOverview(data.overview);
       setPage(currentPage);
 
+      // Show success notification for initial loads if there were previous errors
+      if (hasError && currentPage === 1) {
+        NotificationService.success('Reviews loaded successfully');
+      }
+
     } catch (err) {
       // Don't set error for aborted requests
       if (err instanceof Error && err.name === 'AbortError') {
@@ -160,11 +210,18 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
 
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch reviews';
       setError(errorMessage);
+      setHasError(true);
       console.error('Error fetching reviews:', err);
+
+      // Show toast notification for errors
+      NotificationService.handleApiError(err, 'Failed to load reviews');
+
     } finally {
       setLoading(false);
+      setInitialLoading(false);
+      setLoadingMore(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, hasError]);
 
   /**
    * Debounced version of fetchReviews for filter changes
@@ -189,19 +246,29 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
    * Load more reviews (pagination)
    */
   const loadMore = useCallback(() => {
-    if (!loading && hasMore) {
+    if (!loading && !loadingMore && hasMore) {
       const nextPage = page + 1;
       fetchReviews(nextPage, filters, true);
     }
-  }, [loading, hasMore, page, filters, fetchReviews]);
+  }, [loading, loadingMore, hasMore, page, filters, fetchReviews]);
 
   /**
    * Refresh reviews (reset to first page)
    */
   const refresh = useCallback(() => {
     setPage(1);
+    setRetryCount(0);
     fetchReviews(1, filters, false);
   }, [filters, fetchReviews]);
+
+  /**
+   * Retry the last failed operation
+   */
+  const retry = useCallback(() => {
+    if (hasError) {
+      fetchReviews(page, filters, false);
+    }
+  }, [hasError, page, filters, fetchReviews]);
 
   /**
    * Update filters and trigger new search
@@ -209,6 +276,7 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
   const setFilters = useCallback((newFilters: ReviewFilters) => {
     setFiltersState(newFilters);
     setPage(1);
+    setRetryCount(0);
     
     // Use debounced fetch for filter changes to avoid excessive API calls
     debouncedFetchReviews(1, newFilters, false);
@@ -219,6 +287,8 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
    */
   const clearError = useCallback(() => {
     setError(null);
+    setHasError(false);
+    setRetryCount(0);
   }, []);
 
   // Initial load effect
@@ -247,7 +317,11 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
     // State
     reviews,
     loading,
+    initialLoading,
+    loadingMore,
     error,
+    hasError,
+    retryCount,
     hasMore,
     totalCount,
     overview,
@@ -258,6 +332,7 @@ export function useReviews(initialFilters: ReviewFilters = {}): UseReviewsReturn
     refresh,
     setFilters,
     clearError,
+    retry,
   };
 }
 
