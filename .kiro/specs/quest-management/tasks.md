@@ -7,7 +7,7 @@
   - Write unit tests for quest model validation and formatting functions
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
 
-- [ ] 2. Implement quest API endpoints
+- [x] 2. Implement quest API endpoints
   - Create `/api/quests/route.ts` with GET endpoint for fetching user's quests with sorting by state and priority
   - Implement POST endpoint for creating new quests with validation and user authentication
   - Add PUT endpoint for updating quest state and other properties
