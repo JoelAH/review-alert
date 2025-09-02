@@ -118,17 +118,11 @@ describe('CreateQuestButton', () => {
   it('handles quest creation successfully', async () => {
     const mockOnQuestCreated = jest.fn();
     
-    // Mock successful quest creation
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ _id: 'new-quest-123' }),
-      } as Response)
-      // Mock successful review update
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ success: true }),
-      } as Response);
+    // Mock successful quest creation (API now handles review update internally)
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ quest: { _id: 'new-quest-123' } }),
+    } as Response);
 
     renderWithTheme(
       <CreateQuestButton review={mockReview} onQuestCreated={mockOnQuestCreated} />
@@ -141,27 +135,16 @@ describe('CreateQuestButton', () => {
     fireEvent.click(submitButton);
     
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
-    // Check quest creation API call
-    expect(mockFetch).toHaveBeenNthCalledWith(1, '/api/quests', {
+    // Check quest creation API call includes reviewId
+    expect(mockFetch).toHaveBeenCalledWith('/api/quests', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: expect.stringContaining('"reviewId":"review-123"'),
-    });
-
-    // Check review update API call
-    expect(mockFetch).toHaveBeenNthCalledWith(2, '/api/reviews/review-123', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        questId: 'new-quest-123',
-      }),
     });
 
     expect(mockOnQuestCreated).toHaveBeenCalledWith('new-quest-123');

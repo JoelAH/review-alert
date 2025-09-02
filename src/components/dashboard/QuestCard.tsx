@@ -10,8 +10,10 @@ import {
     IconButton,
     useTheme,
     alpha,
+    Link,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import ReviewIcon from '@mui/icons-material/RateReview';
 import { Quest, QuestType, QuestPriority, QuestState } from '@/lib/models/client/quest';
 import QuestStateSelector from './QuestStateSelector';
 
@@ -19,6 +21,7 @@ export interface QuestCardProps {
     quest: Quest;
     onStateChange: (questId: string, newState: QuestState) => Promise<void>;
     onEdit: (quest: Quest) => void;
+    onViewReview?: (reviewId: string) => void;
 }
 
 // Helper function to get state color
@@ -78,13 +81,19 @@ const formatDate = (date: Date | string | undefined) => {
     });
 };
 
-export default function QuestCard({ quest, onStateChange, onEdit }: QuestCardProps) {
+export default function QuestCard({ quest, onStateChange, onEdit, onViewReview }: QuestCardProps) {
     const theme = useTheme();
     const stateColor = getStateColor(quest.state, theme);
     const priorityConfig = getPriorityConfig(quest.priority);
 
     const handleEditClick = () => {
         onEdit(quest);
+    };
+
+    const handleViewReview = () => {
+        if (quest.reviewId && onViewReview) {
+            onViewReview(quest.reviewId);
+        }
     };
 
     return (
@@ -168,17 +177,50 @@ export default function QuestCard({ quest, onStateChange, onEdit }: QuestCardPro
                     />
                 </Box>
 
-                {/* Creation date */}
-                <Typography 
-                    variant="caption" 
-                    color="text.secondary"
-                    sx={{ 
-                        display: 'block',
-                        opacity: quest.state === QuestState.DONE ? 0.7 : 1
-                    }}
-                >
-                    Created: {formatDate(quest.createdAt)}
-                </Typography>
+                {/* Review reference and creation date */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    {quest.reviewId && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <ReviewIcon 
+                                fontSize="small" 
+                                sx={{ 
+                                    color: theme.palette.primary.main,
+                                    opacity: quest.state === QuestState.DONE ? 0.7 : 1
+                                }} 
+                            />
+                            <Link
+                                component="button"
+                                variant="caption"
+                                onClick={handleViewReview}
+                                sx={{
+                                    color: theme.palette.primary.main,
+                                    textDecoration: 'none',
+                                    opacity: quest.state === QuestState.DONE ? 0.7 : 1,
+                                    '&:hover': {
+                                        textDecoration: 'underline',
+                                    },
+                                    cursor: 'pointer',
+                                    border: 'none',
+                                    background: 'none',
+                                    padding: 0,
+                                    font: 'inherit',
+                                }}
+                            >
+                                View originating review
+                            </Link>
+                        </Box>
+                    )}
+                    <Typography 
+                        variant="caption" 
+                        color="text.secondary"
+                        sx={{ 
+                            display: 'block',
+                            opacity: quest.state === QuestState.DONE ? 0.7 : 1
+                        }}
+                    >
+                        Created: {formatDate(quest.createdAt)}
+                    </Typography>
+                </Box>
             </CardContent>
         </Card>
     );

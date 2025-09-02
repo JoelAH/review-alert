@@ -24,7 +24,7 @@ import { ReviewSentiment, ReviewQuest, ReviewPriority } from '@/lib/models/clien
 import { ReviewCardProps } from './types';
 import CreateQuestButton from './CreateQuestButton';
 
-const ReviewCard: React.FC<ReviewCardProps> = React.memo(({ review, appName, platform, onQuestCreated }) => {
+const ReviewCard: React.FC<ReviewCardProps> = React.memo(({ review, appName, platform, onQuestCreated, highlighted = false }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -171,6 +171,8 @@ const ReviewCard: React.FC<ReviewCardProps> = React.memo(({ review, appName, pla
           borderLeft: `4px solid ${getSentimentBorderColor()}`,
           transition: 'all 0.2s ease-in-out',
           cursor: 'pointer',
+          backgroundColor: highlighted ? theme.palette.action.selected : 'background.paper',
+          boxShadow: highlighted ? theme.shadows[4] : theme.shadows[1],
           '&:hover': {
             transform: 'translateY(-2px)',
             boxShadow: theme.shadows[4],

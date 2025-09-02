@@ -354,6 +354,20 @@ export async function POST(request: NextRequest) {
     const quest = new QuestModel(questData);
     const savedQuest = await quest.save();
 
+    // If quest was created from a review, update the review to link back to the quest
+    if (body.reviewId) {
+      try {
+        await ReviewModel.findOneAndUpdate(
+          { _id: body.reviewId, user: user._id },
+          { questId: savedQuest._id, updatedAt: new Date() },
+          { new: true }
+        );
+      } catch (error) {
+        console.error("Error updating review with quest ID:", error);
+        // Don't fail the quest creation if review update fails
+      }
+    }
+
     // Format and return quest
     const formattedQuest = formatQuest(savedQuest);
 

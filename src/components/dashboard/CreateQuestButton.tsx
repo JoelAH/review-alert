@@ -76,18 +76,8 @@ const CreateQuestButton: React.FC<CreateQuestButtonProps> = ({
         throw new Error('Failed to create quest');
       }
 
-      const createdQuest = await response.json();
-      
-      // Update the review to link it to the created quest
-      await fetch(`/api/reviews/${review._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          questId: createdQuest._id,
-        }),
-      });
+      const result = await response.json();
+      const createdQuest = result.quest;
 
       onQuestCreated?.(createdQuest._id);
       setModalOpen(false);

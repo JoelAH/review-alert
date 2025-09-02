@@ -23,6 +23,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 export interface QuestsTabProps {
     user: User | null;
+    onViewReview?: (reviewId: string) => void;
 }
 
 // Helper function to sort quests by state then priority
@@ -59,7 +60,7 @@ const sortQuests = (quests: Quest[]): Quest[] => {
     });
 };
 
-export default function QuestsTab({ user }: QuestsTabProps) {
+export default function QuestsTab({ user, onViewReview }: QuestsTabProps) {
     const theme = useTheme();
     const [quests, setQuests] = useState<Quest[]>([]);
     const [loading, setLoading] = useState(true);
@@ -283,6 +284,7 @@ export default function QuestsTab({ user }: QuestsTabProps) {
                                     quest={quest}
                                     onStateChange={handleStateChange}
                                     onEdit={handleEdit}
+                                    onViewReview={onViewReview}
                                 />
                             </Grid>
                         ))}
@@ -304,6 +306,7 @@ export default function QuestsTab({ user }: QuestsTabProps) {
                                     quest={quest}
                                     onStateChange={handleStateChange}
                                     onEdit={handleEdit}
+                                    onViewReview={onViewReview}
                                 />
                             </Grid>
                         ))}
@@ -325,6 +328,7 @@ export default function QuestsTab({ user }: QuestsTabProps) {
                                     quest={quest}
                                     onStateChange={handleStateChange}
                                     onEdit={handleEdit}
+                                    onViewReview={onViewReview}
                                 />
                             </Grid>
                         ))}

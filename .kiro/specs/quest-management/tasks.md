@@ -70,7 +70,7 @@
   - Write unit tests for quest editing flow and data persistence
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-- [ ] 10. Add quest-review relationship tracking
+- [x] 10. Add quest-review relationship tracking
   - Update Review schema to include optional questId field for linking reviews to created quests
   - Implement logic to associate quests with originating reviews during creation
   - Add visual indicators on review cards when quests have been created from them

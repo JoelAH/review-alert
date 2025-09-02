@@ -65,6 +65,7 @@ jest.mock('@/lib/models/server/review', () => ({
   __esModule: true,
   default: {
     findOne: jest.fn(),
+    findOneAndUpdate: jest.fn(),
   },
 }));
 
@@ -365,6 +366,37 @@ describe('/api/quests', () => {
         _id: 'review123',
         user: 'user123',
       });
+    });
+
+    it('should update review with quest ID when quest is created from review', async () => {
+      const mockReview = { _id: 'review123', user: 'user123' };
+      const mockSavedQuest = { _id: 'quest123', ...validQuestData };
+      
+      mockReviewModel.findOne.mockResolvedValue(mockReview);
+      mockReviewModel.findOneAndUpdate.mockResolvedValue({ ...mockReview, questId: 'quest123' });
+      
+      (mockQuestModel as any).mockImplementation(() => ({
+        save: jest.fn().mockResolvedValue(mockSavedQuest),
+      }));
+
+      const questDataWithReview = {
+        ...validQuestData,
+        reviewId: 'review123',
+      };
+
+      const request = new NextRequest('http://localhost:3000/api/quests', {
+        method: 'POST',
+        body: JSON.stringify(questDataWithReview),
+      });
+      
+      const response = await POST(request);
+
+      expect(response.status).toBe(201);
+      expect(mockReviewModel.findOneAndUpdate).toHaveBeenCalledWith(
+        { _id: 'review123', user: 'user123' },
+        { questId: 'quest123', updatedAt: expect.any(Date) },
+        { new: true }
+      );
     });
 
     it('should return 400 for missing title', async () => {

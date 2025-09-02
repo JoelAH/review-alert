@@ -35,7 +35,7 @@ import { usePerformanceMonitor } from '@/lib/utils/performanceMonitor';
 
 const VIRTUAL_SCROLL_THRESHOLD = 50; // Use virtual scrolling when more than 50 reviews
 
-export default function FeedTab({ user }: { user: User | null }) {
+export default function FeedTab({ user, highlightedReviewId }: { user: User | null; highlightedReviewId?: string | null }) {
     const theme = useTheme();
     const { isAuthenticated } = useAuth();
     const { startRender, endRender } = usePerformanceMonitor('FeedTab');
@@ -272,6 +272,7 @@ export default function FeedTab({ user }: { user: User | null }) {
                                         <VirtualizedReviewList
                                             reviews={reviews}
                                             getAppInfoForReview={getAppInfoForReview}
+                                            highlightedReviewId={highlightedReviewId}
                                             onQuestCreated={(questId) => {
                                                 console.log('Quest created:', questId);
                                             }}
@@ -288,6 +289,7 @@ export default function FeedTab({ user }: { user: User | null }) {
                                                             review={review}
                                                             appName={appName}
                                                             platform={platform}
+                                                            highlighted={highlightedReviewId === review._id}
                                                             onQuestCreated={(questId) => {
                                                                 // Optionally refresh reviews to show updated questId
                                                                 // or update the review in the local state

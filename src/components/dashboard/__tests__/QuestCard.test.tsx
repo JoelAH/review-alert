@@ -380,6 +380,73 @@ describe('QuestCard', () => {
         });
     });
 
+    describe('Review Reference', () => {
+        it('shows review reference link when quest has reviewId', () => {
+            const mockOnViewReview = jest.fn();
+            
+            renderWithTheme(
+                <QuestCard 
+                    quest={mockQuest} 
+                    onStateChange={mockOnStateChange} 
+                    onEdit={mockOnEdit}
+                    onViewReview={mockOnViewReview}
+                />
+            );
+
+            const reviewLink = screen.getByText('View originating review');
+            expect(reviewLink).toBeInTheDocument();
+        });
+
+        it('does not show review reference when quest has no reviewId', () => {
+            const questWithoutReview = { ...mockQuest, reviewId: undefined };
+            const mockOnViewReview = jest.fn();
+            
+            renderWithTheme(
+                <QuestCard 
+                    quest={questWithoutReview} 
+                    onStateChange={mockOnStateChange} 
+                    onEdit={mockOnEdit}
+                    onViewReview={mockOnViewReview}
+                />
+            );
+
+            const reviewLink = screen.queryByText('View originating review');
+            expect(reviewLink).not.toBeInTheDocument();
+        });
+
+        it('calls onViewReview when review link is clicked', () => {
+            const mockOnViewReview = jest.fn();
+            
+            renderWithTheme(
+                <QuestCard 
+                    quest={mockQuest} 
+                    onStateChange={mockOnStateChange} 
+                    onEdit={mockOnEdit}
+                    onViewReview={mockOnViewReview}
+                />
+            );
+
+            const reviewLink = screen.getByText('View originating review');
+            fireEvent.click(reviewLink);
+
+            expect(mockOnViewReview).toHaveBeenCalledWith('review-789');
+        });
+
+        it('does not call onViewReview when no callback provided', () => {
+            renderWithTheme(
+                <QuestCard 
+                    quest={mockQuest} 
+                    onStateChange={mockOnStateChange} 
+                    onEdit={mockOnEdit}
+                />
+            );
+
+            const reviewLink = screen.getByText('View originating review');
+            // Should not throw error when clicked without callback
+            expect(() => fireEvent.click(reviewLink)).not.toThrow();
+        });
+    });
+
     describe('Prop Handling', () => {
         it('handles all required props correctly', () => {
             expect(() => {

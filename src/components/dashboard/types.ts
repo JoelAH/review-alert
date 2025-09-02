@@ -6,6 +6,7 @@ export interface ReviewCardProps {
   appName: string;
   platform: 'GooglePlay' | 'AppleStore' | 'ChromeExt';
   onQuestCreated?: (questId: string) => void;
+  highlighted?: boolean;
 }
 
 export interface QuestCardProps {

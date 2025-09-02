@@ -50,11 +50,22 @@ function a11yProps(index: number) {
 
 export default function NewDashboard({ user }: { user: User | null }) {
     const [value, setValue] = useState(0);
+    const [highlightedReviewId, setHighlightedReviewId] = useState<string | null>(null);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
+        // Clear highlighted review when switching tabs
+        if (newValue !== 0) {
+            setHighlightedReviewId(null);
+        }
+    };
+
+    const handleViewReview = (reviewId: string) => {
+        // Switch to Feed tab and highlight the specific review
+        setHighlightedReviewId(reviewId);
+        setValue(0); // Switch to Feed tab (index 0)
     };
 
     return (
@@ -99,10 +110,10 @@ export default function NewDashboard({ user }: { user: User | null }) {
             </Box>
 
             <TabPanel value={value} index={0}>
-                <FeedTab user={user} />
+                <FeedTab user={user} highlightedReviewId={highlightedReviewId} />
             </TabPanel>
             <TabPanel value={value} index={1}>
-                <QuestsTab user={user} />
+                <QuestsTab user={user} onViewReview={handleViewReview} />
             </TabPanel>
             <TabPanel value={value} index={2}>
                 <CommandCenterTab user={user} />
