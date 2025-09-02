@@ -22,8 +22,9 @@ import {
 } from '@mui/icons-material';
 import { ReviewSentiment, ReviewQuest, ReviewPriority } from '@/lib/models/client/review';
 import { ReviewCardProps } from './types';
+import CreateQuestButton from './CreateQuestButton';
 
-const ReviewCard: React.FC<ReviewCardProps> = React.memo(({ review, appName, platform }) => {
+const ReviewCard: React.FC<ReviewCardProps> = React.memo(({ review, appName, platform, onQuestCreated }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -185,7 +186,7 @@ const ReviewCard: React.FC<ReviewCardProps> = React.memo(({ review, appName, pla
         }}
       >
         <CardContent sx={{ p: isMobile ? 2 : 3 }}>
-          {/* Header with platform, app name, and indicators */}
+          {/* Header with platform, app name, indicators, and create quest button */}
           <Box
             sx={{
               display: 'flex',
@@ -213,9 +214,15 @@ const ReviewCard: React.FC<ReviewCardProps> = React.memo(({ review, appName, pla
               </Typography>
             </Box>
             
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
-              {getQuestIcon()}
-              {getPriorityIndicator()}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+              <CreateQuestButton 
+                review={review} 
+                onQuestCreated={onQuestCreated}
+              />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                {getQuestIcon()}
+                {getPriorityIndicator()}
+              </Box>
             </Box>
           </Box>
 

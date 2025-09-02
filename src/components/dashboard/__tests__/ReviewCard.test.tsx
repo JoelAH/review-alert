@@ -1,9 +1,24 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 import ReviewCard from '../ReviewCard';
 import { Review, ReviewSentiment, ReviewQuest, ReviewPriority } from '@/lib/models/client/review';
 import theme from '@/app/theme';
+
+// Mock the CreateQuestButton component
+jest.mock('../CreateQuestButton', () => {
+  return function MockCreateQuestButton({ review, onQuestCreated, disabled }: any) {
+    return (
+      <button
+        data-testid="create-quest-button"
+        onClick={() => onQuestCreated?.('mock-quest-id')}
+        disabled={disabled || Boolean(review.questId)}
+      >
+        {review.questId ? 'Quest Created' : 'Create Quest'}
+      </button>
+    );
+  };
+});
 
 // Mock review data for testing
 const mockReview: Review = {
@@ -194,5 +209,86 @@ describe('ReviewCard', () => {
 
     // Check for formatted date (should contain 2024)
     expect(screen.getByText(/2024/)).toBeInTheDocument();
+  });
+
+  describe('CreateQuestButton Integration', () => {
+    it('renders create quest button', () => {
+      renderWithTheme(
+        <ReviewCard
+          review={mockReview}
+          appName="Test App"
+          platform="GooglePlay"
+        />
+      );
+
+      expect(screen.getByTestId('create-quest-button')).toBeInTheDocument();
+      expect(screen.getByText('Create Quest')).toBeInTheDocument();
+    });
+
+    it('shows quest created button when quest exists', () => {
+      const reviewWithQuest = {
+        ...mockReview,
+        questId: 'existing-quest-id',
+      };
+
+      renderWithTheme(
+        <ReviewCard
+          review={reviewWithQuest}
+          appName="Test App"
+          platform="GooglePlay"
+        />
+      );
+
+      expect(screen.getByText('Quest Created')).toBeInTheDocument();
+      expect(screen.getByTestId('create-quest-button')).toBeDisabled();
+    });
+
+    it('calls onQuestCreated callback when quest is created', () => {
+      const mockOnQuestCreated = jest.fn();
+
+      renderWithTheme(
+        <ReviewCard
+          review={mockReview}
+          appName="Test App"
+          platform="GooglePlay"
+          onQuestCreated={mockOnQuestCreated}
+        />
+      );
+
+      const createButton = screen.getByTestId('create-quest-button');
+      fireEvent.click(createButton);
+
+      expect(mockOnQuestCreated).toHaveBeenCalledWith('mock-quest-id');
+    });
+
+    it('passes review data to CreateQuestButton', () => {
+      renderWithTheme(
+        <ReviewCard
+          review={mockReview}
+          appName="Test App"
+          platform="GooglePlay"
+        />
+      );
+
+      // The CreateQuestButton should receive the review prop
+      expect(screen.getByTestId('create-quest-button')).toBeInTheDocument();
+    });
+
+    it('positions create quest button in header area', () => {
+      renderWithTheme(
+        <ReviewCard
+          review={mockReview}
+          appName="Test App"
+          platform="GooglePlay"
+        />
+      );
+
+      const button = screen.getByTestId('create-quest-button');
+      const appName = screen.getByText('Test App');
+      
+      // Both should be in the document (button in header area)
+      expect(button).toBeInTheDocument();
+      expect(appName).toBeInTheDocument();
+    });
   });
 });

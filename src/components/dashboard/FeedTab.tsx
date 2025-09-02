@@ -272,6 +272,9 @@ export default function FeedTab({ user }: { user: User | null }) {
                                         <VirtualizedReviewList
                                             reviews={reviews}
                                             getAppInfoForReview={getAppInfoForReview}
+                                            onQuestCreated={(questId) => {
+                                                console.log('Quest created:', questId);
+                                            }}
                                             height={600}
                                             itemHeight={200}
                                         />
@@ -285,6 +288,11 @@ export default function FeedTab({ user }: { user: User | null }) {
                                                             review={review}
                                                             appName={appName}
                                                             platform={platform}
+                                                            onQuestCreated={(questId) => {
+                                                                // Optionally refresh reviews to show updated questId
+                                                                // or update the review in the local state
+                                                                console.log('Quest created:', questId, 'for review:', review._id);
+                                                            }}
                                                         />
                                                     </Grid>
                                                 );

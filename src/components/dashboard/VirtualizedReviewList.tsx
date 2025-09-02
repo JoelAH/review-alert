@@ -10,6 +10,7 @@ import { Platform } from './types';
 interface VirtualizedReviewListProps {
   reviews: Review[];
   getAppInfoForReview: (review: Review) => { appName: string; platform: Platform };
+  onQuestCreated?: (questId: string) => void;
   height?: number;
   itemHeight?: number;
   overscan?: number;
@@ -21,11 +22,12 @@ interface ListItemProps {
   data: {
     reviews: Review[];
     getAppInfoForReview: (review: Review) => { appName: string; platform: Platform };
+    onQuestCreated?: (questId: string) => void;
   };
 }
 
 const ListItem: React.FC<ListItemProps> = React.memo(({ index, style, data }) => {
-  const { reviews, getAppInfoForReview } = data;
+  const { reviews, getAppInfoForReview, onQuestCreated } = data;
   const review = reviews[index];
   const { appName, platform } = getAppInfoForReview(review);
 
@@ -36,6 +38,7 @@ const ListItem: React.FC<ListItemProps> = React.memo(({ index, style, data }) =>
           review={review}
           appName={appName}
           platform={platform}
+          onQuestCreated={onQuestCreated}
         />
       </Box>
     </div>
@@ -47,6 +50,7 @@ ListItem.displayName = 'VirtualizedListItem';
 const VirtualizedReviewList: React.FC<VirtualizedReviewListProps> = ({
   reviews,
   getAppInfoForReview,
+  onQuestCreated,
   height = 600,
   itemHeight = 200,
   overscan = 5,
@@ -61,7 +65,8 @@ const VirtualizedReviewList: React.FC<VirtualizedReviewListProps> = ({
   const itemData = useMemo(() => ({
     reviews,
     getAppInfoForReview,
-  }), [reviews, getAppInfoForReview]);
+    onQuestCreated,
+  }), [reviews, getAppInfoForReview, onQuestCreated]);
 
   // Memoize the list height calculation
   const listHeight = useMemo(() => {
