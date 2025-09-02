@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Create quest data models and database schema
+- [x] 1. Create quest data models and database schema
   - Create server-side Quest model with MongoDB schema including user reference, title, details, type, priority, state, and timestamps
   - Create client-side Quest type definitions with proper enums for QuestType, QuestPriority, and QuestState
   - Add database indexes for efficient querying by user, state, and priority

@@ -45,6 +45,7 @@ export const ReviewSchema = new Schema({
     required: false,
     index: true
   },
+  questId: { type: Schema.Types.ObjectId, ref: 'Quest', required: false, index: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
@@ -70,6 +71,7 @@ export type Review = {
   sentiment: ReviewSentiment;
   quest?: ReviewQuest;
   priority?: ReviewPriority;
+  questId?: string; // ObjectId as string, optional reference to created quest
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -79,6 +81,9 @@ export const formatReview = (savedObject: any): Review => {
   formattedReview._id = formattedReview._id.toString();
   formattedReview.user = formattedReview.user.toString();
   formattedReview.appId = formattedReview.appId.toString();
+  if (formattedReview.questId) {
+    formattedReview.questId = formattedReview.questId.toString();
+  }
   
   return formattedReview;
 };

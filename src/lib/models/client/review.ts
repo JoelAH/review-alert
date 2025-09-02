@@ -27,6 +27,7 @@ export interface Review {
   sentiment: ReviewSentiment;
   quest?: ReviewQuest;
   priority?: ReviewPriority;
+  questId?: string; // Quest ObjectId as string, optional reference to created quest
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }
@@ -49,4 +50,5 @@ export interface UpdateReviewInput {
   quest?: ReviewQuest;
   priority?: ReviewPriority;
   sentiment?: ReviewSentiment;
+  questId?: string;
 }
