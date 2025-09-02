@@ -5,6 +5,8 @@ import { Button, CircularProgress } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { Review, ReviewQuest } from '@/lib/models/client/review';
 import { QuestType, QuestPriority } from '@/lib/models/client/quest';
+import { QuestService, QuestError } from '@/lib/services/quests';
+import { NotificationService } from '@/lib/services/notifications';
 import QuestModal, { CreateQuestData } from './QuestModal';
 
 export interface CreateQuestButtonProps {
@@ -64,26 +66,22 @@ const CreateQuestButton: React.FC<CreateQuestButtonProps> = ({
   const handleCreateQuest = async (questData: CreateQuestData) => {
     setIsCreating(true);
     try {
-      const response = await fetch('/api/quests', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(questData),
-      });
+      const createdQuest = await QuestService.createQuest(questData);
 
-      if (!response.ok) {
-        throw new Error('Failed to create quest');
-      }
-
-      const result = await response.json();
-      const createdQuest = result.quest;
+      // Show success notification
+      NotificationService.success('Quest created successfully');
 
       onQuestCreated?.(createdQuest._id);
       setModalOpen(false);
     } catch (error) {
       console.error('Error creating quest:', error);
-      throw error; // Let the modal handle the error display
+      
+      const questError = QuestError.fromError(error);
+      
+      // Show error notification
+      NotificationService.error(QuestService.getErrorMessage(questError));
+      
+      throw questError; // Let the modal handle the error display
     } finally {
       setIsCreating(false);
     }

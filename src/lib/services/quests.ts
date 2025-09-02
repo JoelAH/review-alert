@@ -66,6 +66,8 @@ export interface UpdateQuestData {
 export class QuestService {
   private static readonly DEFAULT_LIMIT = 20;
   private static readonly API_BASE_URL = '/api/quests';
+  private static readonly MAX_RETRIES = 3;
+  private static readonly RETRY_DELAY = 1000; // 1 second
 
   /**
    * Fetch quests with pagination and filtering
@@ -78,113 +80,137 @@ export class QuestService {
       signal
     } = options;
 
-    // Build query parameters
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-    });
+    return this.withRetry(async () => {
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
 
-    // Add filters to query params
-    if (filters.type) {
-      params.append('type', filters.type);
-    }
-    if (filters.priority) {
-      params.append('priority', filters.priority);
-    }
-    if (filters.state) {
-      params.append('state', filters.state);
-    }
-    if (filters.search) {
-      params.append('search', filters.search);
-    }
+      // Add filters to query params
+      if (filters.type) {
+        params.append('type', filters.type);
+      }
+      if (filters.priority) {
+        params.append('priority', filters.priority);
+      }
+      if (filters.state) {
+        params.append('state', filters.state);
+      }
+      if (filters.search) {
+        params.append('search', filters.search);
+      }
 
-    const response = await fetch(`${this.API_BASE_URL}?${params.toString()}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      signal,
-    });
+      const response = await fetch(`${this.API_BASE_URL}?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal,
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new QuestError(errorData.error || `HTTP error! status: ${response.status}`, 'HTTP_ERROR', response.status);
-    }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new QuestError(
+          errorData.error || `Failed to fetch quests: ${response.status}`, 
+          'FETCH_ERROR', 
+          response.status
+        );
+      }
 
-    return response.json();
+      return response.json();
+    }, signal);
   }
 
   /**
    * Create a new quest
    */
   static async createQuest(questData: CreateQuestData, signal?: AbortSignal): Promise<Quest> {
-    const response = await fetch(this.API_BASE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(questData),
-      signal,
-    });
+    return this.withRetry(async () => {
+      const response = await fetch(this.API_BASE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(questData),
+        signal,
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new QuestError(errorData.error || `Failed to create quest: ${response.status}`, 'CREATE_ERROR', response.status);
-    }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new QuestError(
+          errorData.error || `Failed to create quest: ${response.status}`, 
+          'CREATE_ERROR', 
+          response.status
+        );
+      }
 
-    const result = await response.json();
-    
-    // Clear cache after successful creation
-    QuestCache.clear();
-    
-    return result.quest;
+      const result = await response.json();
+      
+      // Clear cache after successful creation
+      QuestCache.clear();
+      
+      return result.quest;
+    }, signal);
   }
 
   /**
    * Update an existing quest
    */
   static async updateQuest(questId: string, updates: UpdateQuestData, signal?: AbortSignal): Promise<Quest> {
-    const response = await fetch(`${this.API_BASE_URL}/${questId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updates),
-      signal,
-    });
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.API_BASE_URL}/${questId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+        signal,
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new QuestError(errorData.error || `Failed to update quest: ${response.status}`, 'UPDATE_ERROR', response.status);
-    }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new QuestError(
+          errorData.error || `Failed to update quest: ${response.status}`, 
+          'UPDATE_ERROR', 
+          response.status
+        );
+      }
 
-    const result = await response.json();
-    
-    // Clear cache after successful update
-    QuestCache.clear();
-    
-    return result.quest;
+      const result = await response.json();
+      
+      // Clear cache after successful update
+      QuestCache.clear();
+      
+      return result.quest;
+    }, signal);
   }
 
   /**
    * Delete a quest
    */
   static async deleteQuest(questId: string, signal?: AbortSignal): Promise<void> {
-    const response = await fetch(`${this.API_BASE_URL}/${questId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      signal,
-    });
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.API_BASE_URL}/${questId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal,
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new QuestError(errorData.error || `Failed to delete quest: ${response.status}`, 'DELETE_ERROR', response.status);
-    }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new QuestError(
+          errorData.error || `Failed to delete quest: ${response.status}`, 
+          'DELETE_ERROR', 
+          response.status
+        );
+      }
 
-    // Clear cache after successful deletion
-    QuestCache.clear();
+      // Clear cache after successful deletion
+      QuestCache.clear();
+    }, signal);
   }
 
   /**
@@ -230,6 +256,105 @@ export class QuestService {
     QuestCache.set(cacheKey, result);
     
     return result;
+  }
+
+  /**
+   * Retry mechanism for API calls
+   */
+  private static async withRetry<T>(
+    operation: () => Promise<T>,
+    signal?: AbortSignal,
+    retryCount = 0
+  ): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      // Don't retry if request was aborted
+      if (signal?.aborted) {
+        throw error;
+      }
+
+      // Don't retry client errors (4xx) except for 408 (timeout) and 429 (rate limit)
+      if (error instanceof QuestError && error.status) {
+        const shouldRetry = error.status >= 500 || error.status === 408 || error.status === 429;
+        if (!shouldRetry || retryCount >= this.MAX_RETRIES) {
+          throw error;
+        }
+      } else if (retryCount >= this.MAX_RETRIES) {
+        throw error;
+      }
+
+      // Wait before retrying with exponential backoff
+      const delay = this.RETRY_DELAY * Math.pow(2, retryCount);
+      await this.sleep(delay);
+
+      return this.withRetry(operation, signal, retryCount + 1);
+    }
+  }
+
+  /**
+   * Sleep utility for retry delays
+   */
+  private static sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Check if the quest API is available
+   */
+  static async healthCheck(signal?: AbortSignal): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/health`, {
+        method: 'GET',
+        signal,
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Get user-friendly error message
+   */
+  static getErrorMessage(error: unknown): string {
+    if (error instanceof QuestError) {
+      switch (error.code) {
+        case 'FETCH_ERROR':
+          return 'Failed to load quests. Please check your connection and try again.';
+        case 'CREATE_ERROR':
+          return 'Failed to create quest. Please try again.';
+        case 'UPDATE_ERROR':
+          return 'Failed to update quest. Please try again.';
+        case 'DELETE_ERROR':
+          return 'Failed to delete quest. Please try again.';
+        case 'HTTP_ERROR':
+          if (error.status === 401) {
+            return 'You need to sign in to manage quests.';
+          }
+          if (error.status === 403) {
+            return 'You don\'t have permission to perform this action.';
+          }
+          if (error.status === 404) {
+            return 'Quest not found. It may have been deleted.';
+          }
+          if (error.status === 429) {
+            return 'Too many requests. Please wait a moment and try again.';
+          }
+          if (error.status >= 500) {
+            return 'Server error. Please try again later.';
+          }
+          break;
+        default:
+          return error.message;
+      }
+    }
+
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    return 'An unexpected error occurred. Please try again.';
   }
 }
 
@@ -301,17 +426,20 @@ export class QuestError extends Error {
   constructor(
     message: string,
     public readonly code?: string,
-    public readonly status?: number
+    public readonly status?: number,
+    public readonly retryable: boolean = false
   ) {
     super(message);
     this.name = 'QuestError';
   }
 
   static fromResponse(response: Response, message?: string): QuestError {
+    const retryable = response.status >= 500 || response.status === 408 || response.status === 429;
     return new QuestError(
       message || `Request failed with status ${response.status}`,
       'HTTP_ERROR',
-      response.status
+      response.status,
+      retryable
     );
   }
 
@@ -321,10 +449,39 @@ export class QuestError extends Error {
     }
     
     if (error instanceof Error) {
-      return new QuestError(error.message, 'UNKNOWN_ERROR');
+      // Network errors are typically retryable
+      const isNetworkError = error.message.toLowerCase().includes('fetch') || 
+                            error.message.toLowerCase().includes('network') ||
+                            error.message.toLowerCase().includes('connection') ||
+                            error.name === 'TypeError' && error.message.includes('fetch');
+      return new QuestError(error.message, 'UNKNOWN_ERROR', undefined, isNetworkError);
     }
     
     return new QuestError(fallbackMessage, 'UNKNOWN_ERROR');
+  }
+
+  /**
+   * Check if this error indicates the user should retry
+   */
+  get shouldRetry(): boolean {
+    return this.retryable;
+  }
+
+  /**
+   * Check if this error indicates a network/connectivity issue
+   */
+  get isNetworkError(): boolean {
+    return this.code === 'FETCH_ERROR' || 
+           this.code === 'HTTP_ERROR' && (this.status === undefined || this.status >= 500) ||
+           this.message.toLowerCase().includes('network') ||
+           this.message.toLowerCase().includes('connection');
+  }
+
+  /**
+   * Check if this error indicates an authentication issue
+   */
+  get isAuthError(): boolean {
+    return this.status === 401 || this.status === 403;
   }
 }
 

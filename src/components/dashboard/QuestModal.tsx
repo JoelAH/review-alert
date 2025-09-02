@@ -84,6 +84,7 @@ export default function QuestModal({
     });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     // Initialize form data when modal opens or initialData changes
     useEffect(() => {
@@ -117,6 +118,7 @@ export default function QuestModal({
                 });
             }
             setErrors({});
+            setSubmitError(null);
         }
     }, [open, initialData, mode, quest]);
 
@@ -199,12 +201,20 @@ export default function QuestModal({
         }
 
         setIsSubmitting(true);
+        setSubmitError(null);
+        
         try {
             await onSubmit(formData);
             handleClose();
         } catch (error) {
             console.error('Error submitting quest:', error);
-            // The parent component should handle showing error messages
+            
+            // Set local error for display in modal
+            if (error instanceof Error) {
+                setSubmitError(error.message);
+            } else {
+                setSubmitError('An unexpected error occurred. Please try again.');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -220,6 +230,7 @@ export default function QuestModal({
                 reviewId: undefined,
             });
             setErrors({});
+            setSubmitError(null);
             onClose();
         }
     };
@@ -321,6 +332,13 @@ export default function QuestModal({
                     {formData.reviewId && mode === 'create' && (
                         <Alert severity="info" sx={{ mt: 1 }}>
                             This quest will be associated with the selected review for tracking purposes.
+                        </Alert>
+                    )}
+
+                    {/* Show submit error */}
+                    {submitError && (
+                        <Alert severity="error" sx={{ mt: 1 }}>
+                            {submitError}
                         </Alert>
                     )}
                 </Box>

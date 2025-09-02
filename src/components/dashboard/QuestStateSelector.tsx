@@ -10,8 +10,10 @@ import {
     useTheme,
     alpha,
     SelectChangeEvent,
+    Tooltip,
 } from '@mui/material';
 import { QuestState } from '@/lib/models/client/quest';
+import ErrorIcon from '@mui/icons-material/Error';
 
 export interface QuestStateSelectorProps {
     questId: string;
@@ -68,6 +70,8 @@ export default function QuestStateSelector({
     const theme = useTheme();
     const [isLoading, setIsLoading] = useState(false);
     const [optimisticState, setOptimisticState] = useState<QuestState | null>(null);
+    const [hasError, setHasError] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
     
     // Use optimistic state if available, otherwise use current state
     const displayState = optimisticState ?? currentState;
@@ -84,20 +88,30 @@ export default function QuestStateSelector({
         // Set optimistic state immediately for responsive UI
         setOptimisticState(newState);
         setIsLoading(true);
+        setHasError(false);
 
         try {
             await onStateChange(questId, newState);
-            // Success - clear optimistic state (parent will update with new state)
+            // Success - clear optimistic state and reset retry count
             setOptimisticState(null);
+            setRetryCount(0);
         } catch (error) {
-            // Error - rollback optimistic state
+            // Error - rollback optimistic state and show error indicator
             setOptimisticState(null);
+            setHasError(true);
+            setRetryCount(prev => prev + 1);
             console.error('Failed to update quest state:', error);
-            // The parent component should handle showing error messages
+            
+            // Auto-retry for network errors (up to 2 times)
+            if (retryCount < 2) {
+                setTimeout(() => {
+                    handleStateChange(event);
+                }, 1000 * Math.pow(2, retryCount)); // Exponential backoff
+            }
         } finally {
             setIsLoading(false);
         }
-    }, [questId, currentState, onStateChange]);
+    }, [questId, currentState, onStateChange, retryCount]);
 
     const isDisabled = disabled || isLoading;
 
@@ -145,6 +159,17 @@ export default function QuestStateSelector({
                                 sx={{ color: stateInfo.color }}
                                 aria-label="Updating quest state"
                             />
+                        )}
+                        {hasError && !isLoading && (
+                            <Tooltip title="Failed to update state. Click to retry.">
+                                <ErrorIcon 
+                                    sx={{ 
+                                        fontSize: 16, 
+                                        color: 'error.main',
+                                        cursor: 'pointer'
+                                    }}
+                                />
+                            </Tooltip>
                         )}
                         <span>{getStateDisplayInfo(value, theme).label}</span>
                     </Box>
