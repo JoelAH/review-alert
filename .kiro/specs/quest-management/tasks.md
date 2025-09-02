@@ -22,7 +22,7 @@
   - Write unit tests for service layer methods and error handling
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
 
-- [ ] 4. Build QuestCard component
+- [x] 4. Build QuestCard component
   - Create QuestCard component displaying quest title, details, type, priority, and state
   - Implement visual state indicators using color-coded borders (blue for open, orange for in progress, green for done)
   - Add priority badges with appropriate visual styling

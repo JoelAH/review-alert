@@ -1,9 +1,16 @@
 import { Review } from '@/lib/models/client/review';
+import { Quest, QuestState } from '@/lib/models/client/quest';
 
 export interface ReviewCardProps {
   review: Review;
   appName: string;
   platform: 'GooglePlay' | 'AppleStore' | 'ChromeExt';
+}
+
+export interface QuestCardProps {
+  quest: Quest;
+  onStateChange: (questId: string, newState: QuestState) => void;
+  onEdit: (quest: Quest) => void;
 }
 
 export interface ReviewOverviewProps {
