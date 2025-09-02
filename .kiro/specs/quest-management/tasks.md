@@ -38,7 +38,7 @@
   - Write unit tests for state selector functionality and error handling
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-- [ ] 6. Create QuestModal component for quest creation and editing
+- [x] 6. Create QuestModal component for quest creation and editing
   - Build modal dialog with form fields for title (required), details (optional), type selection, and priority selection
   - Implement form validation with proper error messaging for required fields
   - Add support for pre-populating form data from review information

@@ -5,4 +5,6 @@ export { default as FeedTab } from './FeedTab';
 export { default as QuestsTab } from './QuestsTab';
 export { default as CommandCenterTab } from './CommandCenterTab';
 export { default as QuestCard } from './QuestCard';
+export { default as QuestModal } from './QuestModal';
+export { default as QuestStateSelector } from './QuestStateSelector';
 export * from './types';
