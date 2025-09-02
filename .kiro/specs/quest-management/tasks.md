@@ -62,7 +62,7 @@
   - Write unit tests for quest tab rendering and sorting logic
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 9. Implement quest editing functionality
+- [x] 9. Implement quest editing functionality
   - Add edit button or click handler to QuestCard component
   - Integrate quest editing with existing QuestModal component in edit mode
   - Implement quest update API calls with proper error handling

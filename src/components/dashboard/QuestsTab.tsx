@@ -344,6 +344,7 @@ export default function QuestsTab({ user }: QuestsTabProps) {
                     priority: editingQuest.priority,
                 } : undefined}
                 mode="edit"
+                quest={editingQuest || undefined}
             />
         </Box>
     );
