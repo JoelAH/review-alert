@@ -13,10 +13,11 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import { Quest, QuestType, QuestPriority, QuestState } from '@/lib/models/client/quest';
+import QuestStateSelector from './QuestStateSelector';
 
 export interface QuestCardProps {
     quest: Quest;
-    onStateChange: (questId: string, newState: QuestState) => void;
+    onStateChange: (questId: string, newState: QuestState) => Promise<void>;
     onEdit: (quest: Quest) => void;
 }
 
@@ -148,8 +149,8 @@ export default function QuestCard({ quest, onStateChange, onEdit }: QuestCardPro
                     </Typography>
                 )}
 
-                {/* Quest type and state */}
-                <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                {/* Quest type and state selector */}
+                <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
                     <Chip
                         label={getQuestTypeLabel(quest.type)}
                         size="small"
@@ -159,14 +160,11 @@ export default function QuestCard({ quest, onStateChange, onEdit }: QuestCardPro
                             color: theme.palette.primary.main
                         }}
                     />
-                    <Chip
-                        label={quest.state.replace('_', ' ')}
+                    <QuestStateSelector
+                        questId={quest._id}
+                        currentState={quest.state}
+                        onStateChange={onStateChange}
                         size="small"
-                        sx={{
-                            backgroundColor: alpha(stateColor, 0.1),
-                            color: stateColor,
-                            fontWeight: 500
-                        }}
                     />
                 </Box>
 

@@ -30,7 +30,7 @@
   - Write unit tests for QuestCard rendering and prop handling
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 5. Implement QuestStateSelector component
+- [x] 5. Implement QuestStateSelector component
   - Create dropdown selector component for changing quest states between Open, In Progress, and Done
   - Implement immediate state update with optimistic UI updates and error rollback
   - Add proper loading states and disabled states during API calls

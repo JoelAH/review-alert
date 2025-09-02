@@ -30,7 +30,7 @@ const mockQuest: Quest = {
     updatedAt: new Date('2024-01-15T10:30:00Z')
 };
 
-const mockOnStateChange = jest.fn();
+const mockOnStateChange = jest.fn().mockResolvedValue(undefined);
 const mockOnEdit = jest.fn();
 
 describe('QuestCard', () => {
@@ -209,7 +209,7 @@ describe('QuestCard', () => {
     });
 
     describe('Quest State Display', () => {
-        it('displays open state correctly', () => {
+        it('displays open state correctly in selector', () => {
             renderWithTheme(
                 <QuestCard 
                     quest={mockQuest} 
@@ -218,10 +218,10 @@ describe('QuestCard', () => {
                 />
             );
 
-            expect(screen.getByText('OPEN')).toBeInTheDocument();
+            expect(screen.getByText('Open')).toBeInTheDocument();
         });
 
-        it('displays in progress state correctly', () => {
+        it('displays in progress state correctly in selector', () => {
             const inProgressQuest = { ...mockQuest, state: QuestState.IN_PROGRESS };
             renderWithTheme(
                 <QuestCard 
@@ -231,10 +231,10 @@ describe('QuestCard', () => {
                 />
             );
 
-            expect(screen.getByText('IN PROGRESS')).toBeInTheDocument();
+            expect(screen.getByText('In Progress')).toBeInTheDocument();
         });
 
-        it('displays done state correctly', () => {
+        it('displays done state correctly in selector', () => {
             const doneQuest = { ...mockQuest, state: QuestState.DONE };
             renderWithTheme(
                 <QuestCard 
@@ -244,7 +244,19 @@ describe('QuestCard', () => {
                 />
             );
 
-            expect(screen.getByText('DONE')).toBeInTheDocument();
+            expect(screen.getByText('Done')).toBeInTheDocument();
+        });
+
+        it('includes quest state selector component', () => {
+            renderWithTheme(
+                <QuestCard 
+                    quest={mockQuest} 
+                    onStateChange={mockOnStateChange} 
+                    onEdit={mockOnEdit} 
+                />
+            );
+
+            expect(screen.getByRole('combobox', { name: 'Quest state selector' })).toBeInTheDocument();
         });
 
         it('applies strikethrough styling for completed quests', () => {
@@ -402,7 +414,7 @@ describe('QuestCard', () => {
             expect(screen.getByText('Minimal Quest')).toBeInTheDocument();
             expect(screen.getByText('Other')).toBeInTheDocument();
             expect(screen.getByText('Low Priority')).toBeInTheDocument();
-            expect(screen.getByText('OPEN')).toBeInTheDocument();
+            expect(screen.getByText('Open')).toBeInTheDocument();
         });
 
         it('handles string date format correctly', () => {
