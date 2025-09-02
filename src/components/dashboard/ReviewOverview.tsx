@@ -89,34 +89,34 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
   return (
     <Card
       sx={{
-        mb: 3,
+        mb: 2,
         background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
         border: `2px solid ${theme.palette.primary.main}`,
         borderRadius: 2,
       }}
     >
-      <CardContent sx={{ p: 3 }}>
+      <CardContent sx={{ p: 2 }}>
         <Typography
-          variant="h5"
+          variant="h6"
           component="h1"
           gutterBottom
           sx={{
             fontWeight: 600,
             color: theme.palette.primary.main,
-            mb: 3,
+            mb: 2,
             textAlign: 'center',
           }}
         >
           Review Overview
         </Typography>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           {/* Top Row: Total Reviews and Quest Type Pie Chart */}
           <Grid item xs={12} md={6}>
             <Box
               sx={{
                 textAlign: 'center',
-                p: 3,
+                p: 2,
                 backgroundColor: 'rgba(255, 255, 255, 0.8)',
                 borderRadius: 2,
                 border: '1px solid rgba(0, 0, 0, 0.1)',
@@ -127,10 +127,10 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
               }}
             >
               <Box>
-                <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: theme.palette.primary.main, fontSize: '4rem' }}>
+                <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: theme.palette.primary.main, fontSize: '2.5rem' }}>
                   {totalReviews.toLocaleString()}
                 </Typography>
-                <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 600 }}>
+                <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600 }}>
                   Total Reviews
                 </Typography>
               </Box>
@@ -142,7 +142,7 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
             <Grid item xs={12} md={6}>
               <Box
                 sx={{
-                  p: 2,
+                  p: 1.5,
                   backgroundColor: 'rgba(255, 255, 255, 0.8)',
                   borderRadius: 2,
                   border: '1px solid rgba(0, 0, 0, 0.1)',
@@ -151,13 +151,13 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
                   flexDirection: 'column',
                 }}
               >
-                <Typography variant="h2" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, fontSize: '1rem' }}>
                   Quest Types
                 </Typography>
                 
                 {/* Simple CSS Pie Chart */}
                 <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                  <Box sx={{ position: 'relative', width: 120, height: 120, mx: 'auto' }}>
+                  <Box sx={{ position: 'relative', width: 80, height: 80, mx: 'auto' }}>
                     {/* Pie Chart using conic-gradient */}
                     <Box
                       sx={{
@@ -189,10 +189,10 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
                           flexDirection: 'column',
                         }}
                       >
-                        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>
                           {totalReviews}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.6rem' }}>
                           Total
                         </Typography>
                       </Box>
@@ -201,22 +201,22 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
                 </Box>
 
                 {/* Legend */}
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{ mt: 1 }}>
                   {questData.map((quest, index) => (
-                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 0.25 }}>
                       <Box
                         sx={{
-                          width: 12,
-                          height: 12,
+                          width: 8,
+                          height: 8,
                           backgroundColor: quest.color,
                           borderRadius: '50%',
-                          mr: 1,
+                          mr: 0.5,
                         }}
                       />
-                      <Typography variant="caption" sx={{ flexGrow: 1, fontSize: '0.75rem' }}>
+                      <Typography variant="caption" sx={{ flexGrow: 1, fontSize: '0.65rem' }}>
                         {quest.name}
                       </Typography>
-                      <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.65rem' }}>
                         {quest.count}
                       </Typography>
                     </Box>
@@ -230,40 +230,40 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
           <Grid item xs={12}>
             <Box
               sx={{
-                p: 2,
+                p: 1.5,
                 backgroundColor: 'rgba(255, 255, 255, 0.8)',
                 borderRadius: 2,
                 border: '1px solid rgba(0, 0, 0, 0.1)',
               }}
             >
-              <Typography variant="h2" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem', mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, fontSize: '1rem', mb: 1 }}>
                 Sentiment Analysis
               </Typography>
-              <Box sx={{ display: 'flex', gap: 3 }}>
+              <Box sx={{ display: 'flex', gap: 2 }}>
                 {/* Positive Counter */}
                 <Box
                   sx={{
                     flex: 1,
                     textAlign: 'center',
-                    p: 2,
+                    p: 1.5,
                     backgroundColor: 'rgba(76, 175, 80, 0.1)',
                     borderRadius: 2,
                     border: '2px solid #4CAF50',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 2,
+                    gap: 1.5,
                   }}
                 >
-                  <PositiveIcon sx={{ color: '#4CAF50', fontSize: 48 }} />
+                  <PositiveIcon sx={{ color: '#4CAF50', fontSize: 32 }} />
                   <Box sx={{ textAlign: 'left' }}>
-                    <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#4CAF50', fontSize: '2.5rem' }}>
+                    <Typography variant="h4" component="div" sx={{ fontWeight: 700, color: '#4CAF50', fontSize: '1.8rem' }}>
                       {sentimentBreakdown.positive}
                     </Typography>
-                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
                       Positive Reviews
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="caption" color="text.secondary">
                       {positivePercentage.toFixed(1)}% of total
                     </Typography>
                   </Box>
@@ -274,25 +274,25 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
                   sx={{
                     flex: 1,
                     textAlign: 'center',
-                    p: 2,
+                    p: 1.5,
                     backgroundColor: 'rgba(244, 67, 54, 0.1)',
                     borderRadius: 2,
                     border: '2px solid #F44336',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 2,
+                    gap: 1.5,
                   }}
                 >
-                  <NegativeIcon sx={{ color: '#F44336', fontSize: 48 }} />
+                  <NegativeIcon sx={{ color: '#F44336', fontSize: 32 }} />
                   <Box sx={{ textAlign: 'left' }}>
-                    <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: '#F44336', fontSize: '2.5rem' }}>
+                    <Typography variant="h4" component="div" sx={{ fontWeight: 700, color: '#F44336', fontSize: '1.8rem' }}>
                       {sentimentBreakdown.negative}
                     </Typography>
-                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
                       Negative Reviews
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="caption" color="text.secondary">
                       {negativePercentage.toFixed(1)}% of total
                     </Typography>
                   </Box>
@@ -305,21 +305,21 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
           <Grid item xs={12}>
             <Box
               sx={{
-                p: 2,
+                p: 1.5,
                 backgroundColor: 'rgba(255, 255, 255, 0.8)',
                 borderRadius: 2,
                 border: '1px solid rgba(0, 0, 0, 0.1)',
               }}
             >
-              <Typography variant="h2" gutterBottom sx={{ fontWeight: 600, fontSize: '1.25rem', mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, fontSize: '1rem', mb: 1 }}>
                 Platform Distribution
               </Typography>
-              <Box sx={{ display: 'flex', gap: 3 }}>
+              <Box sx={{ display: 'flex', gap: 2 }}>
                 {platformData.map((platform) => (
                   <Box key={platform.key} sx={{ flex: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                       {platform.icon}
-                      <Typography variant="body1" sx={{ ml: 1, flexGrow: 1, fontWeight: 600 }}>
+                      <Typography variant="body2" sx={{ ml: 1, flexGrow: 1, fontWeight: 600 }}>
                         {platform.name}
                       </Typography>
                       <Chip
@@ -328,8 +328,9 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
                         sx={{
                           backgroundColor: platform.color,
                           color: 'white',
-                          fontSize: '0.75rem',
+                          fontSize: '0.65rem',
                           fontWeight: 600,
+                          height: 18,
                         }}
                       />
                     </Box>
@@ -338,8 +339,8 @@ const ReviewOverview: React.FC<ReviewOverviewProps> = React.memo(({
                       value={platform.percentage}
                       aria-label={`${platform.name}: ${platform.percentage.toFixed(1)}%`}
                       sx={{
-                        height: 8,
-                        borderRadius: 4,
+                        height: 6,
+                        borderRadius: 3,
                         backgroundColor: `${platform.color}20`,
                         '& .MuiLinearProgress-bar': { backgroundColor: platform.color },
                       }}
