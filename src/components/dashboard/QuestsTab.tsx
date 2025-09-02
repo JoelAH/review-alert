@@ -24,6 +24,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 export interface QuestsTabProps {
     user: User | null;
     onViewReview?: (reviewId: string) => void;
+    onQuestCountChange?: () => void;
 }
 
 // Helper function to sort quests by state then priority
@@ -60,7 +61,7 @@ const sortQuests = (quests: Quest[]): Quest[] => {
     });
 };
 
-export default function QuestsTab({ user, onViewReview }: QuestsTabProps) {
+export default function QuestsTab({ user, onViewReview, onQuestCountChange }: QuestsTabProps) {
     const theme = useTheme();
     const [quests, setQuests] = useState<Quest[]>([]);
     const [loading, setLoading] = useState(true);
@@ -105,13 +106,16 @@ export default function QuestsTab({ user, onViewReview }: QuestsTabProps) {
                 );
                 return sortQuests(updatedQuests);
             });
+
+            // Notify dashboard to update quest counts
+            onQuestCountChange?.();
         } catch (err) {
             const questError = QuestError.fromError(err);
             console.error('Failed to update quest state:', questError);
             // The QuestStateSelector component will handle showing the error to the user
             throw questError || new Error('Failed to update quest state');
         }
-    }, []);
+    }, [onQuestCountChange]);
 
     // Handle quest editing
     const handleEdit = useCallback((quest: Quest) => {
@@ -136,12 +140,15 @@ export default function QuestsTab({ user, onViewReview }: QuestsTabProps) {
 
             setIsModalOpen(false);
             setEditingQuest(null);
+
+            // Notify dashboard to update quest counts
+            onQuestCountChange?.();
         } catch (err) {
             const questError = QuestError.fromError(err);
             console.error('Failed to update quest:', questError);
             throw questError || new Error('Failed to update quest');
         }
-    }, [editingQuest]);
+    }, [editingQuest, onQuestCountChange]);
 
     // Handle modal close
     const handleModalClose = useCallback(() => {

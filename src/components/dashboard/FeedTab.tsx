@@ -35,7 +35,13 @@ import { usePerformanceMonitor } from '@/lib/utils/performanceMonitor';
 
 const VIRTUAL_SCROLL_THRESHOLD = 50; // Use virtual scrolling when more than 50 reviews
 
-export default function FeedTab({ user, highlightedReviewId }: { user: User | null; highlightedReviewId?: string | null }) {
+interface FeedTabProps {
+    user: User | null;
+    highlightedReviewId?: string | null;
+    onQuestCountChange?: () => void;
+}
+
+export default function FeedTab({ user, highlightedReviewId, onQuestCountChange }: FeedTabProps) {
     const theme = useTheme();
     const { isAuthenticated } = useAuth();
     const { startRender, endRender } = usePerformanceMonitor('FeedTab');
@@ -294,6 +300,8 @@ export default function FeedTab({ user, highlightedReviewId }: { user: User | nu
                                                                 // Optionally refresh reviews to show updated questId
                                                                 // or update the review in the local state
                                                                 console.log('Quest created:', questId, 'for review:', review._id);
+                                                                // Notify dashboard to update quest counts
+                                                                onQuestCountChange?.();
                                                             }}
                                                         />
                                                     </Grid>

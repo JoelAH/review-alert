@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Container,
     Box,
@@ -9,8 +9,11 @@ import {
     Typography,
     useTheme,
     useMediaQuery,
+    Badge,
 } from '@mui/material';
 import { User } from '@/lib/models/client/user';
+import { Quest, QuestState } from '@/lib/models/client/quest';
+import { QuestService } from '@/lib/services/quests';
 import FeedTab from './dashboard/FeedTab';
 import QuestsTab from './dashboard/QuestsTab';
 import CommandCenterTab from './dashboard/CommandCenterTab';
@@ -51,14 +54,66 @@ function a11yProps(index: number) {
 export default function NewDashboard({ user }: { user: User | null }) {
     const [value, setValue] = useState(0);
     const [highlightedReviewId, setHighlightedReviewId] = useState<string | null>(null);
+    const [questCounts, setQuestCounts] = useState({
+        open: 0,
+        inProgress: 0,
+        total: 0
+    });
+    const [questsLoading, setQuestsLoading] = useState(false);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
+    // Load quest counts for badge indicators
+    const loadQuestCounts = useCallback(async () => {
+        if (!user) {
+            setQuestCounts({ open: 0, inProgress: 0, total: 0 });
+            return;
+        }
+
+        try {
+            setQuestsLoading(true);
+            const response = await QuestService.fetchQuests();
+            const quests = response.quests;
+            
+            const counts = {
+                open: quests.filter(q => q.state === QuestState.OPEN).length,
+                inProgress: quests.filter(q => q.state === QuestState.IN_PROGRESS).length,
+                total: quests.length
+            };
+            
+            setQuestCounts(counts);
+        } catch (error) {
+            console.error('Failed to load quest counts:', error);
+            // Don't show error for counts, just keep previous state
+        } finally {
+            setQuestsLoading(false);
+        }
+    }, [user]);
+
+    // Load quest counts on mount and when user changes
+    useEffect(() => {
+        loadQuestCounts();
+        
+        // Cleanup function to cancel any pending requests
+        return () => {
+            // Reset quest counts when component unmounts or user changes
+            if (!user) {
+                setQuestCounts({ open: 0, inProgress: 0, total: 0 });
+                setQuestsLoading(false);
+            }
+        };
+    }, [loadQuestCounts, user]);
+
+    // Refresh quest counts when switching to quest tab
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
         // Clear highlighted review when switching tabs
         if (newValue !== 0) {
             setHighlightedReviewId(null);
+        }
+        // Refresh quest counts when switching to quest tab
+        if (newValue === 1 && user) {
+            loadQuestCounts();
         }
     };
 
@@ -67,6 +122,12 @@ export default function NewDashboard({ user }: { user: User | null }) {
         setHighlightedReviewId(reviewId);
         setValue(0); // Switch to Feed tab (index 0)
     };
+
+    // Handle quest operations that affect counts
+    const handleQuestCountChange = useCallback(() => {
+        // Refresh quest counts when quests are created/updated/deleted
+        loadQuestCounts();
+    }, [loadQuestCounts]);
 
     return (
         <Container maxWidth="lg" sx={{ py: 2 }}>
@@ -104,16 +165,48 @@ export default function NewDashboard({ user }: { user: User | null }) {
                     }}
                 >
                     <Tab label="Feed" {...a11yProps(0)} />
-                    <Tab label="Quests" {...a11yProps(1)} />
+                    <Tab 
+                        label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <span>Quests</span>
+                                {questCounts.total > 0 && (
+                                    <Badge 
+                                        badgeContent={questCounts.open + questCounts.inProgress}
+                                        color="primary"
+                                        max={99}
+                                        sx={{
+                                            '& .MuiBadge-badge': {
+                                                fontSize: '0.75rem',
+                                                minWidth: '18px',
+                                                height: '18px',
+                                                padding: '0 4px',
+                                            }
+                                        }}
+                                    >
+                                        <Box sx={{ width: 8 }} />
+                                    </Badge>
+                                )}
+                            </Box>
+                        } 
+                        {...a11yProps(1)} 
+                    />
                     <Tab label="Command Center" {...a11yProps(2)} />
                 </Tabs>
             </Box>
 
             <TabPanel value={value} index={0}>
-                <FeedTab user={user} highlightedReviewId={highlightedReviewId} />
+                <FeedTab 
+                    user={user} 
+                    highlightedReviewId={highlightedReviewId}
+                    onQuestCountChange={handleQuestCountChange}
+                />
             </TabPanel>
             <TabPanel value={value} index={1}>
-                <QuestsTab user={user} onViewReview={handleViewReview} />
+                <QuestsTab 
+                    user={user} 
+                    onViewReview={handleViewReview}
+                    onQuestCountChange={handleQuestCountChange}
+                />
             </TabPanel>
             <TabPanel value={value} index={2}>
                 <CommandCenterTab user={user} />
