@@ -54,7 +54,7 @@
   - Write unit tests for button integration and quest creation flow
   - _Requirements: 1.1, 1.2, 1.6_
 
-- [ ] 8. Replace QuestsTab component with quest management functionality
+- [x] 8. Replace QuestsTab component with quest management functionality
   - Replace existing gamification-focused QuestsTab with new quest management interface
   - Implement quest list display with proper sorting by state (open, in progress, done) then priority (high, medium, low)
   - Add loading states, empty state handling, and error state display
