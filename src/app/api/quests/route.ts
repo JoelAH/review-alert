@@ -11,7 +11,27 @@ import ReviewModel from "@/lib/models/server/review";
 
 interface QuestsResponse {
   quests: any[];
+  hasMore: boolean;
   totalCount: number;
+  overview: {
+    stateBreakdown: {
+      open: number;
+      inProgress: number;
+      done: number;
+    };
+    priorityBreakdown: {
+      high: number;
+      medium: number;
+      low: number;
+    };
+    typeBreakdown: {
+      bugFix: number;
+      featureRequest: number;
+      improvement: number;
+      research: number;
+      other: number;
+    };
+  };
 }
 
 interface CreateQuestRequest {
@@ -23,13 +43,7 @@ interface CreateQuestRequest {
   state?: QuestState;
 }
 
-interface UpdateQuestRequest {
-  title?: string;
-  details?: string;
-  type?: QuestType;
-  priority?: QuestPriority;
-  state?: QuestState;
-}
+
 
 // Helper function to verify authentication and get user
 async function authenticateUser() {
@@ -71,10 +85,11 @@ export async function GET(request: NextRequest) {
     // Parse query parameters
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100); // Cap at 100
+    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100); // Cap at 100
     const state = searchParams.get("state");
     const priority = searchParams.get("priority");
     const type = searchParams.get("type");
+    const search = searchParams.get("search");
 
     // Validate parameters
     if (page < 1 || limit < 1) {
@@ -119,6 +134,12 @@ export async function GET(request: NextRequest) {
     }
     if (type) {
       filter.type = type;
+    }
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { details: { $regex: search, $options: 'i' } }
+      ];
     }
 
     // Get total count for pagination
@@ -183,9 +204,35 @@ export async function GET(request: NextRequest) {
       reviewId: quest.reviewId ? quest.reviewId.toString() : undefined,
     }));
 
+    // Calculate overview statistics
+    const allQuests = await QuestModel.find({ user: user._id });
+    const overview = {
+      stateBreakdown: {
+        open: allQuests.filter(q => q.state === QuestState.OPEN).length,
+        inProgress: allQuests.filter(q => q.state === QuestState.IN_PROGRESS).length,
+        done: allQuests.filter(q => q.state === QuestState.DONE).length,
+      },
+      priorityBreakdown: {
+        high: allQuests.filter(q => q.priority === QuestPriority.HIGH).length,
+        medium: allQuests.filter(q => q.priority === QuestPriority.MEDIUM).length,
+        low: allQuests.filter(q => q.priority === QuestPriority.LOW).length,
+      },
+      typeBreakdown: {
+        bugFix: allQuests.filter(q => q.type === QuestType.BUG_FIX).length,
+        featureRequest: allQuests.filter(q => q.type === QuestType.FEATURE_REQUEST).length,
+        improvement: allQuests.filter(q => q.type === QuestType.IMPROVEMENT).length,
+        research: allQuests.filter(q => q.type === QuestType.RESEARCH).length,
+        other: allQuests.filter(q => q.type === QuestType.OTHER).length,
+      },
+    };
+
+    const hasMore = skip + limit < totalCount;
+
     const response: QuestsResponse = {
       quests: formattedQuests,
+      hasMore,
       totalCount,
+      overview,
     };
 
     return NextResponse.json(response);
@@ -310,7 +357,7 @@ export async function POST(request: NextRequest) {
     // Format and return quest
     const formattedQuest = formatQuest(savedQuest);
 
-    return NextResponse.json(formattedQuest, { status: 201 });
+    return NextResponse.json({ quest: formattedQuest }, { status: 201 });
 
   } catch (error: any) {
     console.error("Error creating quest:", error);
@@ -351,153 +398,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT - Update quest state and other properties
-export async function PUT(request: NextRequest) {
-  try {
-    const user = await authenticateUser();
-
-    // Parse request body
-    let body: { questId: string } & UpdateQuestRequest;
-    try {
-      body = await request.json();
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid JSON in request body" },
-        { status: 400 }
-      );
-    }
-
-    // Validate questId
-    if (!body.questId || typeof body.questId !== 'string') {
-      return NextResponse.json(
-        { error: "questId is required and must be a string" },
-        { status: 400 }
-      );
-    }
-
-    // Validate update fields
-    const updates: any = {};
-    
-    if (body.title !== undefined) {
-      if (typeof body.title !== 'string' || body.title.trim().length === 0) {
-        return NextResponse.json(
-          { error: "Title must be a non-empty string" },
-          { status: 400 }
-        );
-      }
-      updates.title = body.title.trim();
-    }
-
-    if (body.details !== undefined) {
-      if (typeof body.details !== 'string') {
-        return NextResponse.json(
-          { error: "Details must be a string" },
-          { status: 400 }
-        );
-      }
-      updates.details = body.details.trim();
-    }
-
-    if (body.type !== undefined) {
-      if (!Object.values(QuestType).includes(body.type)) {
-        return NextResponse.json(
-          { error: `Type must be one of: ${Object.values(QuestType).join(", ")}` },
-          { status: 400 }
-        );
-      }
-      updates.type = body.type;
-    }
-
-    if (body.priority !== undefined) {
-      if (!Object.values(QuestPriority).includes(body.priority)) {
-        return NextResponse.json(
-          { error: `Priority must be one of: ${Object.values(QuestPriority).join(", ")}` },
-          { status: 400 }
-        );
-      }
-      updates.priority = body.priority;
-    }
-
-    if (body.state !== undefined) {
-      if (!Object.values(QuestState).includes(body.state)) {
-        return NextResponse.json(
-          { error: `State must be one of: ${Object.values(QuestState).join(", ")}` },
-          { status: 400 }
-        );
-      }
-      updates.state = body.state;
-    }
-
-    // Check if there are any updates to apply
-    if (Object.keys(updates).length === 0) {
-      return NextResponse.json(
-        { error: "No valid update fields provided" },
-        { status: 400 }
-      );
-    }
-
-    // Find and update quest
-    const quest = await QuestModel.findOneAndUpdate(
-      { _id: body.questId, user: user._id },
-      { ...updates, updatedAt: new Date() },
-      { new: true, runValidators: true }
-    );
-
-    if (!quest) {
-      return NextResponse.json(
-        { error: "Quest not found or does not belong to user" },
-        { status: 404 }
-      );
-    }
-
-    // Format and return updated quest
-    const formattedQuest = formatQuest(quest);
-
-    return NextResponse.json(formattedQuest);
-
-  } catch (error: any) {
-    console.error("Error updating quest:", error);
-    
-    if (error.message.includes("Unauthorized")) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 401 }
-      );
-    }
-    
-    if (error.message === "User not found") {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
-
-    if (error.message === "Database connection failed") {
-      return NextResponse.json(
-        { error: "Database connection failed" },
-        { status: 503 }
-      );
-    }
-
-    // Handle validation errors
-    if (error.name === 'ValidationError') {
-      return NextResponse.json(
-        { error: "Validation error", details: error.message },
-        { status: 400 }
-      );
-    }
-
-    // Handle invalid ObjectId errors
-    if (error.name === 'CastError') {
-      return NextResponse.json(
-        { error: "Invalid quest ID format" },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-}
