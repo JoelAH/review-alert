@@ -148,18 +148,18 @@ export default function FeedTab({ user, highlightedReviewId, onQuestCountChange 
     }
 
     // Show authentication required message
-    if (!isAuthenticated) {
-        return (
-            <Box sx={{ textAlign: 'center', py: 8 }}>
-                <Typography variant="h6" gutterBottom>
-                    Authentication Required
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                    Please sign in to view your reviews.
-                </Typography>
-            </Box>
-        );
-    }
+    // if (!isAuthenticated) {
+    //     return (
+    //         <Box sx={{ textAlign: 'center', py: 8 }}>
+    //             <Typography variant="h6" gutterBottom>
+    //                 Authentication Required
+    //             </Typography>
+    //             <Typography variant="body1" color="text.secondary">
+    //                 Please sign in to view your reviews.
+    //             </Typography>
+    //         </Box>
+    //     );
+    // }
 
     return (
         <ErrorBoundary>

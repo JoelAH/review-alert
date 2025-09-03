@@ -84,9 +84,9 @@ export default function QuestsTab({ user, onViewReview, onQuestCountChange }: Qu
         }
 
         // Cancel any existing request
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
-        }
+        // if (abortControllerRef.current) {
+        //     abortControllerRef.current.abort();
+        // }
 
         // Create new abort controller
         abortControllerRef.current = new AbortController();
@@ -105,6 +105,7 @@ export default function QuestsTab({ user, onViewReview, onQuestCountChange }: Qu
             setQuests(sortedQuests);
             setRetryCount(0); // Reset retry count on success
         } catch (err) {
+            console.log(err)
             // Don't handle aborted requests
             if (abortControllerRef.current?.signal.aborted) {
                 return;
@@ -149,11 +150,11 @@ export default function QuestsTab({ user, onViewReview, onQuestCountChange }: Qu
         loadQuests();
         
         // Cleanup on unmount
-        return () => {
-            if (abortControllerRef.current) {
-                abortControllerRef.current.abort();
-            }
-        };
+        // return () => {
+        //     // if (abortControllerRef.current) {
+        //     //     abortControllerRef.current.abort();
+        //     // }
+        // };
     }, [loadQuests]);
 
     // Auto-retry mechanism for network errors

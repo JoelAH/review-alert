@@ -416,7 +416,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Find and update the review
-    let updatedReview;
+    let updatedReview: any;
     try {
       updatedReview = await ReviewModel.findOneAndUpdate(
         { _id: reviewId, user: user._id },
