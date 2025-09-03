@@ -5,7 +5,6 @@ import { auth } from "firebase-admin";
 import { initAdminApp } from "@/lib/firebase/admin.config";
 import CONSTANTS from "@/lib/constants";
 import dbConnect from '@/lib/db/db';
-import ReviewModel, { formatReview } from '@/lib/models/server/review';
 import UserModel from '@/lib/models/server/user';
 
 // Helper function to verify authentication and get user
@@ -42,46 +41,48 @@ async function authenticateUser() {
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { reviewId: string } }
+    { params }: { params: { appId: string } }
 ) {
     try {
         const user = await authenticateUser();
-        const { reviewId } = params;
+        const { appId } = params;
 
-        // Validate reviewId
-        if (!reviewId || typeof reviewId !== 'string') {
+        // Validate appId
+        if (!appId || typeof appId !== 'string') {
             return NextResponse.json(
-                { error: 'Invalid review ID' },
+                { error: 'Invalid app ID' },
                 { status: 400 }
             );
         }
 
-        // Find the review by ID and ensure it belongs to the user
-        const review = await ReviewModel.findOne({
-            _id: reviewId,
-            user: user._id
-        });
+        // Find the app in user's apps array
+        const app = user.apps?.find((app: any) => app._id?.toString() === appId || app.appId === appId);
 
-        if (!review) {
+        if (!app) {
             return NextResponse.json(
-                { error: 'Review not found' },
+                { error: 'App not found' },
                 { status: 404 }
             );
         }
 
-        // Format and return the review
-        const formattedReview = formatReview(review);
-        return NextResponse.json(formattedReview);
+        // Return app information
+        return NextResponse.json({
+            _id: app._id,
+            appId: app.appId,
+            store: app.store,
+            url: app.url,
+            name: `App (${app.store})` // Since we don't store app names, use a generic name
+        });
     } catch (error: any) {
-        console.error('Error fetching review:', error);
-
+        console.error('Error fetching app:', error);
+        
         if (error.message.includes("Unauthorized")) {
             return NextResponse.json(
                 { error: error.message },
                 { status: 401 }
             );
         }
-
+        
         if (error.message === "User not found") {
             return NextResponse.json(
                 { error: "User not found" },
@@ -93,14 +94,6 @@ export async function GET(
             return NextResponse.json(
                 { error: "Database connection failed" },
                 { status: 503 }
-            );
-        }
-
-        // Handle invalid ObjectId errors
-        if (error.name === 'CastError') {
-            return NextResponse.json(
-                { error: "Invalid review ID format" },
-                { status: 400 }
             );
         }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Card,
     CardContent,
@@ -11,11 +11,14 @@ import {
     useTheme,
     alpha,
     Link,
+    CircularProgress,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ReviewIcon from '@mui/icons-material/RateReview';
 import { Quest, QuestType, QuestPriority, QuestState } from '@/lib/models/client/quest';
+import { Review } from '@/lib/models/client/review';
 import QuestStateSelector from './QuestStateSelector';
+import ReviewModal from './ReviewModal';
 
 export interface QuestCardProps {
     quest: Quest;
@@ -85,15 +88,66 @@ export default function QuestCard({ quest, onStateChange, onEdit, onViewReview }
     const theme = useTheme();
     const stateColor = getStateColor(quest.state, theme);
     const priorityConfig = getPriorityConfig(quest.priority);
+    
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [reviewData, setReviewData] = useState<Review | null>(null);
+    const [appInfo, setAppInfo] = useState<{ appName: string; platform: string } | null>(null);
+    const [loadingReview, setLoadingReview] = useState(false);
 
     const handleEditClick = () => {
         onEdit(quest);
     };
 
-    const handleViewReview = () => {
-        if (quest.reviewId && onViewReview) {
-            onViewReview(quest.reviewId);
+    const handleViewReview = async () => {
+        if (!quest.reviewId) return;
+        
+        setLoadingReview(true);
+        try {
+            // Fetch review data from API
+            const reviewResponse = await fetch(`/api/reviews/${quest.reviewId}`);
+            if (!reviewResponse.ok) {
+                throw new Error('Failed to fetch review');
+            }
+            const review = await reviewResponse.json();
+            setReviewData(review);
+
+            // Fetch app info if we have appId
+            if (review.appId) {
+                try {
+                    const appResponse = await fetch(`/api/apps/${review.appId}`);
+                    if (appResponse.ok) {
+                        const app = await appResponse.json();
+                        setAppInfo({
+                            appName: app.name || `App (${app.store})`,
+                            platform: app.store
+                        });
+                    }
+                } catch (appError) {
+                    console.warn('Could not fetch app info:', appError);
+                    // Use fallback app info
+                    setAppInfo({
+                        appName: 'Unknown App',
+                        platform: 'ChromeExt'
+                    });
+                }
+            }
+
+            setReviewModalOpen(true);
+        } catch (error) {
+            console.error('Error fetching review:', error);
+            // Fallback to the callback if provided
+            if (onViewReview) {
+                onViewReview(quest.reviewId);
+            }
+        } finally {
+            setLoadingReview(false);
         }
+    };
+
+    const handleCloseReviewModal = () => {
+        setReviewModalOpen(false);
+        setReviewData(null);
+        setAppInfo(null);
     };
 
     return (
@@ -192,6 +246,7 @@ export default function QuestCard({ quest, onStateChange, onEdit, onViewReview }
                                 component="button"
                                 variant="caption"
                                 onClick={handleViewReview}
+                                disabled={loadingReview}
                                 sx={{
                                     color: theme.palette.primary.main,
                                     textDecoration: 'none',
@@ -199,14 +254,28 @@ export default function QuestCard({ quest, onStateChange, onEdit, onViewReview }
                                     '&:hover': {
                                         textDecoration: 'underline',
                                     },
-                                    cursor: 'pointer',
+                                    cursor: loadingReview ? 'default' : 'pointer',
                                     border: 'none',
                                     background: 'none',
                                     padding: 0,
                                     font: 'inherit',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 0.5,
+                                    '&:disabled': {
+                                        color: theme.palette.text.disabled,
+                                        cursor: 'default',
+                                    },
                                 }}
                             >
-                                View originating review
+                                {loadingReview ? (
+                                    <>
+                                        <CircularProgress size={12} />
+                                        Loading review...
+                                    </>
+                                ) : (
+                                    'View originating review'
+                                )}
                             </Link>
                         </Box>
                     )}
@@ -222,6 +291,15 @@ export default function QuestCard({ quest, onStateChange, onEdit, onViewReview }
                     </Typography>
                 </Box>
             </CardContent>
+
+            {/* Review Modal */}
+            <ReviewModal
+                open={reviewModalOpen}
+                onClose={handleCloseReviewModal}
+                review={reviewData}
+                appName={appInfo?.appName || 'Unknown App'}
+                platform={appInfo?.platform || 'ChromeExt'}
+            />
         </Card>
     );
 }

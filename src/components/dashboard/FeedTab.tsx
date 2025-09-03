@@ -19,12 +19,12 @@ import { Review } from '@/lib/models/client/review';
 import { useReviews, ReviewFilters as ReviewFiltersType } from '@/lib/hooks/useReviews';
 import { useAuth } from '@/lib/hooks/useAuth';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { 
-    FeedTabSkeleton, 
-    ReviewListSkeleton, 
+import {
+    FeedTabSkeleton,
+    ReviewListSkeleton,
     PaginationSkeleton,
     ReviewOverviewSkeleton,
-    ReviewFiltersSkeleton 
+    ReviewFiltersSkeleton
 } from '@/components/SkeletonLoaders';
 import ReviewOverview from './ReviewOverview';
 import ReviewFilters from './ReviewFilters';
@@ -45,10 +45,10 @@ export default function FeedTab({ user, highlightedReviewId, onQuestCountChange 
     const theme = useTheme();
     const { isAuthenticated } = useAuth();
     const { startRender, endRender } = usePerformanceMonitor('FeedTab');
-    
+
     // State for filters
     const [filters, setFilters] = useState<ReviewFiltersType>({});
-    
+
     // Use the reviews hook for data fetching
     const {
         reviews,
@@ -130,11 +130,11 @@ export default function FeedTab({ user, highlightedReviewId, onQuestCountChange 
                 <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
                     Add your app store links in the Command Center to start monitoring reviews.
                 </Typography>
-                <Paper 
-                    elevation={1} 
-                    sx={{ 
-                        p: 3, 
-                        maxWidth: 400, 
+                <Paper
+                    elevation={1}
+                    sx={{
+                        p: 3,
+                        maxWidth: 400,
                         mx: 'auto',
                         backgroundColor: theme.palette.grey[50]
                     }}
@@ -202,8 +202,8 @@ export default function FeedTab({ user, highlightedReviewId, onQuestCountChange 
 
                         {/* Error Alert with Enhanced Actions */}
                         {hasError && error && (
-                            <Alert 
-                                severity="error" 
+                            <Alert
+                                severity="error"
                                 sx={{ mb: 3 }}
                                 onClose={clearError}
                                 icon={<ErrorOutlineRounded />}
@@ -242,14 +242,14 @@ export default function FeedTab({ user, highlightedReviewId, onQuestCountChange 
                         ) : null}
 
                         {/* Main Content Area with Responsive Layout */}
-                        <Box sx={{ 
-                            display: 'flex', 
+                        <Box sx={{
+                            display: 'flex',
                             flexDirection: { xs: 'column', lg: 'row' },
                             gap: 3,
                             alignItems: 'flex-start'
                         }}>
                             {/* Filters Sidebar - Left side on desktop, top on mobile */}
-                            <Box sx={{ 
+                            <Box sx={{
                                 width: { xs: '100%', lg: '320px' },
                                 flexShrink: 0,
                                 position: { lg: 'sticky' },
@@ -267,7 +267,7 @@ export default function FeedTab({ user, highlightedReviewId, onQuestCountChange 
                             </Box>
 
                             {/* Reviews Content Area */}
-                            <Box sx={{ 
+                            <Box sx={{
                                 flex: 1,
                                 minWidth: 0, // Prevents flex item from overflowing
                                 maxWidth: { lg: 'calc(100% - 344px)' } // Account for sidebar width + gap
@@ -337,19 +337,19 @@ export default function FeedTab({ user, highlightedReviewId, onQuestCountChange 
 
                                 {/* Enhanced Empty States */}
                                 {!initialLoading && !loading && reviews.length === 0 && !hasError && (
-                                    <Paper 
-                                        elevation={0} 
-                                        sx={{ 
-                                            textAlign: 'center', 
-                                            py: 8, 
+                                    <Paper
+                                        elevation={0}
+                                        sx={{
+                                            textAlign: 'center',
+                                            py: 8,
                                             backgroundColor: theme.palette.grey[50],
                                             border: `1px dashed ${theme.palette.grey[300]}`,
                                             borderRadius: 2
                                         }}
                                     >
                                         <Typography variant="h6" gutterBottom color="text.secondary">
-                                            {Object.keys(filters).some(key => filters[key as keyof ReviewFiltersType]) 
-                                                ? 'No reviews match your filters' 
+                                            {Object.keys(filters).some(key => filters[key as keyof ReviewFiltersType])
+                                                ? 'No reviews match your filters'
                                                 : 'No reviews yet'
                                             }
                                         </Typography>
@@ -360,16 +360,16 @@ export default function FeedTab({ user, highlightedReviewId, onQuestCountChange 
                                             }
                                         </Typography>
                                         {Object.keys(filters).some(key => filters[key as keyof ReviewFiltersType]) ? (
-                                            <Button 
-                                                variant="contained" 
+                                            <Button
+                                                variant="contained"
                                                 onClick={() => handleFiltersChange({})}
                                                 sx={{ mr: 1 }}
                                             >
                                                 Clear All Filters
                                             </Button>
                                         ) : (
-                                            <Button 
-                                                variant="outlined" 
+                                            <Button
+                                                variant="outlined"
                                                 onClick={handleRefresh}
                                                 startIcon={<RefreshRounded />}
                                             >
