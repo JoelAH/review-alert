@@ -1,7 +1,7 @@
 import { authConfig } from '@/lib/config/auth';
 
 const CONSTANTS = {
-    appName: 'App Review Alert',
+    appName: 'ReviewQuest',
     sessionCookieName: 'app_review_session',
     maxPasswordLength: 6, // Legacy - kept for backward compatibility
     // Email authentication constants

@@ -1,5 +1,5 @@
 /**
- * Performance monitoring utilities for Review Alert
+ * Performance monitoring utilities for ReviewQuest
  */
 
 // Web Vitals tracking

@@ -49,7 +49,7 @@ describe('AuthPageLayout', () => {
                 </TestWrapper>
             );
 
-            expect(screen.getByRole('heading', { name: 'Review Alert' })).toBeInTheDocument();
+            expect(screen.getByRole('heading', { name: 'ReviewQuest' })).toBeInTheDocument();
             expect(screen.getByRole('heading', { name: 'Test Title' })).toBeInTheDocument();
             expect(screen.getByText('Test Content')).toBeInTheDocument();
             expect(screen.getByText('Already have an account?')).toBeInTheDocument();
@@ -78,14 +78,14 @@ describe('AuthPageLayout', () => {
     });
 
     describe('Branding', () => {
-        it('should display Review Alert branding', () => {
+        it('should display ReviewQuest branding', () => {
             render(
                 <TestWrapper>
                     <AuthPageLayout {...defaultProps} />
                 </TestWrapper>
             );
 
-            expect(screen.getByRole('heading', { name: 'Review Alert' })).toBeInTheDocument();
+            expect(screen.getByRole('heading', { name: 'ReviewQuest' })).toBeInTheDocument();
             expect(screen.getByText('Monitor reviews across multiple app stores')).toBeInTheDocument();
         });
     });
@@ -184,7 +184,7 @@ describe('AuthPageLayout', () => {
             );
 
             expect(screen.getByRole('main')).toBeInTheDocument();
-            expect(screen.getAllByRole('heading')).toHaveLength(2); // Review Alert (h2) + page title (h1)
+            expect(screen.getAllByRole('heading')).toHaveLength(2); // ReviewQuest (h2) + page title (h1)
             expect(screen.getAllByRole('link')).toHaveLength(4); // Skip link + alternate action + privacy + terms
         });
     });
@@ -258,7 +258,7 @@ describe('AuthPageLayout', () => {
 
             // Check that MUI components are rendered (they would fail without proper theme)
             expect(screen.getByRole('main')).toBeInTheDocument();
-            expect(screen.getByRole('heading', { name: 'Review Alert' })).toBeInTheDocument();
+            expect(screen.getByRole('heading', { name: 'ReviewQuest' })).toBeInTheDocument();
         });
     });
 });

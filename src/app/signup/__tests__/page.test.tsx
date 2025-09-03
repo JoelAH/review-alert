@@ -162,7 +162,7 @@ describe('SignupPage', () => {
       code: 'auth/email-already-in-use',
       message: 'Email already in use',
       name: 'FirebaseError',
-      customData: { appName: 'ReviewAlert' }
+      customData: { appName: 'ReviewQuest' }
     };
 
     (signUpWithEmail as jest.Mock).mockRejectedValue(mockError);

@@ -11,7 +11,7 @@ import { LandingPageContent } from '@/types/landing';
 export const LANDING_PAGE_CONTENT: LandingPageContent = {
     hero: {
         title: "Aggregate App Reviews, Get Smart Notifications, Level Up Your Product",
-        subtitle: "Review Alert aggregates reviews from Chrome Web Store, Google Play, and iOS App Store, then uses AI to analyze sentiment, generate actionable tasks, and gamify your review management workflow for solo entrepreneurs and small startups.",
+        subtitle: "ReviewQuest aggregates reviews from Chrome Web Store, Google Play, and iOS App Store, then uses AI to analyze sentiment, generate actionable tasks, and gamify your review management workflow for solo entrepreneurs and small startups.",
         ctaText: "Start Your Journey"
     },
     features: [
@@ -130,33 +130,33 @@ export const LANDING_PAGE_CONTENT: LandingPageContent = {
         }
     ],
     differentiation: {
-        title: "Why Review Alert Goes Beyond Basic Review Monitoring",
+        title: "Why ReviewQuest Goes Beyond Basic Review Monitoring",
         subtitle: "Most tools just show you reviews. We transform them into actionable insights and engaging experiences.",
         comparisons: [
             {
                 basic: "Manual checking of multiple app store dashboards",
-                reviewAlert: "Automated aggregation from all stores in one unified dashboard",
+                reviewQuest: "Automated aggregation from all stores in one unified dashboard",
                 benefit: "Save 5+ hours weekly on manual review monitoring"
             },
             {
                 basic: "Reading reviews one by one to understand sentiment",
-                reviewAlert: "AI-powered sentiment analysis with instant insights",
+                reviewQuest: "AI-powered sentiment analysis with instant insights",
                 benefit: "Understand user feedback patterns in seconds, not hours"
             },
             {
                 basic: "Manually creating tasks from review feedback",
-                reviewAlert: "Automated task generation with workflow integration",
+                reviewQuest: "Automated task generation with workflow integration",
                 benefit: "Transform feedback into actionable development items automatically"
             },
             {
                 basic: "Losing motivation when dealing with negative reviews",
-                reviewAlert: "Gamified experience with XP rewards for review management",
+                reviewQuest: "Gamified experience with XP rewards for review management",
                 benefit: "Stay engaged and motivated while improving your product"
             }
         ],
         uniqueValue: {
             title: "The Only Platform Combining AI Analysis + Gamification",
-            description: "Review Alert is the first review management platform to combine comprehensive aggregation, AI-powered analysis, and gamification into one seamless experience designed specifically for solo entrepreneurs and small teams.",
+            description: "ReviewQuest is the first review management platform to combine comprehensive aggregation, AI-powered analysis, and gamification into one seamless experience designed specifically for solo entrepreneurs and small teams.",
             highlights: [
                 "AI + Gamification: Unique combination that makes review management engaging while providing deep insights",
                 "Workflow Integration: Generated tasks integrate directly into your development process",

@@ -98,9 +98,9 @@ export default function Navigation({
               outlineOffset: '2px'
             }
           }}
-          aria-label={isAuthenticated ? "Review Alert - Go to Dashboard" : "Review Alert - Home"}
+          aria-label={isAuthenticated ? "ReviewQuest - Go to Dashboard" : "ReviewQuest - Home"}
         >
-          Review Alert
+          ReviewQuest
         </Typography>
 
         {/* Navigation Actions */}

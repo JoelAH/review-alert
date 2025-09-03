@@ -209,7 +209,7 @@ export default function CommandCenterTab({ user }: { user: User | null }) {
                             </Typography>
                         </Box>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                            We&apos;ll send review alerts to this email address every 4 hours
+                            We&apos;ll send review notifications to this email address every 4 hours
                         </Typography>
 
                         <Box component="form" action={emailAction} noValidate autoComplete="off">

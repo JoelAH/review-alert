@@ -64,7 +64,7 @@ export interface CTAProps {
 // Differentiation Section Interfaces
 export interface ComparisonPoint {
   basic: string;
-  reviewAlert: string;
+  reviewQuest: string;
   benefit: string;
 }
 

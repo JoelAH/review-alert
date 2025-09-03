@@ -13,33 +13,33 @@ const lato = Lato({
   })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://reviewalert.app'),
-  title: 'Review Alert - AI-Powered App Review Aggregation & Notifications',
+  metadataBase: new URL('https://reviewquest.app'),
+  title: 'ReviewQuest - AI-Powered App Review Aggregation & Notifications',
   description: 'Aggregate and monitor app reviews from Chrome Web Store, Google Play, and App Store. Get smart notifications, AI sentiment analysis, and gamified task management for solo entrepreneurs and developers.',
   keywords: 'app reviews, review monitoring, Chrome Web Store, Google Play, App Store, AI sentiment analysis, review aggregation, developer tools, app analytics',
-  authors: [{ name: 'Review Alert Team' }],
-  creator: 'Review Alert',
-  publisher: 'Review Alert',
+  authors: [{ name: 'ReviewQuest Team' }],
+  creator: 'ReviewQuest',
+  publisher: 'ReviewQuest',
   robots: 'index, follow',
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://reviewalert.app',
-    siteName: 'Review Alert',
-    title: 'Review Alert - AI-Powered App Review Aggregation & Notifications',
+    url: 'https://reviewquest.app',
+    siteName: 'ReviewQuest',
+    title: 'ReviewQuest - AI-Powered App Review Aggregation & Notifications',
     description: 'Aggregate and monitor app reviews from Chrome Web Store, Google Play, and App Store. Get smart notifications, AI sentiment analysis, and gamified task management.',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Review Alert - AI-Powered App Review Management'
+        alt: 'ReviewQuest - AI-Powered App Review Management'
       }
     ]
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Review Alert - AI-Powered App Review Aggregation',
+    title: 'ReviewQuest - AI-Powered App Review Aggregation',
     description: 'Monitor app reviews across Chrome Web Store, Google Play, and App Store with AI-powered insights and gamification.',
     images: ['/twitter-image.jpg']
   }
@@ -59,7 +59,7 @@ export default function RootLayout({
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "Review Alert",
+    "name": "ReviewQuest",
     "description": "AI-powered app review aggregation and notification system for developers and entrepreneurs",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Web",
@@ -70,7 +70,7 @@ export default function RootLayout({
     },
     "creator": {
       "@type": "Organization",
-      "name": "Review Alert Team"
+      "name": "ReviewQuest Team"
     },
     "featureList": [
       "App review aggregation from Chrome Web Store, Google Play, and App Store",

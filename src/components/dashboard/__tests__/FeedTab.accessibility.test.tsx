@@ -296,7 +296,7 @@ describe('FeedTab Accessibility', () => {
       const userWithoutApps = { ...mockUser, apps: [] };
       renderWithTheme(<FeedTab user={userWithoutApps} />);
       
-      expect(screen.getByText('Welcome to Review Alert!')).toBeInTheDocument();
+      expect(screen.getByText('Welcome to ReviewQuest!')).toBeInTheDocument();
     });
 
     it('should have proper heading structure in auth required state', () => {

@@ -155,7 +155,7 @@ const LandingPage = () => {
       <footer role="contentinfo">
         <Box component="div" sx={{ bgcolor: 'background.paper', py: 6 }}>
           <Typography variant="body2" color="text.secondary" align="center">
-            © 2024 Review Alert. All rights reserved.
+            © 2024 ReviewQuest. All rights reserved.
           </Typography>
         </Box>
       </footer>

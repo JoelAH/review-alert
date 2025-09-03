@@ -125,7 +125,7 @@ export default function FeedTab({ user, highlightedReviewId, onQuestCountChange 
         return (
             <Box sx={{ textAlign: 'center', py: 8 }}>
                 <Typography variant="h6" gutterBottom>
-                    Welcome to Review Alert!
+                    Welcome to ReviewQuest!
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
                     Add your app store links in the Command Center to start monitoring reviews.

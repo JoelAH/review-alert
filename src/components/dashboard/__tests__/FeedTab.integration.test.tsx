@@ -170,7 +170,7 @@ describe('FeedTab Integration', () => {
       
       renderWithTheme(<FeedTab user={userWithoutApps} />);
       
-      expect(screen.getByText('Welcome to Review Alert!')).toBeInTheDocument();
+      expect(screen.getByText('Welcome to ReviewQuest!')).toBeInTheDocument();
       expect(screen.getByText(/Add your app store links in the Command Center/)).toBeInTheDocument();
     });
 

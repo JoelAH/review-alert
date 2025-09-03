@@ -156,7 +156,7 @@ export function getEnhancedAuthError(error: AuthError | Error): EnhancedAuthErro
         actionable: true,
         action: {
           text: 'Contact Support',
-          handler: () => window.open('mailto:support@reviewalert.com', '_blank')
+          handler: () => window.open('mailto:admin@wimeki.com', '_blank')
         }
       };
 

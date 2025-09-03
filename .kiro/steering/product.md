@@ -1,6 +1,6 @@
 # Product Overview
 
-**Review Alert** is a web application that helps developers and app publishers monitor reviews across multiple app stores. Users can track reviews from:
+**ReviewQuest** is a web application that helps developers and app publishers monitor reviews across multiple app stores. Users can track reviews from:
 
 - Chrome Web Store (Chrome Extensions)
 - Google Play Store (Android Apps) 
