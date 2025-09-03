@@ -9,7 +9,10 @@ export const UserSchema = new Schema({
   email: {type: String, required: true, trim: true, index: true},
   apps: [
     { 
-      store: { type: String, required: true }, url: { type: String, required: true }, appId: { type: String, required: true } 
+      store: { type: String, required: true }, 
+      url: { type: String, required: true }, 
+      appId: { type: String, required: true },
+      appName: { type: String, required: true }
     }
   ],
   createdAt: {type: Date, default: new Date()},
@@ -25,7 +28,7 @@ export type User = {
     _id?: any;
     uid: string,
     email: string,
-    apps?: { store: 'ChromeExt' | 'GooglePlay' | 'AppleStore', url: string, appId?: string, _id?: any }[],
+    apps?: { store: 'ChromeExt' | 'GooglePlay' | 'AppleStore', url: string, appId?: string, appName?: string, _id?: any }[],
     createdAt?: Date,
     updatedAt?: Date
 }
@@ -39,7 +42,7 @@ export const formatUser = (savedObject: any): User => {
   const apps = [];
   if (formattedUser.apps) {
     for (const app of formattedUser.apps) {
-      apps.push({ store: app.store, url: app.url, appId: app.appId, _id: app._id.toString() });
+      apps.push({ store: app.store, url: app.url, appId: app.appId, appName: app.appName, _id: app._id.toString() });
     }
     formattedUser.apps = apps;
   }

@@ -113,6 +113,7 @@ interface AppDialogState {
     open: boolean;
     store: StoreType | null;
     url: string;
+    appName: string;
     isEdit: boolean;
     editingAppId?: string;
 }
@@ -129,6 +130,7 @@ export default function CommandCenterTab({ user }: { user: User | null }) {
         open: false,
         store: null,
         url: '',
+        appName: '',
         isEdit: false,
         editingAppId: undefined
     });
@@ -149,7 +151,7 @@ export default function CommandCenterTab({ user }: { user: User | null }) {
         if (appState?.success) {
             setSnackbarMessage(appState.message);
             setOpenSnackbar(true);
-            setAppDialog({ open: false, store: null, url: '', isEdit: false, editingAppId: undefined });
+            setAppDialog({ open: false, store: null, url: '', appName: '', isEdit: false, editingAppId: undefined });
         }
     }, [appState]);
 
@@ -178,13 +180,14 @@ export default function CommandCenterTab({ user }: { user: User | null }) {
             open: true,
             store: store || existingApp?.store || null,
             url: existingApp?.url || '',
+            appName: existingApp?.appName || '',
             isEdit,
             editingAppId: appId
         });
     };
 
     const handleCloseAppDialog = () => {
-        setAppDialog({ open: false, store: null, url: '', isEdit: false, editingAppId: undefined });
+        setAppDialog({ open: false, store: null, url: '', appName: '', isEdit: false, editingAppId: undefined });
     };
 
     return (
@@ -289,6 +292,18 @@ export default function CommandCenterTab({ user }: { user: User | null }) {
                                                             </Box>
                                                         </Box>
                                                         <Typography 
+                                                            variant="body2" 
+                                                            sx={{ 
+                                                                fontWeight: 500,
+                                                                mb: 0.5,
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                whiteSpace: 'nowrap'
+                                                            }}
+                                                        >
+                                                            {app.appName}
+                                                        </Typography>
+                                                        <Typography 
                                                             variant="caption" 
                                                             color="text.secondary"
                                                             sx={{ 
@@ -361,7 +376,8 @@ export default function CommandCenterTab({ user }: { user: User | null }) {
                                     onChange={(e) => setAppDialog(prev => ({ 
                                         ...prev, 
                                         store: e.target.value as StoreType,
-                                        url: '' // Reset URL when store changes
+                                        url: '', // Reset URL when store changes
+                                        appName: '' // Reset app name when store changes
                                     }))}
                                 >
                                     <MenuItem value="ChromeExt">
@@ -397,6 +413,19 @@ export default function CommandCenterTab({ user }: { user: User | null }) {
                         )}
                         
                         <TextField
+                            name="appName"
+                            fullWidth
+                            label="App Name"
+                            placeholder="Enter your app name"
+                            value={appDialog.appName}
+                            onChange={(e) => setAppDialog(prev => ({ ...prev, appName: e.target.value }))}
+                            variant="outlined"
+                            sx={{ mb: 2 }}
+                            disabled={!appDialog.store}
+                            helperText={!appDialog.store && !appDialog.isEdit ? "Please select an app store first" : ""}
+                        />
+                        
+                        <TextField
                             name="url"
                             fullWidth
                             label="App URL"
@@ -420,7 +449,7 @@ export default function CommandCenterTab({ user }: { user: User | null }) {
                     </DialogContent>
                     <DialogActions sx={{ p: 3, pt: 1 }}>
                         <Button onClick={handleCloseAppDialog}>Cancel</Button>
-                        <SaveAppButton disabled={!appDialog.store} />
+                        <SaveAppButton disabled={!appDialog.store || !appDialog.appName.trim()} />
                     </DialogActions>
                 </Box>
             </Dialog>
