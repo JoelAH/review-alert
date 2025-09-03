@@ -22,8 +22,9 @@ import {
 } from '@mui/icons-material';
 import { ReviewSentiment, ReviewQuest, ReviewPriority } from '@/lib/models/client/review';
 import { ReviewCardProps } from './types';
+import CreateQuestButton from './CreateQuestButton';
 
-const ReviewCard: React.FC<ReviewCardProps> = React.memo(({ review, appName, platform }) => {
+const ReviewCard: React.FC<ReviewCardProps> = React.memo(({ review, appName, platform, onQuestCreated, highlighted = false }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -170,6 +171,8 @@ const ReviewCard: React.FC<ReviewCardProps> = React.memo(({ review, appName, pla
           borderLeft: `4px solid ${getSentimentBorderColor()}`,
           transition: 'all 0.2s ease-in-out',
           cursor: 'pointer',
+          backgroundColor: highlighted ? theme.palette.action.selected : 'background.paper',
+          boxShadow: highlighted ? theme.shadows[4] : theme.shadows[1],
           '&:hover': {
             transform: 'translateY(-2px)',
             boxShadow: theme.shadows[4],
@@ -265,18 +268,37 @@ const ReviewCard: React.FC<ReviewCardProps> = React.memo(({ review, appName, pla
             />
           </Box>
 
-          {/* Review comment */}
-          <Typography
-            variant="body2"
-            sx={{
-              color: theme.palette.text.primary,
-              lineHeight: 1.5,
-              fontSize: isMobile ? '0.875rem' : '1rem',
-              wordBreak: 'break-word',
-            }}
-          >
-            {review.comment}
-          </Typography>
+          {/* Review comment and create quest button */}
+          <Box sx={{ position: 'relative' }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: theme.palette.text.primary,
+                lineHeight: 1.5,
+                fontSize: isMobile ? '0.875rem' : '1rem',
+                wordBreak: 'break-word',
+                pr: isMobile ? 0 : 12, // Add padding right to avoid overlap with button on desktop
+                pb: isMobile ? 6 : 0, // Add padding bottom on mobile
+              }}
+            >
+              {review.comment}
+            </Typography>
+            
+            {/* Create Quest Button positioned at bottom right */}
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: isMobile ? 0 : -8,
+                right: 0,
+                zIndex: 1,
+              }}
+            >
+              <CreateQuestButton 
+                review={review} 
+                onQuestCreated={onQuestCreated}
+              />
+            </Box>
+          </Box>
         </CardContent>
       </Card>
     </Tooltip>
