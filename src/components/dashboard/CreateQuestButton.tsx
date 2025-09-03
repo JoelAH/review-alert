@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, CircularProgress } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Button, CircularProgress, Typography, useTheme } from '@mui/material';
+import { Add as AddIcon, CheckCircle as CheckIcon } from '@mui/icons-material';
 import { Review, ReviewQuest } from '@/lib/models/client/review';
 import { QuestType, QuestPriority } from '@/lib/models/client/quest';
 import { QuestService, QuestError } from '@/lib/services/quests';
@@ -47,6 +47,7 @@ const CreateQuestButton: React.FC<CreateQuestButtonProps> = ({
   onQuestCreated,
   disabled = false,
 }) => {
+  const theme = useTheme();
   const [modalOpen, setModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -98,7 +99,29 @@ const CreateQuestButton: React.FC<CreateQuestButtonProps> = ({
     };
   };
 
-  const isButtonDisabled = disabled || questAlreadyExists || isCreating;
+  // If quest already exists, show just text
+  if (questAlreadyExists) {
+    return (
+      <Typography
+        variant="caption"
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          color: theme.palette.success.main,
+          fontSize: '0.7rem',
+          fontWeight: 500,
+          px: 1,
+          py: 0.25,
+        }}
+      >
+        <CheckIcon sx={{ fontSize: 14 }} />
+        Quest Created
+      </Typography>
+    );
+  }
+
+  const isButtonDisabled = disabled || isCreating;
 
   return (
     <>
@@ -107,27 +130,37 @@ const CreateQuestButton: React.FC<CreateQuestButtonProps> = ({
         size="small"
         startIcon={
           isCreating ? (
-            <CircularProgress size={16} />
+            <CircularProgress size={14} />
           ) : (
-            <AddIcon />
+            <AddIcon sx={{ fontSize: 16 }} />
           )
         }
         onClick={handleOpenModal}
         disabled={isButtonDisabled}
         sx={{
           minWidth: 'auto',
-          px: 1.5,
-          py: 0.5,
-          fontSize: '0.75rem',
+          px: 1,
+          py: 0.25,
+          fontSize: '0.7rem',
           textTransform: 'none',
           borderRadius: 1,
+          backgroundColor: 'background.paper',
+          borderColor: 'primary.main',
+          color: 'primary.main',
+          boxShadow: 1,
           '&:hover': {
             backgroundColor: 'primary.light',
             color: 'white',
+            transform: 'translateY(-1px)',
+            boxShadow: 2,
+          },
+          '&:disabled': {
+            backgroundColor: 'grey.100',
+            color: 'grey.500',
           },
         }}
       >
-        {questAlreadyExists ? 'Quest Created' : 'Create Quest'}
+        Create Quest
       </Button>
 
       <QuestModal
