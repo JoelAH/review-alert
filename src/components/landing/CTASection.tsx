@@ -66,7 +66,7 @@ const CTASection: React.FC<CTAProps> = ({
             color={variant === 'primary' ? 'secondary' : 'primary'}
             size="large" 
             onClick={onCtaClick}
-            aria-label={`${ctaText} - Get started with Review Alert`}
+            aria-label={`${ctaText} - Get started with ReviewQuest`}
             sx={{ 
               px: 6,
               py: 2,
@@ -90,7 +90,7 @@ const CTASection: React.FC<CTAProps> = ({
               color={variant === 'primary' ? 'inherit' : 'primary'}
               size="large"
               onClick={action.onClick}
-              aria-label={`${action.text} about Review Alert`}
+              aria-label={`${action.text} about ReviewQuest`}
               sx={{
                 px: 4,
                 py: 2,

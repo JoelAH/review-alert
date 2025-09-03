@@ -368,7 +368,7 @@ describe('FeedTab Final Integration Tests', () => {
       renderWithTheme(<FeedTab user={userWithNoApps} />);
 
       // Should show setup message
-      expect(screen.getByText('Welcome to Review Alert!')).toBeInTheDocument();
+      expect(screen.getByText('Welcome to ReviewQuest!')).toBeInTheDocument();
       expect(screen.getByText('Add your app store links in the Command Center to start monitoring reviews.')).toBeInTheDocument();
     });
 

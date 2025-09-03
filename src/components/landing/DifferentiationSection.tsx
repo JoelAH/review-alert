@@ -115,7 +115,7 @@ const DifferentiationSection: React.FC<DifferentiationSectionProps> = ({
                     </Typography>
                   </Box>
 
-                  {/* Review Alert Approach */}
+                  {/* ReviewQuest Approach */}
                   <Box sx={{ mb: { xs: 2.5, sm: 3 } }}>
                     <Box sx={{ 
                       display: 'flex', 
@@ -134,7 +134,7 @@ const DifferentiationSection: React.FC<DifferentiationSectionProps> = ({
                         fontWeight="bold"
                         sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
                       >
-                        Review Alert
+                        ReviewQuest
                       </Typography>
                     </Box>
                     <Typography 
@@ -145,7 +145,7 @@ const DifferentiationSection: React.FC<DifferentiationSectionProps> = ({
                         lineHeight: { xs: 1.4, sm: 1.5 }
                       }}
                     >
-                      {comparison.reviewAlert}
+                      {comparison.reviewQuest}
                     </Typography>
                   </Box>
 

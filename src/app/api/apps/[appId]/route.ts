@@ -75,14 +75,14 @@ export async function GET(
         });
     } catch (error: any) {
         console.error('Error fetching app:', error);
-        
+
         if (error.message.includes("Unauthorized")) {
             return NextResponse.json(
                 { error: error.message },
                 { status: 401 }
             );
         }
-        
+
         if (error.message === "User not found") {
             return NextResponse.json(
                 { error: "User not found" },

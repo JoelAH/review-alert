@@ -114,9 +114,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 outlineOffset: '2px'
               }
             }}
-            aria-label="Review Alert - Home"
+            aria-label="ReviewQuest - Home"
           >
-            Review Alert
+            ReviewQuest
           </Typography>
 
           {/* Auth Buttons */}
@@ -283,7 +283,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               size="large" 
               onClick={onCtaClick}
               startIcon={<RocketLaunch aria-hidden="true" />}
-              aria-label={`${ctaText} - Start using Review Alert`}
+              aria-label={`${ctaText} - Start using ReviewQuest`}
               sx={{ 
                 px: 8,
                 py: 3,

@@ -73,13 +73,13 @@ export default function FeedTab({ user, highlightedReviewId, onQuestCountChange 
         const map = new Map<string, { appName: string; platform: Platform }>();
         user?.apps?.forEach(app => {
             map.set(app._id, {
-                appName: `App (${app.store})`, // Since we don't have app names in the current model
+                appName: app.appName || `App (${app.store})`, // Use the actual app name or fallback
                 platform: app.store as Platform
             });
             // Also map by appId if different from _id
             if (app.appId && app.appId !== app._id) {
                 map.set(app.appId, {
-                    appName: `App (${app.store})`,
+                    appName: app.appName || `App (${app.store})`,
                     platform: app.store as Platform
                 });
             }
@@ -125,7 +125,7 @@ export default function FeedTab({ user, highlightedReviewId, onQuestCountChange 
         return (
             <Box sx={{ textAlign: 'center', py: 8 }}>
                 <Typography variant="h6" gutterBottom>
-                    Welcome to Review Alert!
+                    Welcome to ReviewQuest!
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
                     Add your app store links in the Command Center to start monitoring reviews.

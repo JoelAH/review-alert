@@ -73,7 +73,7 @@ export default function AuthPageLayout({
           alignItems: 'center'
         }}
       >
-        {/* Review Alert Branding */}
+        {/* ReviewQuest Branding */}
         <Box sx={{ mb: 4, textAlign: 'center' }}>
           <Typography
             variant={isMobile ? 'h4' : 'h3'}
@@ -84,7 +84,7 @@ export default function AuthPageLayout({
               mb: 1
             }}
           >
-            Review Alert
+            ReviewQuest
           </Typography>
           <Typography
             variant="body1"

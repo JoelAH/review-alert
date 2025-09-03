@@ -77,9 +77,9 @@ export default function DashboardNavigation() {
               outlineOffset: '2px'
             }
           }}
-          aria-label="Review Alert - Go to Dashboard"
+          aria-label="ReviewQuest - Go to Dashboard"
         >
-          Review Alert
+          ReviewQuest
         </Typography>
 
         {/* Navigation Actions */}

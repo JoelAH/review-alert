@@ -42,7 +42,7 @@ describe('Navigation Component', () => {
     it('should navigate to home when logo is clicked', () => {
       render(<Navigation isAuthenticated={false} />);
       
-      const logo = screen.getByRole('button', { name: /review alert - home/i });
+      const logo = screen.getByRole('button', { name: /reviewquest - home/i });
       fireEvent.click(logo);
       
       expect(mockPush).toHaveBeenCalledWith('/');
@@ -87,7 +87,7 @@ describe('Navigation Component', () => {
     it('should navigate to dashboard when logo is clicked', () => {
       render(<Navigation isAuthenticated={true} />);
       
-      const logo = screen.getByRole('button', { name: /review alert - go to dashboard/i });
+      const logo = screen.getByRole('button', { name: /reviewquest - go to dashboard/i });
       fireEvent.click(logo);
       
       expect(mockPush).toHaveBeenCalledWith('/dashboard');
@@ -152,14 +152,14 @@ describe('Navigation Component', () => {
       const nav = screen.getByRole('banner');
       expect(nav).toBeInTheDocument();
       
-      const logo = screen.getByRole('button', { name: /review alert - home/i });
+      const logo = screen.getByRole('button', { name: /reviewquest - home/i });
       expect(logo).toHaveAttribute('aria-label');
     });
 
     it('should have proper focus management', () => {
       render(<Navigation isAuthenticated={false} />);
       
-      const logo = screen.getByRole('button', { name: /review alert - home/i });
+      const logo = screen.getByRole('button', { name: /reviewquest - home/i });
       logo.focus();
       
       expect(logo).toHaveFocus();

@@ -19,6 +19,7 @@ export async function onSaveApp(_prevState: any, formData: FormData): Promise<an
     const store = formData.get('store')?.toString()?.trim() as 'ChromeExt' | 'GooglePlay' | 'AppleStore';
     const url = formData.get('url')?.toString()?.trim();
     const appId = formData.get('appId')?.toString()?.trim();
+    const appName = formData.get('appName')?.toString()?.trim();
 
     const errors: string[] = [];
 
@@ -28,6 +29,10 @@ export async function onSaveApp(_prevState: any, formData: FormData): Promise<an
 
     if (!url || !URL_TEST.test(url)) {
         errors.push('Please submit a valid URL');
+    }
+
+    if (!appName || appName.length < 1) {
+        errors.push('Please provide an app name');
     }
 
     // Validate store-specific URL formats and extract appId
@@ -82,6 +87,7 @@ export async function onSaveApp(_prevState: any, formData: FormData): Promise<an
                 store,
                 url: url!,
                 appId: extractedAppId,
+                appName: appName!,
                 _id: new Types.ObjectId(appId)
             };
             isUpdate = true;
@@ -96,6 +102,7 @@ export async function onSaveApp(_prevState: any, formData: FormData): Promise<an
             store,
             url: url!,
             appId: extractedAppId,
+            appName: appName!,
             _id: newAppId
         });
     }
