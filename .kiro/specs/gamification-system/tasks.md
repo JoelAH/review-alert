@@ -6,7 +6,7 @@
   - Create database migration script to initialize gamification data for existing users
   - _Requirements: 6.1, 6.2_
 
-- [ ] 2. Create core gamification type definitions and enums
+- [x] 2. Create core gamification type definitions and enums
   - Define Badge, XPTransaction, BadgeCategory, XPAction enums and interfaces
   - Create BadgeDefinition, BadgeRequirement, and BadgeProgress interfaces
   - Export all gamification types from a central types file
