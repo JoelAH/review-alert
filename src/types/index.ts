@@ -7,3 +7,6 @@ export * from './auth';
 
 // Landing page types
 export * from './landing';
+
+// Gamification types
+export * from './gamification';
