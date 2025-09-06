@@ -35,7 +35,7 @@
   - Write unit tests for streak calculation and bonus XP
   - _Requirements: 1.5, 2.6, 5.3_
 
-- [ ] 6. Create gamification API endpoints
+- [x] 6. Create gamification API endpoints
   - Add GET /api/gamification endpoint to fetch user gamification data
   - Add POST /api/gamification/award-xp endpoint for awarding XP
   - Implement proper authentication and error handling for gamification endpoints
