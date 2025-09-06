@@ -7,6 +7,8 @@ import CONSTANTS from "@/lib/constants";
 import dbConnect from "@/lib/db/db";
 import QuestModel, { QuestType, QuestPriority, QuestState, formatQuest } from "@/lib/models/server/quest";
 import UserModel from "@/lib/models/server/user";
+import { XPService } from "@/lib/services/xp";
+import { XPAction } from "@/types/gamification";
 
 interface UpdateQuestRequest {
   title?: string;
@@ -137,6 +139,15 @@ export async function PUT(
       );
     }
 
+    // Get the current quest to check for state changes
+    const currentQuest = await QuestModel.findOne({ _id: questId, user: user._id });
+    if (!currentQuest) {
+      return NextResponse.json(
+        { error: "Quest not found or does not belong to user" },
+        { status: 404 }
+      );
+    }
+
     // Find and update quest
     const quest = await QuestModel.findOneAndUpdate(
       { _id: questId, user: user._id },
@@ -151,10 +162,43 @@ export async function PUT(
       );
     }
 
+    // Award XP for state changes
+    let xpResult = null;
+    if (body.state && body.state !== currentQuest.state) {
+      try {
+        let xpAction: XPAction | null = null;
+        
+        if (body.state === QuestState.IN_PROGRESS && currentQuest.state === QuestState.OPEN) {
+          xpAction = XPAction.QUEST_IN_PROGRESS;
+        } else if (body.state === QuestState.DONE && currentQuest.state !== QuestState.DONE) {
+          xpAction = XPAction.QUEST_COMPLETED;
+        }
+
+        if (xpAction) {
+          xpResult = await XPService.awardXP(user._id.toString(), xpAction, {
+            questId: quest._id.toString(),
+            questTitle: quest.title,
+            questType: quest.type,
+            previousState: currentQuest.state,
+            newState: body.state
+          });
+        }
+      } catch (error) {
+        console.error("Error awarding XP for quest state change:", error);
+        // Don't fail the quest update if XP awarding fails
+      }
+    }
+
     // Format and return updated quest
     const formattedQuest = formatQuest(quest);
 
-    return NextResponse.json({ quest: formattedQuest });
+    // Include XP result in response if available
+    const response: any = { quest: formattedQuest };
+    if (xpResult) {
+      response.xpAwarded = xpResult;
+    }
+
+    return NextResponse.json(response);
 
   } catch (error: any) {
     console.error("Error updating quest:", error);

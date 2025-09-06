@@ -43,7 +43,7 @@
   - Write integration tests for gamification API endpoints
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-- [ ] 7. Integrate XP awarding into existing user actions
+- [x] 7. Integrate XP awarding into existing user actions
   - Add XP awarding to quest creation in quest API route
   - Add XP awarding to quest state changes (in progress, completed)
   - Add XP awarding to app addition in apps API route

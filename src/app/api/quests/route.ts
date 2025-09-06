@@ -8,6 +8,8 @@ import dbConnect from "@/lib/db/db";
 import QuestModel, { QuestType, QuestPriority, QuestState, formatQuest } from "@/lib/models/server/quest";
 import UserModel from "@/lib/models/server/user";
 import ReviewModel from "@/lib/models/server/review";
+import { XPService } from "@/lib/services/xp";
+import { XPAction } from "@/types/gamification";
 
 interface QuestsResponse {
   quests: any[];
@@ -354,6 +356,19 @@ export async function POST(request: NextRequest) {
     const quest = new QuestModel(questData);
     const savedQuest = await quest.save();
 
+    // Award XP for quest creation
+    let xpResult = null;
+    try {
+      xpResult = await XPService.awardXP(user._id.toString(), XPAction.QUEST_CREATED, {
+        questId: savedQuest._id.toString(),
+        questTitle: savedQuest.title,
+        questType: savedQuest.type
+      });
+    } catch (error) {
+      console.error("Error awarding XP for quest creation:", error);
+      // Don't fail the quest creation if XP awarding fails
+    }
+
     // If quest was created from a review, update the review to link back to the quest
     if (body.reviewId) {
       try {
@@ -371,7 +386,13 @@ export async function POST(request: NextRequest) {
     // Format and return quest
     const formattedQuest = formatQuest(savedQuest);
 
-    return NextResponse.json({ quest: formattedQuest }, { status: 201 });
+    // Include XP result in response if available
+    const response: any = { quest: formattedQuest };
+    if (xpResult) {
+      response.xpAwarded = xpResult;
+    }
+
+    return NextResponse.json(response, { status: 201 });
 
   } catch (error: any) {
     console.error("Error creating quest:", error);

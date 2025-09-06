@@ -7,6 +7,8 @@ import CONSTANTS from "@/lib/constants";
 import dbConnect from "@/lib/db/db";
 import ReviewModel, { ReviewSentiment, ReviewQuest } from "@/lib/models/server/review";
 import UserModel from "@/lib/models/server/user";
+import { XPService } from "@/lib/services/xp";
+import { XPAction } from "@/types/gamification";
 
 interface ReviewsResponse {
   reviews: any[];
@@ -438,7 +440,20 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    // Award XP for review interaction
+    let xpResult = null;
+    try {
+      xpResult = await XPService.awardXP(user._id.toString(), XPAction.REVIEW_INTERACTION, {
+        reviewId: updatedReview._id.toString(),
+        questId: questId,
+        action: questId ? 'linked_to_quest' : 'unlinked_from_quest'
+      });
+    } catch (error) {
+      console.error("Error awarding XP for review interaction:", error);
+      // Don't fail the review update if XP awarding fails
+    }
+
+    const response: any = {
       success: true,
       review: {
         ...updatedReview,
@@ -446,7 +461,14 @@ export async function PUT(request: NextRequest) {
         user: updatedReview.user.toString(),
         appId: updatedReview.appId.toString(),
       }
-    });
+    };
+
+    // Include XP result in response if available
+    if (xpResult) {
+      response.xpAwarded = xpResult;
+    }
+
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error("Error updating review:", error);

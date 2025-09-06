@@ -6,6 +6,8 @@ import { checkAuth } from "@/lib/services/middleware";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Types } from "mongoose";
+import { XPService } from "@/lib/services/xp";
+import { XPAction } from "@/types/gamification";
 
 const URL_TEST = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
 
@@ -117,6 +119,22 @@ export async function onSaveApp(_prevState: any, formData: FormData): Promise<an
         savedApp = saved.apps?.[saved.apps.length - 1];
     }
 
+    // Award XP for adding a new app (not for updates)
+    let xpResult = null;
+    if (!isUpdate && savedApp) {
+        try {
+            xpResult = await XPService.awardXP(saved._id.toString(), XPAction.APP_ADDED, {
+                appId: savedApp._id.toString(),
+                appName: savedApp.appName,
+                store: savedApp.store,
+                url: savedApp.url
+            });
+        } catch (error) {
+            console.error("Error awarding XP for app addition:", error);
+            // Don't fail the app save if XP awarding fails
+        }
+    }
+
     // if (savedApp) {
     //     try {
     //         await fetch(
@@ -140,11 +158,18 @@ export async function onSaveApp(_prevState: any, formData: FormData): Promise<an
 
     revalidatePath('/', 'layout');
 
-    return {
+    const response: any = {
         success: true,
         message: `${getStoreName(store)} app ${isUpdate ? 'updated' : 'added'} successfully`,
         appId: savedApp?._id?.toString()
     };
+
+    // Include XP result in response if available
+    if (xpResult) {
+        response.xpAwarded = xpResult;
+    }
+
+    return response;
 }
 
 function getStoreName(store: string): string {
