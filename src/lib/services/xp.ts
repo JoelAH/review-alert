@@ -1,6 +1,9 @@
 /**
- * XP Service - Core XP calculation and awarding logic
- * Handles experience point calculations, level progression, and database updates
+ * XP Service - Server-side XP operations with database access
+ * Handles XP awarding, database updates, and server-side gamification logic
+ * 
+ * WARNING: This service imports server-only code and should NOT be imported by client components.
+ * Use XPClientService for client-side XP calculations and utilities.
  */
 
 import UserModel from '@/lib/models/server/user';

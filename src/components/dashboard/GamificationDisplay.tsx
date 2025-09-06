@@ -477,12 +477,12 @@ export default function GamificationDisplay({
                     flexWrap: 'wrap',
                     gap: 2
                 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <TrendingUpIcon sx={{ color: theme.palette.primary.main }} />
                         <Typography variant="h5" sx={{ fontWeight: 600 }}>
                             Your Progress
                         </Typography>
-                    </Box>
+                    </Box> */}
                     
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="caption" color="text.secondary">

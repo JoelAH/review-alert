@@ -168,7 +168,7 @@ function SuggestionCard({ suggestion, onActionClick }: SuggestionCardProps) {
                 )}
 
                 {/* Action Button */}
-                <Button
+                {/* <Button
                     variant="contained"
                     size="small"
                     fullWidth
@@ -196,7 +196,7 @@ function SuggestionCard({ suggestion, onActionClick }: SuggestionCardProps) {
                             }}
                         />
                     )}
-                </Button>
+                </Button> */}
             </CardContent>
         </Card>
     );

@@ -1,16 +1,20 @@
+'use client';
+
 /**
  * Progress Indicators Service - Smart suggestions and progress tracking
  * Provides progress indicators for badges close to being earned and XP suggestions
+ * 
+ * NOTE: This is a client-side service that uses XPClientService for calculations.
+ * Badge functionality is temporarily disabled until BadgeClientService is implemented.
  */
 
-import { 
-  GamificationData, 
-  BadgeProgress, 
+import {
+  GamificationData,
+  BadgeProgress,
   XPAction,
-  BadgeCategory 
+  BadgeCategory
 } from '@/types/gamification';
-import { BadgeService } from './badges';
-import { XPService } from './xp';
+import { XPClientService } from './xpClient';
 
 export interface ProgressSuggestion {
   id: string;
@@ -46,7 +50,7 @@ export class ProgressIndicatorsService {
    */
   static getProgressSuggestions(gamificationData: GamificationData): ProgressSuggestion[] {
     const suggestions: ProgressSuggestion[] = [];
-    
+
     // Get badge progress suggestions
     const badgeSuggestions = this.getBadgeProgressSuggestions(gamificationData);
     suggestions.push(...badgeSuggestions);
@@ -70,7 +74,7 @@ export class ProgressIndicatorsService {
         const priorityOrder = { high: 3, medium: 2, low: 1 };
         const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
         if (priorityDiff !== 0) return priorityDiff;
-        
+
         // Then by progress percentage (closer to completion first)
         const aProgress = a.progress / a.target;
         const bProgress = b.progress / b.target;
@@ -81,112 +85,50 @@ export class ProgressIndicatorsService {
 
   /**
    * Get badge progress suggestions for badges close to being earned
+   * TODO: Implement client-safe badge progress when BadgeClientService is available
    */
   private static getBadgeProgressSuggestions(gamificationData: GamificationData): ProgressSuggestion[] {
-    const badgeProgress = BadgeService.getBadgeProgress(gamificationData);
-    const suggestions: ProgressSuggestion[] = [];
-
-    for (const progress of badgeProgress) {
-      if (progress.earned) continue;
-
-      const progressPercentage = progress.progress / progress.target;
-      
-      // Only suggest badges that are close to completion
-      if (progressPercentage >= this.CLOSE_TO_COMPLETION_THRESHOLD) {
-        const remaining = progress.target - progress.progress;
-        const priority = progressPercentage >= this.VERY_CLOSE_THRESHOLD ? 'high' : 'medium';
-        
-        const suggestion = this.createBadgeSuggestion(progress, remaining, priority);
-        if (suggestion) {
-          suggestions.push(suggestion);
-        }
-      }
-    }
-
-    return suggestions;
+    // Temporarily disabled to avoid server-only imports
+    // Will be re-enabled when BadgeClientService is implemented
+    return [];
   }
 
   /**
    * Create a badge suggestion based on badge progress
+   * TODO: Re-implement when BadgeClientService is available
    */
   private static createBadgeSuggestion(
-    progress: BadgeProgress, 
-    remaining: number, 
+    progress: BadgeProgress,
+    remaining: number,
     priority: 'high' | 'medium' | 'low'
   ): ProgressSuggestion | null {
-    const badge = progress.badge;
-    const requirement = badge.requirements[0]; // Use primary requirement
-    
-    if (!requirement) return null;
-
-    let actionText = '';
-    let estimatedActions = 0;
-    let motivationalMessage = '';
-
-    switch (requirement.type) {
-      case 'xp':
-        actionText = 'Complete quests or add apps to earn more XP';
-        estimatedActions = Math.ceil(remaining / XPService.getXPValues()[XPAction.QUEST_COMPLETED]);
-        motivationalMessage = `Just ${remaining} XP away from earning "${badge.name}"!`;
-        break;
-      
-      case 'activity_count':
-        if (requirement.field === 'questsCompleted') {
-          actionText = 'Complete more quests';
-          estimatedActions = remaining;
-          motivationalMessage = `Complete ${remaining} more quest${remaining === 1 ? '' : 's'} to earn "${badge.name}"!`;
-        } else if (requirement.field === 'appsAdded') {
-          actionText = 'Add more apps to track';
-          estimatedActions = remaining;
-          motivationalMessage = `Add ${remaining} more app${remaining === 1 ? '' : 's'} to earn "${badge.name}"!`;
-        }
-        break;
-      
-      case 'streak':
-        actionText = 'Keep your daily login streak going';
-        estimatedActions = remaining;
-        motivationalMessage = `${remaining} more consecutive day${remaining === 1 ? '' : 's'} to earn "${badge.name}"!`;
-        break;
-    }
-
-    return {
-      id: `badge-${badge.id}`,
-      type: 'badge',
-      title: `Almost earned: ${badge.name}`,
-      description: badge.description,
-      actionText,
-      progress: progress.progress,
-      target: progress.target,
-      priority,
-      category: badge.category,
-      estimatedActions,
-      motivationalMessage
-    };
+    // Temporarily disabled to avoid server-only imports
+    return null;
   }
 
   /**
    * Get level progress suggestions when user is close to leveling up
    */
   private static getLevelProgressSuggestions(gamificationData: GamificationData): ProgressSuggestion[] {
-    const xpForNextLevel = XPService.getXPForNextLevel(gamificationData.xp);
-    
+    const xpForNextLevel = XPClientService.getXPForNextLevel(gamificationData.xp);
+
     if (xpForNextLevel === 0) return []; // Already at max level
-    
+
     const currentLevel = gamificationData.level;
     const nextLevel = currentLevel + 1;
-    const levelThresholds = XPService.getLevelThresholds();
+    const levelThresholds = XPClientService.getLevelThresholds();
     const currentLevelXP = levelThresholds[currentLevel - 1] || 0;
     const nextLevelXP = levelThresholds[currentLevel] || 0;
     const totalXPForLevel = nextLevelXP - currentLevelXP;
     const progressInLevel = gamificationData.xp - currentLevelXP;
-    
+
     const progressPercentage = progressInLevel / totalXPForLevel;
-    
+
     // Only suggest if close to leveling up
     if (progressPercentage >= this.CLOSE_TO_COMPLETION_THRESHOLD) {
       const priority = progressPercentage >= this.VERY_CLOSE_THRESHOLD ? 'high' : 'medium';
-      const estimatedQuests = Math.ceil(xpForNextLevel / XPService.getXPValues()[XPAction.QUEST_COMPLETED]);
-      
+      const estimatedQuests = Math.ceil(xpForNextLevel / XPClientService.getXPValues()[XPAction.QUEST_COMPLETED]);
+
       return [{
         id: `level-${nextLevel}`,
         type: 'level',
@@ -217,7 +159,7 @@ export class ProgressIndicatorsService {
       if (nextMilestone) {
         const remaining = nextMilestone - currentStreak;
         const priority = remaining <= 2 ? 'high' : 'medium';
-        
+
         suggestions.push({
           id: `streak-${nextMilestone}`,
           type: 'streak',
@@ -269,7 +211,7 @@ export class ProgressIndicatorsService {
         target: gamificationData.activityCounts.questsInProgress,
         priority: 'medium',
         estimatedActions: gamificationData.activityCounts.questsInProgress,
-        motivationalMessage: `Complete your quests to earn ${gamificationData.activityCounts.questsInProgress * XPService.getXPValues()[XPAction.QUEST_COMPLETED]} XP!`
+        motivationalMessage: `Complete your quests to earn ${gamificationData.activityCounts.questsInProgress * XPClientService.getXPValues()[XPAction.QUEST_COMPLETED]} XP!`
       });
     }
 
@@ -299,33 +241,33 @@ export class ProgressIndicatorsService {
   private static analyzeActivityPattern(gamificationData: GamificationData): ActivityPattern {
     const recentTransactions = gamificationData.xpHistory.slice(-10);
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    
+
     // Count recent quests (approximate based on XP transactions)
     const recentQuestXP = recentTransactions
       .filter(t => t.timestamp >= oneWeekAgo)
       .filter(t => [XPAction.QUEST_CREATED, XPAction.QUEST_COMPLETED, XPAction.QUEST_IN_PROGRESS].includes(t.action))
       .reduce((sum, t) => sum + t.amount, 0);
-    
-    const questsPerWeek = Math.floor(recentQuestXP / XPService.getXPValues()[XPAction.QUEST_COMPLETED]);
-    
+
+    const questsPerWeek = Math.floor(recentQuestXP / XPClientService.getXPValues()[XPAction.QUEST_COMPLETED]);
+
     // Find most active action
     const actionCounts = recentTransactions.reduce((counts, t) => {
       counts[t.action] = (counts[t.action] || 0) + 1;
       return counts;
     }, {} as Record<XPAction, number>);
-    
+
     const mostActiveAction = Object.entries(actionCounts)
-      .sort(([,a], [,b]) => b - a)[0]?.[0] as XPAction || XPAction.QUEST_CREATED;
+      .sort(([, a], [, b]) => b - a)[0]?.[0] as XPAction || XPAction.QUEST_CREATED;
 
     // Determine trend (simplified) - only if we have enough data
     let recentActivityTrend: 'increasing' | 'decreasing' | 'stable' = 'stable';
-    
+
     if (recentTransactions.length >= 6) {
       const firstHalf = recentTransactions.slice(0, Math.floor(recentTransactions.length / 2));
       const secondHalf = recentTransactions.slice(Math.floor(recentTransactions.length / 2));
       const firstHalfXP = firstHalf.reduce((sum, t) => sum + t.amount, 0);
       const secondHalfXP = secondHalf.reduce((sum, t) => sum + t.amount, 0);
-      
+
       // Only consider it decreasing if there's a significant difference and enough data
       if (firstHalfXP > 0 && secondHalfXP < firstHalfXP * 0.6) {
         recentActivityTrend = 'decreasing';
@@ -356,12 +298,12 @@ export class ProgressIndicatorsService {
    */
   static getMotivationalMessages(gamificationData: GamificationData): string[] {
     const messages: string[] = [];
-    
+
     // Messages based on current state
     if (gamificationData.activityCounts.questsInProgress > 0) {
       messages.push(`You have ${gamificationData.activityCounts.questsInProgress} quest${gamificationData.activityCounts.questsInProgress === 1 ? '' : 's'} in progress. Complete them to earn XP!`);
     }
-    
+
     if (gamificationData.streaks.currentLoginStreak > 0) {
       const nextMilestone = this.getNextStreakMilestone(gamificationData.streaks.currentLoginStreak);
       if (nextMilestone) {
@@ -369,9 +311,9 @@ export class ProgressIndicatorsService {
         messages.push(`Keep your ${gamificationData.streaks.currentLoginStreak}-day streak going! ${remaining} more day${remaining === 1 ? '' : 's'} for bonus XP.`);
       }
     }
-    
+
     // Level-up motivation
-    const xpForNextLevel = XPService.getXPForNextLevel(gamificationData.xp);
+    const xpForNextLevel = XPClientService.getXPForNextLevel(gamificationData.xp);
     if (xpForNextLevel > 0 && xpForNextLevel <= 50) {
       messages.push(`You're only ${xpForNextLevel} XP away from Level ${gamificationData.level + 1}!`);
     }
@@ -402,8 +344,8 @@ export class ProgressIndicatorsService {
     }
 
     // Suggest based on most active action
-    if (activityPattern.mostActiveAction === XPAction.QUEST_CREATED && 
-        gamificationData.activityCounts.questsInProgress > gamificationData.activityCounts.questsCompleted) {
+    if (activityPattern.mostActiveAction === XPAction.QUEST_CREATED &&
+      gamificationData.activityCounts.questsInProgress > gamificationData.activityCounts.questsCompleted) {
       suggestions.push({
         id: 'complete-focus',
         type: 'activity',

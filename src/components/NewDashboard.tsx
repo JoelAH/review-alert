@@ -16,6 +16,7 @@ import { Quest, QuestState } from '@/lib/models/client/quest';
 import { QuestService } from '@/lib/services/quests';
 import FeedTab from './dashboard/FeedTab';
 import QuestsTab from './dashboard/QuestsTab';
+import ProgressTab from './dashboard/ProgressTab';
 import CommandCenterTab from './dashboard/CommandCenterTab';
 
 interface TabPanelProps {
@@ -190,7 +191,8 @@ export default function NewDashboard({ user }: { user: User | null }) {
                         } 
                         {...a11yProps(1)} 
                     />
-                    <Tab label="Command Center" {...a11yProps(2)} />
+                    <Tab label="Progress" {...a11yProps(2)} />
+                    <Tab label="Command Center" {...a11yProps(3)} />
                 </Tabs>
             </Box>
 
@@ -209,6 +211,9 @@ export default function NewDashboard({ user }: { user: User | null }) {
                 />
             </TabPanel>
             <TabPanel value={value} index={2}>
+                <ProgressTab user={user} />
+            </TabPanel>
+            <TabPanel value={value} index={3}>
                 <CommandCenterTab user={user} />
             </TabPanel>
         </Container>
