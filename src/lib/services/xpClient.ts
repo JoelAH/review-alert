@@ -1,10 +1,10 @@
 'use client';
 
-import { 
-  XPAction, 
-  XPTransaction, 
-  XPAwardResult, 
-  GamificationData 
+import {
+  XPAction,
+  XPTransaction,
+  XPAwardResult,
+  GamificationData
 } from '@/types/gamification';
 
 /**
@@ -44,7 +44,7 @@ export class XPClientService {
    */
   static calculateLevel(xp: number): number {
     if (xp < 0) return 1;
-    
+
     for (let i = this.LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
       if (xp >= this.LEVEL_THRESHOLDS[i]) {
         return i + 1; // Add 1 because levels start at 1, not 0
@@ -61,11 +61,11 @@ export class XPClientService {
   static getXPForNextLevel(currentXP: number): number {
     const currentLevel = this.calculateLevel(currentXP);
     const nextLevelIndex = currentLevel; // Since levels start at 1, level 2 is at index 1
-    
+
     if (nextLevelIndex >= this.LEVEL_THRESHOLDS.length) {
       return 0; // Already at max level
     }
-    
+
     return this.LEVEL_THRESHOLDS[nextLevelIndex] - currentXP;
   }
 
@@ -125,14 +125,14 @@ export class XPClientService {
     const currentLevel = this.calculateLevel(currentXP);
     const currentLevelThreshold = this.LEVEL_THRESHOLDS[currentLevel - 1] || 0;
     const nextLevelThreshold = this.LEVEL_THRESHOLDS[currentLevel] || currentXP;
-    
+
     if (nextLevelThreshold === currentXP) {
       return 100; // At max level
     }
-    
+
     const progressInLevel = currentXP - currentLevelThreshold;
     const totalLevelXP = nextLevelThreshold - currentLevelThreshold;
-    
+
     return Math.round((progressInLevel / totalLevelXP) * 100);
   }
 
@@ -155,7 +155,7 @@ export class XPClientService {
       'Grandmaster', // Level 10
       'Mythic',      // Level 11+
     ];
-    
+
     return titles[Math.min(level - 1, titles.length - 1)] || 'Mythic';
   }
 
@@ -191,8 +191,8 @@ export class XPClientService {
    * @returns Object with preview of XP award result
    */
   static simulateXPAward(
-    currentXP: number, 
-    action: XPAction, 
+    currentXP: number,
+    action: XPAction,
     metadata?: Record<string, any>
   ): {
     xpToAward: number;
@@ -202,7 +202,7 @@ export class XPClientService {
     levelUp: boolean;
   } {
     let xpToAward = this.XP_VALUES[action];
-    
+
     // Handle special case for login streak bonus
     if (action === XPAction.LOGIN_STREAK_BONUS && metadata?.streakDays) {
       xpToAward = this.calculateStreakBonus(metadata.streakDays);
@@ -250,7 +250,7 @@ export class XPClientService {
       [XPAction.REVIEW_INTERACTION]: 'Review Interaction',
       [XPAction.LOGIN_STREAK_BONUS]: 'Login Streak Bonus',
     };
-    
+
     return displayNames[action] || 'Unknown Action';
   }
 }
