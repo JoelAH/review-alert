@@ -9,4 +9,5 @@ export { default as QuestModal } from './QuestModal';
 export { default as QuestStateSelector } from './QuestStateSelector';
 export { default as XPProgress } from './XPProgress';
 export { default as BadgeCollection } from './BadgeCollection';
+export { default as GamificationDisplay } from './GamificationDisplay';
 export * from './types';
