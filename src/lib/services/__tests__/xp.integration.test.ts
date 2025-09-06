@@ -63,4 +63,56 @@ describe('XPService Integration', () => {
       expect(XPService.getXPForNextLevel(200)).toBe(50);  // Level 2 -> 3
     });
   });
+
+  describe('Streak Bonus Logic', () => {
+    it('should have streak bonus milestone detection', () => {
+      expect(typeof XPService.shouldAwardStreakBonus).toBe('function');
+    });
+
+    it('should identify correct streak bonus milestones', () => {
+      // Test milestone days
+      expect(XPService.shouldAwardStreakBonus(3)).toBe(true);
+      expect(XPService.shouldAwardStreakBonus(7)).toBe(true);
+      expect(XPService.shouldAwardStreakBonus(14)).toBe(true);
+      
+      // Test non-milestone days
+      expect(XPService.shouldAwardStreakBonus(1)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(2)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(4)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(8)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(15)).toBe(false);
+    });
+
+    it('should calculate correct bonus amounts for different streak lengths', () => {
+      // Test all streak bonus tiers
+      expect(XPService.calculateStreakBonus(3)).toBe(5);
+      expect(XPService.calculateStreakBonus(4)).toBe(5);
+      expect(XPService.calculateStreakBonus(6)).toBe(5);
+      
+      expect(XPService.calculateStreakBonus(7)).toBe(10);
+      expect(XPService.calculateStreakBonus(10)).toBe(10);
+      expect(XPService.calculateStreakBonus(13)).toBe(10);
+      
+      expect(XPService.calculateStreakBonus(14)).toBe(15);
+      expect(XPService.calculateStreakBonus(21)).toBe(15);
+      expect(XPService.calculateStreakBonus(100)).toBe(15);
+    });
+
+    it('should handle edge cases for streak bonuses', () => {
+      expect(XPService.calculateStreakBonus(0)).toBe(0);
+      expect(XPService.calculateStreakBonus(-1)).toBe(0);
+      expect(XPService.shouldAwardStreakBonus(0)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(-5)).toBe(false);
+    });
+  });
+
+  describe('Service Method Availability', () => {
+    it('should have updateLoginStreak method available', () => {
+      expect(typeof XPService.updateLoginStreak).toBe('function');
+    });
+
+    it('should have shouldAwardStreakBonus method available', () => {
+      expect(typeof XPService.shouldAwardStreakBonus).toBe('function');
+    });
+  });
 });

@@ -198,7 +198,21 @@ describe('BadgeService', () => {
       expect(badgeIds).toContain('quest-explorer'); // Should still award this one
     });
 
-    it('should award streak badge when login streak requirement is met', async () => {
+    it('should award streak badge when current login streak requirement is met', async () => {
+      const gamificationData = createMockGamificationData({
+        streaks: {
+          currentLoginStreak: 7,
+          longestLoginStreak: 5,
+        }
+      });
+
+      const newBadges = await BadgeService.checkAndAwardBadges('user123', gamificationData);
+      
+      const badgeIds = newBadges.map(badge => badge.id);
+      expect(badgeIds).toContain('dedicated-user');
+    });
+
+    it('should award streak badge when longest login streak requirement is met', async () => {
       const gamificationData = createMockGamificationData({
         streaks: {
           currentLoginStreak: 5,
@@ -210,6 +224,20 @@ describe('BadgeService', () => {
       
       const badgeIds = newBadges.map(badge => badge.id);
       expect(badgeIds).toContain('dedicated-user');
+    });
+
+    it('should not award streak badge when neither current nor longest streak meets requirement', async () => {
+      const gamificationData = createMockGamificationData({
+        streaks: {
+          currentLoginStreak: 5,
+          longestLoginStreak: 6,
+        }
+      });
+
+      const newBadges = await BadgeService.checkAndAwardBadges('user123', gamificationData);
+      
+      const badgeIds = newBadges.map(badge => badge.id);
+      expect(badgeIds).not.toContain('dedicated-user');
     });
 
     it('should return empty array when no new badges are earned', async () => {
@@ -277,7 +305,7 @@ describe('BadgeService', () => {
       });
     });
 
-    it('should calculate correct progress for streak badges', () => {
+    it('should calculate correct progress for streak badges using highest streak', () => {
       const gamificationData = createMockGamificationData({
         streaks: {
           currentLoginStreak: 3,
@@ -290,7 +318,26 @@ describe('BadgeService', () => {
       const dedicatedUserProgress = progress.find(p => p.badge.id === 'dedicated-user');
       expect(dedicatedUserProgress).toEqual({
         badge: expect.objectContaining({ id: 'dedicated-user' }),
-        progress: 5,
+        progress: 5, // Should use longestLoginStreak (5) since it's higher
+        target: 7,
+        earned: false
+      });
+    });
+
+    it('should calculate correct progress for streak badges using current streak when higher', () => {
+      const gamificationData = createMockGamificationData({
+        streaks: {
+          currentLoginStreak: 6,
+          longestLoginStreak: 4,
+        }
+      });
+
+      const progress = BadgeService.getBadgeProgress(gamificationData);
+      
+      const dedicatedUserProgress = progress.find(p => p.badge.id === 'dedicated-user');
+      expect(dedicatedUserProgress).toEqual({
+        badge: expect.objectContaining({ id: 'dedicated-user' }),
+        progress: 6, // Should use currentLoginStreak (6) since it's higher
         target: 7,
         earned: false
       });

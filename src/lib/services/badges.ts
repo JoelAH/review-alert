@@ -190,7 +190,9 @@ export class BadgeService {
           return activityValue >= requirement.value;
         
         case 'streak':
-          return gamificationData.streaks.longestLoginStreak >= requirement.value;
+          // Check both current and longest streak to ensure user gets badge when they achieve the streak
+          return gamificationData.streaks.currentLoginStreak >= requirement.value || 
+                 gamificationData.streaks.longestLoginStreak >= requirement.value;
         
         case 'combination':
           // For future complex requirements combining multiple conditions
@@ -242,8 +244,13 @@ export class BadgeService {
         };
       
       case 'streak':
+        // Use the higher of current or longest streak for progress calculation
+        const streakProgress = Math.max(
+          gamificationData.streaks.currentLoginStreak,
+          gamificationData.streaks.longestLoginStreak
+        );
         return {
-          progress: Math.min(gamificationData.streaks.longestLoginStreak, primaryRequirement.value),
+          progress: Math.min(streakProgress, primaryRequirement.value),
           target: primaryRequirement.value
         };
       

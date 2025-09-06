@@ -246,4 +246,95 @@ export class XPService {
   static getXPValues(): Record<XPAction, number> {
     return { ...this.XP_VALUES };
   }
+
+  /**
+   * Update user login streak and award streak bonus XP if applicable
+   * @param userId - The user's ID
+   * @returns Promise<XPAwardResult | null> - Result of streak bonus XP award, or null if no bonus
+   */
+  static async updateLoginStreak(userId: string): Promise<XPAwardResult | null> {
+    try {
+      // Get current user data
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        throw new Error(`User not found: ${userId}`);
+      }
+
+      // Get current gamification data or initialize if not exists
+      const currentGamificationData = user.gamification || this.initializeGamificationData();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Normalize to start of day
+
+      const lastLoginDate = currentGamificationData.streaks.lastLoginDate;
+      let newStreakData = { ...currentGamificationData.streaks };
+
+      if (!lastLoginDate) {
+        // First login ever
+        newStreakData = {
+          currentLoginStreak: 1,
+          longestLoginStreak: Math.max(1, currentGamificationData.streaks.longestLoginStreak),
+          lastLoginDate: today,
+        };
+      } else {
+        const lastLogin = new Date(lastLoginDate);
+        lastLogin.setHours(0, 0, 0, 0);
+        const daysDifference = Math.floor((today.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (daysDifference === 0) {
+          // Same day login - no streak update needed
+          return null;
+        } else if (daysDifference === 1) {
+          // Consecutive day login - increment streak
+          const newCurrentStreak = currentGamificationData.streaks.currentLoginStreak + 1;
+          newStreakData = {
+            currentLoginStreak: newCurrentStreak,
+            longestLoginStreak: Math.max(newCurrentStreak, currentGamificationData.streaks.longestLoginStreak),
+            lastLoginDate: today,
+          };
+        } else {
+          // Streak broken - reset to 1
+          newStreakData = {
+            currentLoginStreak: 1,
+            longestLoginStreak: currentGamificationData.streaks.longestLoginStreak,
+            lastLoginDate: today,
+          };
+        }
+      }
+
+      // Update user's streak data
+      const updatedGamificationData: GamificationData = {
+        ...currentGamificationData,
+        streaks: newStreakData,
+      };
+
+      // Save streak data to database
+      await UserModel.findByIdAndUpdate(userId, {
+        gamification: updatedGamificationData,
+      });
+
+      // Check if streak bonus should be awarded
+      const streakBonus = this.calculateStreakBonus(newStreakData.currentLoginStreak);
+      if (streakBonus > 0) {
+        // Award streak bonus XP
+        return await this.awardXP(userId, XPAction.LOGIN_STREAK_BONUS, {
+          streakDays: newStreakData.currentLoginStreak,
+        });
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error updating login streak:', error);
+      throw new Error(`Failed to update login streak: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Check if user should receive streak bonus for current streak length
+   * @param streakDays - Number of consecutive login days
+   * @returns boolean - True if streak bonus should be awarded
+   */
+  static shouldAwardStreakBonus(streakDays: number): boolean {
+    // Award bonus at specific milestones: 3, 7, 14 days
+    return streakDays === 3 || streakDays === 7 || streakDays === 14;
+  }
 }

@@ -27,7 +27,7 @@
   - Write unit tests for badge requirement evaluation
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8_
 
-- [ ] 5. Implement streak tracking and bonus XP calculation
+- [x] 5. Implement streak tracking and bonus XP calculation
   - Add streak tracking logic to XP Service for login streaks
   - Implement calculateStreakBonus method with streak bonus rules
   - Update user login flow to track consecutive login days

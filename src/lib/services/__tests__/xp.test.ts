@@ -129,6 +129,32 @@ describe('XPService', () => {
     });
   });
 
-  // Note: Database-dependent tests (awardXP, getUserGamificationData) are omitted
+  describe('shouldAwardStreakBonus', () => {
+    it('should return true for streak milestone days', () => {
+      expect(XPService.shouldAwardStreakBonus(3)).toBe(true);
+      expect(XPService.shouldAwardStreakBonus(7)).toBe(true);
+      expect(XPService.shouldAwardStreakBonus(14)).toBe(true);
+    });
+
+    it('should return false for non-milestone days', () => {
+      expect(XPService.shouldAwardStreakBonus(1)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(2)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(4)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(5)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(6)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(8)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(10)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(13)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(15)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(20)).toBe(false);
+    });
+
+    it('should return false for zero or negative streaks', () => {
+      expect(XPService.shouldAwardStreakBonus(0)).toBe(false);
+      expect(XPService.shouldAwardStreakBonus(-1)).toBe(false);
+    });
+  });
+
+  // Note: Database-dependent tests (awardXP, getUserGamificationData, updateLoginStreak) are omitted
   // as they require complex mocking setup. These should be tested in integration tests.
 });
