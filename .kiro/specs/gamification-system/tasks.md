@@ -75,7 +75,7 @@
   - Write integration tests for complete gamification display
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-- [ ] 11. Integrate gamification display into Quest tab
+- [x] 11. Integrate gamification display into Quest tab
   - Add gamification section to QuestsTab component
   - Fetch and display user gamification data alongside quest information
   - Add loading states while fetching gamification data

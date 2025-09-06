@@ -18,6 +18,7 @@ import { QuestService, QuestError } from '@/lib/services/quests';
 import { NotificationService } from '@/lib/services/notifications';
 import QuestCard from './QuestCard';
 import QuestModal from './QuestModal';
+import GamificationDisplay from './GamificationDisplay';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -74,6 +75,8 @@ export default function QuestsTab({ user, onViewReview, onQuestCountChange }: Qu
     const [retryCount, setRetryCount] = useState(0);
     const [isRetrying, setIsRetrying] = useState(false);
     const [isOffline, setIsOffline] = useState(false);
+    const [gamificationLoading, setGamificationLoading] = useState(false);
+    const [gamificationError, setGamificationError] = useState<Error | null>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
 
     // Load quests on component mount
@@ -265,6 +268,28 @@ export default function QuestsTab({ user, onViewReview, onQuestCountChange }: Qu
         loadQuests(true);
     }, [loadQuests]);
 
+    // Handle gamification refresh
+    const handleGamificationRefresh = useCallback(() => {
+        // The GamificationDisplay component handles its own refresh
+        // This callback can be used for additional logic if needed
+    }, []);
+
+    // Handle gamification errors
+    const handleGamificationError = useCallback((error: Error) => {
+        setGamificationError(error);
+        console.error('Gamification error:', error);
+    }, []);
+
+    // Handle level up notifications
+    const handleLevelUp = useCallback((newLevel: number) => {
+        NotificationService.success(`🎉 Level up! You've reached level ${newLevel}!`);
+    }, []);
+
+    // Handle badge earned notifications
+    const handleBadgeEarned = useCallback((badge: any) => {
+        NotificationService.success(`🏆 Badge earned: ${badge.name}!`);
+    }, []);
+
     // Group quests by state for display
     const openQuests = quests.filter(quest => quest.state === QuestState.OPEN);
     const inProgressQuests = quests.filter(quest => quest.state === QuestState.IN_PROGRESS);
@@ -437,6 +462,24 @@ export default function QuestsTab({ user, onViewReview, onQuestCountChange }: Qu
                     </Box>
                 </Paper>
             </Box>
+
+            {/* Gamification Section - only show when successfully loaded quests */}
+            {user && !loading && !error && quests.length > 0 && (
+                <Box sx={{ mb: 4 }}>
+                    <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: 'primary.main' }} />
+                        Your Progress
+                    </Typography>
+                    <GamificationDisplay
+                        userId={user.uid}
+                        initialData={user.gamification}
+                        onRefresh={handleGamificationRefresh}
+                        onError={handleGamificationError}
+                        onLevelUp={handleLevelUp}
+                        onBadgeEarned={handleBadgeEarned}
+                    />
+                </Box>
+            )}
 
             {/* Open Quests */}
             {openQuests.length > 0 && (
