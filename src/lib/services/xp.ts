@@ -3,7 +3,8 @@
  * Handles experience point calculations, level progression, and database updates
  */
 
-import { User } from '@/lib/models/server/user';
+import UserModel from '@/lib/models/server/user';
+import { BadgeService } from './badges';
 import { 
   XPAction, 
   XPTransaction, 
@@ -51,7 +52,7 @@ export class XPService {
   ): Promise<XPAwardResult> {
     try {
       // Get current user data
-      const user = await User.findById(userId);
+      const user = await UserModel.findById(userId);
       if (!user) {
         throw new Error(`User not found: ${userId}`);
       }
@@ -90,18 +91,26 @@ export class XPService {
       // Update activity counts based on action
       this.updateActivityCounts(updatedGamificationData, action);
 
+      // Check for newly earned badges
+      const newlyEarnedBadges = await BadgeService.checkAndAwardBadges(userId, updatedGamificationData);
+      
+      // Add newly earned badges to user's gamification data
+      if (newlyEarnedBadges.length > 0) {
+        updatedGamificationData.badges = [...updatedGamificationData.badges, ...newlyEarnedBadges];
+      }
+
       // Save to database
-      await User.findByIdAndUpdate(userId, {
+      await UserModel.findByIdAndUpdate(userId, {
         gamification: updatedGamificationData,
       });
 
-      // Return result (badges will be handled by Badge Service)
+      // Return result with badges
       return {
         xpAwarded: xpToAward,
         totalXP: newTotalXP,
         levelUp,
         newLevel: levelUp ? newLevel : undefined,
-        badgesEarned: [], // Will be populated by Badge Service
+        badgesEarned: newlyEarnedBadges,
       };
     } catch (error) {
       console.error('Error awarding XP:', error);
@@ -160,7 +169,7 @@ export class XPService {
    */
   static async getUserGamificationData(userId: string): Promise<GamificationData | null> {
     try {
-      const user = await User.findById(userId);
+      const user = await UserModel.findById(userId);
       if (!user) {
         return null;
       }
