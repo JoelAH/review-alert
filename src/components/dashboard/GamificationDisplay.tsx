@@ -29,6 +29,19 @@ import {
 } from '@mui/icons-material';
 import XPProgress from './XPProgress';
 import BadgeCollection from './BadgeCollection';
+import ProgressIndicators from './ProgressIndicators';
+import ErrorBoundary from '../common/ErrorBoundary';
+import { 
+  GamificationDisplaySkeleton, 
+  LoadingOverlay, 
+  LoadingSpinner 
+} from '../common/LoadingStates';
+import { 
+  NetworkStatusIndicator, 
+  ErrorWithRetry, 
+  useNetworkStatus, 
+  useRetry 
+} from '../common/NetworkStatus';
 import { GamificationData, BadgeProgress, Badge, XPTransaction } from '@/types/gamification';
 
 export interface GamificationDisplayProps {
@@ -186,6 +199,10 @@ export default function GamificationDisplay({
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     
+    // Network status
+    const { isOnline } = useNetworkStatus();
+    const { retry, retryCount, isRetrying, canRetry, reset: resetRetry } = useRetry(3, 1000);
+    
     // State management
     const [gamificationData, setGamificationData] = useState<GamificationData | null>(initialData || null);
     const [badgeProgress, setBadgeProgress] = useState<BadgeProgress[]>([]);
@@ -196,8 +213,9 @@ export default function GamificationDisplay({
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
     const [showLevelUpAnimation, setShowLevelUpAnimation] = useState(false);
     const [previousLevel, setPreviousLevel] = useState<number | null>(null);
+    const [hasInitialLoadFailed, setHasInitialLoadFailed] = useState(false);
 
-    // Fetch gamification data from API
+    // Fetch gamification data from API with enhanced error handling
     const fetchGamificationData = useCallback(async (isRefresh = false) => {
         try {
             if (isRefresh) {
@@ -206,6 +224,15 @@ export default function GamificationDisplay({
                 setLoading(true);
             }
             setError(null);
+            resetRetry(); // Reset retry state on new fetch
+
+            // Check network connectivity
+            if (!isOnline) {
+                throw new Error('No internet connection. Please check your network and try again.');
+            }
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
             const response = await fetch('/api/gamification', {
                 method: 'GET',
@@ -213,14 +240,38 @@ export default function GamificationDisplay({
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
+                signal: controller.signal,
             });
+
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+                const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+                
+                // Enhance error messages based on status codes
+                let enhancedMessage = errorMessage;
+                if (response.status === 401) {
+                    enhancedMessage = 'Authentication required. Please sign in again.';
+                } else if (response.status === 403) {
+                    enhancedMessage = 'Access denied. You don\'t have permission to view this data.';
+                } else if (response.status === 404) {
+                    enhancedMessage = 'Gamification data not found. This might be your first visit.';
+                } else if (response.status >= 500) {
+                    enhancedMessage = 'Server error. Our team has been notified. Please try again later.';
+                } else if (response.status === 429) {
+                    enhancedMessage = 'Too many requests. Please wait a moment before trying again.';
+                }
+                
+                throw new Error(enhancedMessage);
             }
 
             const data: GamificationApiResponse = await response.json();
+            
+            // Validate response data
+            if (!data.gamificationData) {
+                throw new Error('Invalid response: missing gamification data');
+            }
             
             // Convert date strings back to Date objects
             const processedData: GamificationData = {
@@ -255,21 +306,34 @@ export default function GamificationDisplay({
             }
 
             setGamificationData(processedData);
-            setBadgeProgress(data.badgeProgress);
-            setXpForNextLevel(data.xpForNextLevel);
+            setBadgeProgress(data.badgeProgress || []);
+            setXpForNextLevel(data.xpForNextLevel || 0);
             setLastUpdated(new Date());
             setPreviousLevel(processedData.level);
+            setHasInitialLoadFailed(false);
 
         } catch (err) {
             const error = err instanceof Error ? err : new Error('Unknown error occurred');
+            
+            // Handle specific error types
+            if (err instanceof Error && err.name === 'AbortError') {
+                error.message = 'Request timed out. Please check your connection and try again.';
+            }
+            
             setError(error);
+            
+            // Mark initial load as failed if this is not a refresh
+            if (!isRefresh && !gamificationData) {
+                setHasInitialLoadFailed(true);
+            }
+            
             onError?.(error);
             console.error('Error fetching gamification data:', error);
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [gamificationData, previousLevel, onLevelUp, onBadgeEarned, onError]);
+    }, [gamificationData, previousLevel, onLevelUp, onBadgeEarned, onError, isOnline, resetRetry]);
 
     // Initial data fetch
     useEffect(() => {
@@ -280,11 +344,25 @@ export default function GamificationDisplay({
         }
     }, [fetchGamificationData, initialData]);
 
-    // Handle refresh
-    const handleRefresh = useCallback(() => {
-        fetchGamificationData(true);
-        onRefresh?.();
-    }, [fetchGamificationData, onRefresh]);
+    // Handle refresh with retry logic
+    const handleRefresh = useCallback(async () => {
+        try {
+            await retry(() => fetchGamificationData(true));
+            onRefresh?.();
+        } catch (error) {
+            // Error is already handled in fetchGamificationData
+            console.error('Refresh failed after retries:', error);
+        }
+    }, [fetchGamificationData, onRefresh, retry]);
+
+    // Handle retry for failed operations
+    const handleRetry = useCallback(async () => {
+        try {
+            await retry(() => fetchGamificationData(false));
+        } catch (error) {
+            console.error('Retry failed:', error);
+        }
+    }, [fetchGamificationData, retry]);
 
     // Handle level up animation completion
     const handleLevelUpAnimationComplete = useCallback(() => {
@@ -302,190 +380,288 @@ export default function GamificationDisplay({
         return () => clearInterval(interval);
     }, [fetchGamificationData, loading, refreshing]);
 
-    // Loading state
+    // Loading state with skeleton
     if (loading && !gamificationData) {
-        return <GamificationSkeleton />;
-    }
-
-    // Error state
-    if (error && !gamificationData) {
         return (
-            <Box>
-                <NetworkStatus />
-                <ErrorDisplay 
-                    error={error} 
-                    onRetry={() => fetchGamificationData()} 
-                    isRetrying={loading}
-                />
-            </Box>
+            <ErrorBoundary 
+                context="Gamification Display" 
+                retryable={true}
+                showErrorDetails={process.env.NODE_ENV === 'development'}
+            >
+                <Box>
+                    <NetworkStatusIndicator onRetry={handleRetry} />
+                    <GamificationDisplaySkeleton />
+                </Box>
+            </ErrorBoundary>
         );
     }
 
-    // No data state
+    // Error state with retry mechanism
+    if (error && !gamificationData && hasInitialLoadFailed) {
+        return (
+            <ErrorBoundary 
+                context="Gamification Display" 
+                retryable={true}
+                showErrorDetails={process.env.NODE_ENV === 'development'}
+            >
+                <Box>
+                    <NetworkStatusIndicator onRetry={handleRetry} />
+                    <ErrorWithRetry
+                        error={error}
+                        onRetry={handleRetry}
+                        maxRetries={3}
+                        autoRetry={isOnline}
+                        title="Failed to load gamification data"
+                        showErrorDetails={process.env.NODE_ENV === 'development'}
+                    />
+                </Box>
+            </ErrorBoundary>
+        );
+    }
+
+    // No data state with better UX
     if (!gamificationData) {
         return (
-            <Card>
-                <CardContent sx={{ textAlign: 'center', py: 4 }}>
-                    <TrophyIcon sx={{ fontSize: '3rem', color: 'action.disabled', mb: 2 }} />
-                    <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
-                        No Gamification Data
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                        Start using ReviewQuest to earn XP and badges!
-                    </Typography>
-                    <Button variant="contained" onClick={handleRefresh} startIcon={<RefreshIcon />}>
-                        Check Again
-                    </Button>
-                </CardContent>
-            </Card>
+            <ErrorBoundary 
+                context="Gamification Display" 
+                retryable={true}
+                showErrorDetails={process.env.NODE_ENV === 'development'}
+            >
+                <Box>
+                    <NetworkStatusIndicator onRetry={handleRetry} />
+                    <Card>
+                        <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                            <TrophyIcon sx={{ fontSize: '3rem', color: 'action.disabled', mb: 2 }} />
+                            <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+                                Welcome to ReviewQuest!
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                Start completing quests and tracking apps to earn XP and unlock badges.
+                            </Typography>
+                            <LoadingOverlay loading={isRetrying}>
+                                <Button 
+                                    variant="contained" 
+                                    onClick={handleRetry} 
+                                    startIcon={<RefreshIcon />}
+                                    disabled={isRetrying}
+                                >
+                                    {isRetrying ? 'Loading...' : 'Get Started'}
+                                </Button>
+                            </LoadingOverlay>
+                        </CardContent>
+                    </Card>
+                </Box>
+            </ErrorBoundary>
         );
     }
 
     return (
-        <Box>
-            <NetworkStatus />
-            
-            {/* Header */}
-            <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between', 
-                mb: 3,
-                flexWrap: 'wrap',
-                gap: 2
-            }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <TrendingUpIcon sx={{ color: theme.palette.primary.main }} />
-                    <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                        Your Progress
-                    </Typography>
-                </Box>
+        <ErrorBoundary 
+            context="Gamification Display" 
+            retryable={true}
+            showErrorDetails={process.env.NODE_ENV === 'development'}
+            onError={(error, errorInfo) => {
+                console.error('Gamification Display Error:', error, errorInfo);
+                onError?.(error);
+            }}
+        >
+            <Box>
+                <NetworkStatusIndicator onRetry={handleRetry} />
                 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="caption" color="text.secondary">
-                        Updated {lastUpdated.toLocaleTimeString('en-US', { 
-                            hour: 'numeric', 
-                            minute: '2-digit' 
-                        })}
-                    </Typography>
-                    <Tooltip title="Refresh data">
-                        <IconButton
-                            size="small"
-                            onClick={handleRefresh}
-                            disabled={refreshing}
-                            sx={{
-                                animation: refreshing ? 'spin 1s linear infinite' : 'none',
-                                '@keyframes spin': {
-                                    '0%': { transform: 'rotate(0deg)' },
-                                    '100%': { transform: 'rotate(360deg)' },
-                                },
-                            }}
-                        >
-                            <RefreshIcon />
-                        </IconButton>
-                    </Tooltip>
-                </Box>
-            </Box>
-
-            {/* Error Alert */}
-            {error && gamificationData && (
-                <Fade in={true}>
-                    <Alert 
-                        severity="warning" 
-                        sx={{ mb: 2 }}
-                        action={
-                            <Button 
-                                color="inherit" 
-                                size="small" 
+                {/* Header */}
+                <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between', 
+                    mb: 3,
+                    flexWrap: 'wrap',
+                    gap: 2
+                }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <TrendingUpIcon sx={{ color: theme.palette.primary.main }} />
+                        <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                            Your Progress
+                        </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="caption" color="text.secondary">
+                            Updated {lastUpdated.toLocaleTimeString('en-US', { 
+                                hour: 'numeric', 
+                                minute: '2-digit' 
+                            })}
+                        </Typography>
+                        <Tooltip title="Refresh data">
+                            <IconButton
+                                size="small"
                                 onClick={handleRefresh}
-                                disabled={refreshing}
+                                disabled={refreshing || isRetrying}
+                                sx={{
+                                    animation: (refreshing || isRetrying) ? 'spin 1s linear infinite' : 'none',
+                                    '@keyframes spin': {
+                                        '0%': { transform: 'rotate(0deg)' },
+                                        '100%': { transform: 'rotate(360deg)' },
+                                    },
+                                }}
                             >
-                                Retry
-                            </Button>
+                                <RefreshIcon />
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                </Box>
+
+                {/* Error Alert for refresh failures */}
+                {error && gamificationData && (
+                    <Fade in={true}>
+                        <ErrorWithRetry
+                            error={error}
+                            onRetry={handleRetry}
+                            maxRetries={3}
+                            title="Failed to refresh data"
+                            showErrorDetails={false}
+                        />
+                    </Fade>
+                )}
+
+                {/* Main content with loading overlay */}
+                <LoadingOverlay loading={refreshing} message="Refreshing data...">
+                    {/* Progress Indicators Section */}
+                    <ErrorBoundary 
+                        context="Progress Indicators" 
+                        fallback={
+                            <Alert severity="warning" sx={{ mb: 4 }}>
+                                Progress indicators are temporarily unavailable.
+                            </Alert>
                         }
                     >
-                        Failed to refresh data. Showing cached information.
-                    </Alert>
-                </Fade>
-            )}
+                        <Box sx={{ mb: 4 }}>
+                            <ProgressIndicators
+                                gamificationData={gamificationData}
+                                onActionClick={(suggestion) => {
+                                    // Handle suggestion action clicks
+                                    console.log('Suggestion action clicked:', suggestion);
+                                    // You can add navigation or other actions here
+                                }}
+                                showMotivationalMessages={true}
+                                maxSuggestions={3}
+                            />
+                        </Box>
+                    </ErrorBoundary>
 
-            {/* Main Content */}
-            <Grid container spacing={3}>
-                {/* XP Progress Section */}
-                <Grid item xs={12} lg={6}>
-                    <XPProgress
-                        currentXP={gamificationData.xp}
-                        currentLevel={gamificationData.level}
-                        xpForNextLevel={xpForNextLevel}
-                        recentTransactions={gamificationData.xpHistory.slice(0, 10)}
-                        showLevelUpAnimation={showLevelUpAnimation}
-                        onAnimationComplete={handleLevelUpAnimationComplete}
-                    />
-                </Grid>
+                    {/* Main Content */}
+                    <Grid container spacing={3}>
+                        {/* XP Progress Section */}
+                        <Grid item xs={12} lg={6}>
+                            <ErrorBoundary 
+                                context="XP Progress" 
+                                fallback={
+                                    <Card>
+                                        <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                                            <Typography color="text.secondary">
+                                                XP progress temporarily unavailable
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                }
+                            >
+                                <XPProgress
+                                    currentXP={gamificationData.xp}
+                                    currentLevel={gamificationData.level}
+                                    xpForNextLevel={xpForNextLevel}
+                                    recentTransactions={gamificationData.xpHistory.slice(0, 10)}
+                                    showLevelUpAnimation={showLevelUpAnimation}
+                                    onAnimationComplete={handleLevelUpAnimationComplete}
+                                />
+                            </ErrorBoundary>
+                        </Grid>
 
-                {/* Badge Collection Section */}
-                <Grid item xs={12} lg={6}>
-                    <BadgeCollection
-                        badges={gamificationData.badges}
-                        badgeProgress={badgeProgress}
-                        onBadgeClick={(badge) => {
-                            // Optional: Add analytics tracking for badge clicks
-                            console.log('Badge clicked:', badge);
-                        }}
-                    />
-                </Grid>
-            </Grid>
-
-            {/* Quick Stats Section */}
-            <Card sx={{ mt: 3 }}>
-                <CardContent>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                        Activity Summary
-                    </Typography>
-                    <Grid container spacing={2}>
-                        <Grid item xs={6} sm={3}>
-                            <Box sx={{ textAlign: 'center' }}>
-                                <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>
-                                    {gamificationData.activityCounts.questsCompleted}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Quests Completed
-                                </Typography>
-                            </Box>
-                        </Grid>
-                        <Grid item xs={6} sm={3}>
-                            <Box sx={{ textAlign: 'center' }}>
-                                <Typography variant="h4" color="secondary" sx={{ fontWeight: 600 }}>
-                                    {gamificationData.activityCounts.appsAdded}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Apps Added
-                                </Typography>
-                            </Box>
-                        </Grid>
-                        <Grid item xs={6} sm={3}>
-                            <Box sx={{ textAlign: 'center' }}>
-                                <Typography variant="h4" color="warning.main" sx={{ fontWeight: 600 }}>
-                                    {gamificationData.streaks.currentLoginStreak}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Current Streak
-                                </Typography>
-                            </Box>
-                        </Grid>
-                        <Grid item xs={6} sm={3}>
-                            <Box sx={{ textAlign: 'center' }}>
-                                <Typography variant="h4" color="success.main" sx={{ fontWeight: 600 }}>
-                                    {gamificationData.badges.length}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Badges Earned
-                                </Typography>
-                            </Box>
+                        {/* Badge Collection Section */}
+                        <Grid item xs={12} lg={6}>
+                            <ErrorBoundary 
+                                context="Badge Collection" 
+                                fallback={
+                                    <Card>
+                                        <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                                            <Typography color="text.secondary">
+                                                Badge collection temporarily unavailable
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                }
+                            >
+                                <BadgeCollection
+                                    badges={gamificationData.badges}
+                                    badgeProgress={badgeProgress}
+                                    onBadgeClick={(badge) => {
+                                        // Optional: Add analytics tracking for badge clicks
+                                        console.log('Badge clicked:', badge);
+                                    }}
+                                />
+                            </ErrorBoundary>
                         </Grid>
                     </Grid>
-                </CardContent>
-            </Card>
-        </Box>
+
+                    {/* Quick Stats Section */}
+                    <ErrorBoundary 
+                        context="Activity Summary" 
+                        fallback={
+                            <Alert severity="info" sx={{ mt: 3 }}>
+                                Activity summary temporarily unavailable
+                            </Alert>
+                        }
+                    >
+                        <Card sx={{ mt: 3 }}>
+                            <CardContent>
+                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                                    Activity Summary
+                                </Typography>
+                                <Grid container spacing={2}>
+                                    <Grid item xs={6} sm={3}>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>
+                                                {gamificationData.activityCounts.questsCompleted}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                Quests Completed
+                                            </Typography>
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={6} sm={3}>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography variant="h4" color="secondary" sx={{ fontWeight: 600 }}>
+                                                {gamificationData.activityCounts.appsAdded}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                Apps Added
+                                            </Typography>
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={6} sm={3}>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography variant="h4" color="warning.main" sx={{ fontWeight: 600 }}>
+                                                {gamificationData.streaks.currentLoginStreak}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                Current Streak
+                                            </Typography>
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={6} sm={3}>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography variant="h4" color="success.main" sx={{ fontWeight: 600 }}>
+                                                {gamificationData.badges.length}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                Badges Earned
+                                            </Typography>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                            </CardContent>
+                        </Card>
+                    </ErrorBoundary>
+                </LoadingOverlay>
+            </Box>
+        </ErrorBoundary>
     );
 }

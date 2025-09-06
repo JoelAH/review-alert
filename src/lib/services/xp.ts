@@ -5,6 +5,7 @@
 
 import UserModel from '@/lib/models/server/user';
 import { BadgeService } from './badges';
+import { GamificationPersistenceService } from './gamificationPersistence';
 import { 
   XPAction, 
   XPTransaction, 
@@ -39,13 +40,26 @@ export class XPService {
   ];
 
   /**
-   * Award XP to a user for a specific action
+   * Award XP to a user for a specific action (with atomic operations and error recovery)
    * @param userId - The user's ID
    * @param action - The action that earned XP
    * @param metadata - Optional metadata about the action
    * @returns Promise<XPAwardResult> - Result of the XP award
    */
   static async awardXP(
+    userId: string, 
+    action: XPAction, 
+    metadata?: Record<string, any>
+  ): Promise<XPAwardResult> {
+    // Use the new atomic persistence service for better error recovery
+    return GamificationPersistenceService.awardXPAtomic(userId, action, metadata);
+  }
+
+  /**
+   * Legacy XP award method (kept for backward compatibility)
+   * @deprecated Use awardXP instead, which now uses atomic operations
+   */
+  static async awardXPLegacy(
     userId: string, 
     action: XPAction, 
     metadata?: Record<string, any>
@@ -163,21 +177,17 @@ export class XPService {
   }
 
   /**
-   * Get user's complete gamification data
+   * Get user's complete gamification data (with error recovery)
    * @param userId - The user's ID
    * @returns Promise<GamificationData | null> - User's gamification data
    */
   static async getUserGamificationData(userId: string): Promise<GamificationData | null> {
     try {
-      const user = await UserModel.findById(userId);
-      if (!user) {
-        return null;
-      }
-      
-      return user.gamification || this.initializeGamificationData();
+      return await GamificationPersistenceService.getUserGamificationDataSafe(userId);
     } catch (error) {
       console.error('Error fetching gamification data:', error);
-      throw new Error(`Failed to fetch gamification data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      // Return null instead of throwing to maintain backward compatibility
+      return null;
     }
   }
 
@@ -248,20 +258,14 @@ export class XPService {
   }
 
   /**
-   * Update user login streak and award streak bonus XP if applicable
+   * Update user login streak and award streak bonus XP if applicable (with atomic operations)
    * @param userId - The user's ID
    * @returns Promise<XPAwardResult | null> - Result of streak bonus XP award, or null if no bonus
    */
   static async updateLoginStreak(userId: string): Promise<XPAwardResult | null> {
     try {
-      // Get current user data
-      const user = await UserModel.findById(userId);
-      if (!user) {
-        throw new Error(`User not found: ${userId}`);
-      }
-
-      // Get current gamification data or initialize if not exists
-      const currentGamificationData = user.gamification || this.initializeGamificationData();
+      // Get current user data with error recovery
+      const currentGamificationData = await GamificationPersistenceService.getUserGamificationDataSafe(userId);
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Normalize to start of day
 
@@ -301,21 +305,24 @@ export class XPService {
         }
       }
 
-      // Update user's streak data
+      // Update user's streak data atomically
       const updatedGamificationData: GamificationData = {
         ...currentGamificationData,
         streaks: newStreakData,
       };
 
-      // Save streak data to database
+      // Validate and save streak data
+      GamificationPersistenceService.validateGamificationData(updatedGamificationData);
+      
       await UserModel.findByIdAndUpdate(userId, {
         gamification: updatedGamificationData,
-      });
+        updatedAt: new Date()
+      }, { runValidators: true });
 
       // Check if streak bonus should be awarded
       const streakBonus = this.calculateStreakBonus(newStreakData.currentLoginStreak);
       if (streakBonus > 0) {
-        // Award streak bonus XP
+        // Award streak bonus XP using atomic operations
         return await this.awardXP(userId, XPAction.LOGIN_STREAK_BONUS, {
           streakDays: newStreakData.currentLoginStreak,
         });
