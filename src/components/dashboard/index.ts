@@ -8,4 +8,5 @@ export { default as QuestCard } from './QuestCard';
 export { default as QuestModal } from './QuestModal';
 export { default as QuestStateSelector } from './QuestStateSelector';
 export { default as XPProgress } from './XPProgress';
+export { default as BadgeCollection } from './BadgeCollection';
 export * from './types';

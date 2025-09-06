@@ -59,7 +59,7 @@
   - Write unit tests for XP progress component rendering
   - _Requirements: 3.1, 3.2, 3.5_
 
-- [ ] 9. Create Badge Collection display component
+- [x] 9. Create Badge Collection display component
   - Build BadgeCollection component showing earned badges and progress
   - Display badges in grid layout with earned/unearned states
   - Add badge detail modal with description and requirements
