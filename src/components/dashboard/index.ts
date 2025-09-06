@@ -7,4 +7,5 @@ export { default as CommandCenterTab } from './CommandCenterTab';
 export { default as QuestCard } from './QuestCard';
 export { default as QuestModal } from './QuestModal';
 export { default as QuestStateSelector } from './QuestStateSelector';
+export { default as XPProgress } from './XPProgress';
 export * from './types';
