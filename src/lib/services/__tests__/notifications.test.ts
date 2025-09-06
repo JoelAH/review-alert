@@ -1,4 +1,5 @@
 import { NotificationService } from '../notifications';
+import { XPAction, Badge, XPAwardResult, BadgeCategory } from '@/types/gamification';
 
 // Mock react-toastify
 jest.mock('react-toastify', () => ({
@@ -18,6 +19,14 @@ import { toast } from 'react-toastify';
 describe('NotificationService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset preferences to defaults
+    NotificationService.setPreferences({
+      xpNotifications: true,
+      badgeNotifications: true,
+      levelUpNotifications: true,
+      streakNotifications: true,
+      batchNotifications: true,
+    });
   });
 
   describe('success', () => {
@@ -201,6 +210,332 @@ describe('NotificationService', () => {
     it('should dismiss all toasts', () => {
       NotificationService.dismissAll();
       expect(toast.dismiss).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('notification preferences', () => {
+    it('should set and get preferences', () => {
+      const newPreferences = {
+        xpNotifications: false,
+        badgeNotifications: true,
+      };
+
+      NotificationService.setPreferences(newPreferences);
+      const preferences = NotificationService.getPreferences();
+
+      expect(preferences.xpNotifications).toBe(false);
+      expect(preferences.badgeNotifications).toBe(true);
+      expect(preferences.levelUpNotifications).toBe(true); // Should remain unchanged
+    });
+  });
+
+  describe('gamification notifications', () => {
+    describe('xpGained', () => {
+      it('should show XP gained notification with correct message', () => {
+        const result = NotificationService.xpGained(10, XPAction.QUEST_CREATED);
+
+        expect(toast.success).toHaveBeenCalledWith(
+          expect.any(Object), // JSX element
+          expect.objectContaining({
+            autoClose: 3000,
+            className: 'xp-notification',
+          })
+        );
+        expect(result).toBe('success-id');
+      });
+
+      it('should return null when XP notifications are disabled', () => {
+        NotificationService.setPreferences({ xpNotifications: false });
+        
+        const result = NotificationService.xpGained(10, XPAction.QUEST_CREATED);
+
+        expect(toast.success).not.toHaveBeenCalled();
+        expect(result).toBeNull();
+      });
+
+      it('should show correct message for different XP actions', () => {
+        NotificationService.xpGained(15, XPAction.QUEST_COMPLETED);
+        NotificationService.xpGained(20, XPAction.APP_ADDED);
+        NotificationService.xpGained(8, XPAction.REVIEW_INTERACTION);
+
+        expect(toast.success).toHaveBeenCalledTimes(3);
+      });
+    });
+
+    describe('batchedXPGained', () => {
+      it('should show batched XP notification with multiple actions', () => {
+        const actions = [
+          { action: XPAction.QUEST_CREATED, amount: 10 },
+          { action: XPAction.QUEST_COMPLETED, amount: 15 },
+        ];
+
+        const result = NotificationService.batchedXPGained(25, actions);
+
+        expect(toast.success).toHaveBeenCalledWith(
+          expect.any(Object), // JSX element
+          expect.objectContaining({
+            autoClose: 4000,
+            className: 'xp-batch-notification',
+          })
+        );
+        expect(result).toBe('success-id');
+      });
+
+      it('should return null when batching is disabled', () => {
+        NotificationService.setPreferences({ batchNotifications: false });
+        
+        const result = NotificationService.batchedXPGained(25, [
+          { action: XPAction.QUEST_CREATED, amount: 10 },
+        ]);
+
+        expect(toast.success).not.toHaveBeenCalled();
+        expect(result).toBeNull();
+      });
+    });
+
+    describe('addToBatch', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('should batch multiple XP gains and show notification after delay', () => {
+        NotificationService.addToBatch(10, XPAction.QUEST_CREATED);
+        NotificationService.addToBatch(15, XPAction.QUEST_COMPLETED);
+
+        // Should not show notification immediately
+        expect(toast.success).not.toHaveBeenCalled();
+
+        // Fast-forward time
+        jest.advanceTimersByTime(1000);
+
+        // Should show batched notification
+        expect(toast.success).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({
+            className: 'xp-batch-notification',
+          })
+        );
+      });
+
+      it('should show single notification for single action after delay', () => {
+        NotificationService.addToBatch(10, XPAction.QUEST_CREATED);
+
+        jest.advanceTimersByTime(1000);
+
+        expect(toast.success).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({
+            className: 'xp-notification',
+          })
+        );
+      });
+
+      it('should show immediate notification when batching is disabled', () => {
+        NotificationService.setPreferences({ batchNotifications: false });
+        
+        NotificationService.addToBatch(10, XPAction.QUEST_CREATED);
+
+        expect(toast.success).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({
+            className: 'xp-notification',
+          })
+        );
+      });
+    });
+
+    describe('badgeEarned', () => {
+      const mockBadge: Badge = {
+        id: 'test-badge',
+        name: 'Test Badge',
+        description: 'A test badge',
+        earnedAt: new Date(),
+        category: BadgeCategory.MILESTONE,
+      };
+
+      it('should show badge earned notification', () => {
+        const result = NotificationService.badgeEarned(mockBadge);
+
+        expect(toast.success).toHaveBeenCalledWith(
+          expect.any(Object), // JSX element
+          expect.objectContaining({
+            autoClose: 6000,
+            className: 'badge-notification',
+          })
+        );
+        expect(result).toBe('success-id');
+      });
+
+      it('should return null when badge notifications are disabled', () => {
+        NotificationService.setPreferences({ badgeNotifications: false });
+        
+        const result = NotificationService.badgeEarned(mockBadge);
+
+        expect(toast.success).not.toHaveBeenCalled();
+        expect(result).toBeNull();
+      });
+    });
+
+    describe('levelUp', () => {
+      it('should show level up notification', () => {
+        const result = NotificationService.levelUp(5);
+
+        expect(toast.success).toHaveBeenCalledWith(
+          expect.any(Object), // JSX element
+          expect.objectContaining({
+            autoClose: 7000,
+            className: 'level-up-notification',
+          })
+        );
+        expect(result).toBe('success-id');
+      });
+
+      it('should return null when level up notifications are disabled', () => {
+        NotificationService.setPreferences({ levelUpNotifications: false });
+        
+        const result = NotificationService.levelUp(5);
+
+        expect(toast.success).not.toHaveBeenCalled();
+        expect(result).toBeNull();
+      });
+    });
+
+    describe('streakMilestone', () => {
+      it('should show streak milestone notification', () => {
+        const result = NotificationService.streakMilestone(7, 10);
+
+        expect(toast.success).toHaveBeenCalledWith(
+          expect.any(Object), // JSX element
+          expect.objectContaining({
+            autoClose: 5000,
+            className: 'streak-notification',
+          })
+        );
+        expect(result).toBe('success-id');
+      });
+
+      it('should return null when streak notifications are disabled', () => {
+        NotificationService.setPreferences({ streakNotifications: false });
+        
+        const result = NotificationService.streakMilestone(7, 10);
+
+        expect(toast.success).not.toHaveBeenCalled();
+        expect(result).toBeNull();
+      });
+    });
+
+    describe('xpAwardResult', () => {
+      const mockBadge: Badge = {
+        id: 'test-badge',
+        name: 'Test Badge',
+        description: 'A test badge',
+        earnedAt: new Date(),
+        category: BadgeCategory.MILESTONE,
+      };
+
+      it('should show level up notification when user levels up', () => {
+        const result: XPAwardResult = {
+          xpAwarded: 20,
+          totalXP: 250,
+          levelUp: true,
+          newLevel: 3,
+          badgesEarned: [],
+        };
+
+        NotificationService.xpAwardResult(result, XPAction.QUEST_COMPLETED);
+
+        // Should show level up notification
+        expect(toast.success).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({
+            className: 'level-up-notification',
+          })
+        );
+      });
+
+      it('should show badge notifications for earned badges', () => {
+        const result: XPAwardResult = {
+          xpAwarded: 20,
+          totalXP: 250,
+          levelUp: false,
+          badgesEarned: [mockBadge],
+        };
+
+        NotificationService.xpAwardResult(result, XPAction.QUEST_COMPLETED);
+
+        // Should show badge notification
+        expect(toast.success).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({
+            className: 'badge-notification',
+          })
+        );
+      });
+
+      it('should show XP notification when batching is disabled', () => {
+        NotificationService.setPreferences({ batchNotifications: false });
+        
+        const result: XPAwardResult = {
+          xpAwarded: 20,
+          totalXP: 250,
+          levelUp: false,
+          badgesEarned: [],
+        };
+
+        const xpResult = NotificationService.xpAwardResult(result, XPAction.QUEST_COMPLETED);
+
+        expect(toast.success).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({
+            className: 'xp-notification',
+          })
+        );
+        expect(xpResult).toBe('success-id');
+      });
+
+      it('should add to batch when batching is enabled', () => {
+        const result: XPAwardResult = {
+          xpAwarded: 20,
+          totalXP: 250,
+          levelUp: false,
+          badgesEarned: [],
+        };
+
+        const xpResult = NotificationService.xpAwardResult(result, XPAction.QUEST_COMPLETED);
+
+        // Should not show immediate XP notification when batching
+        expect(xpResult).toBeNull();
+      });
+
+      it('should handle multiple notifications correctly', () => {
+        const result: XPAwardResult = {
+          xpAwarded: 20,
+          totalXP: 250,
+          levelUp: true,
+          newLevel: 3,
+          badgesEarned: [mockBadge],
+        };
+
+        NotificationService.xpAwardResult(result, XPAction.QUEST_COMPLETED);
+
+        // Should show both level up and badge notifications
+        expect(toast.success).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({
+            className: 'level-up-notification',
+          })
+        );
+        expect(toast.success).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({
+            className: 'badge-notification',
+          })
+        );
+      });
     });
   });
 });

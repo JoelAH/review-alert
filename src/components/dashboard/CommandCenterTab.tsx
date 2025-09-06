@@ -38,6 +38,8 @@ import { LoadingButton } from '@mui/lab';
 import { onSaveEmail } from '@/actions/onSaveEmail';
 import { onSaveApp } from '@/actions/onSaveApp';
 import { onDeleteApp } from '@/actions/onDeleteApp';
+import { GamificationClientService } from '@/lib/services/gamificationClient';
+import { XPAction } from '@/types/gamification';
 
 function SaveEmailButton(): JSX.Element {
     const { pending } = useFormStatus();
@@ -152,6 +154,11 @@ export default function CommandCenterTab({ user }: { user: User | null }) {
             setSnackbarMessage(appState.message);
             setOpenSnackbar(true);
             setAppDialog({ open: false, store: null, url: '', appName: '', isEdit: false, editingAppId: undefined });
+            
+            // Handle XP award notification if present
+            if (appState.xpAwarded) {
+                GamificationClientService.handleXPAwardResult(appState.xpAwarded, XPAction.APP_ADDED);
+            }
         }
     }, [appState]);
 

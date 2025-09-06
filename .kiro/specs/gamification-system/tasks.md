@@ -83,7 +83,7 @@
   - Update Quest tab layout to accommodate gamification section
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-- [ ] 12. Implement XP and badge achievement notifications
+- [x] 12. Implement XP and badge achievement notifications
   - Extend NotificationService with XP gain and badge earned notification types
   - Add celebration animations for badge achievements and level ups
   - Implement notification batching for multiple simultaneous XP gains
