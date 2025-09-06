@@ -348,7 +348,7 @@ export default function ProgressIndicators({
             </Box>
 
             {/* Summary Stats */}
-            {combinedSuggestions.length > 0 && (
+            {/* {combinedSuggestions.length > 0 && (
                 <Card sx={{ mt: 3 }}>
                     <CardContent>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
@@ -394,7 +394,7 @@ export default function ProgressIndicators({
                         </Box>
                     </CardContent>
                 </Card>
-            )}
+            )} */}
         </Box>
     );
 }

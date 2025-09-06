@@ -510,45 +510,7 @@ export default function GamificationDisplay({
                     </Box>
                 </Box>
 
-                {/* Error Alert for refresh failures */}
-                {error && gamificationData && (
-                    <Fade in={true}>
-                        <ErrorWithRetry
-                            error={error}
-                            onRetry={handleRetry}
-                            maxRetries={3}
-                            title="Failed to refresh data"
-                            showErrorDetails={false}
-                        />
-                    </Fade>
-                )}
-
-                {/* Main content with loading overlay */}
-                <LoadingOverlay loading={refreshing} message="Refreshing data...">
-                    {/* Progress Indicators Section */}
-                    <ErrorBoundary 
-                        context="Progress Indicators" 
-                        fallback={
-                            <Alert severity="warning" sx={{ mb: 4 }}>
-                                Progress indicators are temporarily unavailable.
-                            </Alert>
-                        }
-                    >
-                        <Box sx={{ mb: 4 }}>
-                            <ProgressIndicators
-                                gamificationData={gamificationData}
-                                onActionClick={(suggestion) => {
-                                    // Handle suggestion action clicks
-                                    console.log('Suggestion action clicked:', suggestion);
-                                    // You can add navigation or other actions here
-                                }}
-                                showMotivationalMessages={true}
-                                maxSuggestions={3}
-                            />
-                        </Box>
-                    </ErrorBoundary>
-
-                    {/* Main Content */}
+                 {/* Main Content */}
                     <Grid container spacing={3}>
                         {/* XP Progress Section */}
                         <Grid item xs={12} lg={6}>
@@ -600,6 +562,45 @@ export default function GamificationDisplay({
                             </ErrorBoundary>
                         </Grid>
                     </Grid>
+
+                {/* Error Alert for refresh failures */}
+                {error && gamificationData && (
+                    <Fade in={true}>
+                        <ErrorWithRetry
+                            error={error}
+                            onRetry={handleRetry}
+                            maxRetries={3}
+                            title="Failed to refresh data"
+                            showErrorDetails={false}
+                        />
+                    </Fade>
+                )}
+
+                {/* Main content with loading overlay */}
+                <LoadingOverlay loading={refreshing} message="Refreshing data...">
+                    {/* Progress Indicators Section */}
+                    <ErrorBoundary 
+                        context="Progress Indicators" 
+                        fallback={
+                            <Alert severity="warning" sx={{ mb: 4 }}>
+                                Progress indicators are temporarily unavailable.
+                            </Alert>
+                        }
+                    >
+                        <Box sx={{ mb: 4 }}>
+                            <ProgressIndicators
+                                gamificationData={gamificationData}
+                                onActionClick={(suggestion) => {
+                                    // Handle suggestion action clicks
+                                    console.log('Suggestion action clicked:', suggestion);
+                                    // You can add navigation or other actions here
+                                }}
+                                showMotivationalMessages={true}
+                                maxSuggestions={3}
+                            />
+                        </Box>
+                    </ErrorBoundary>
+
 
                     {/* Quick Stats Section */}
                     <ErrorBoundary 
