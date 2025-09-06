@@ -1,6 +1,6 @@
 'use client';
 
-import { Quest, QuestType, QuestPriority, QuestState, CreateQuestInput, UpdateQuestInput } from '@/lib/models/client/quest';
+import { Quest, QuestType, QuestPriority, QuestState } from '@/lib/models/client/quest';
 
 export interface QuestFilters {
   type?: QuestType;
@@ -367,7 +367,7 @@ export class QuestService {
           if (error.status === 429) {
             return 'Too many requests. Please wait a moment and try again.';
           }
-          if (error.status >= 500) {
+          if (error.status && error.status >= 500) {
             return 'Server error. Please try again later.';
           }
           break;
@@ -437,11 +437,11 @@ export class QuestCache {
    */
   private static cleanup(): void {
     const now = Date.now();
-    for (const [key, value] of this.cache.entries()) {
+    this.cache.forEach((value, key) => {
       if (now - value.timestamp > this.CACHE_TTL) {
         this.cache.delete(key);
       }
-    }
+    });
   }
 }
 
