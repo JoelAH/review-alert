@@ -68,10 +68,10 @@ export class GamificationMigrationService {
         const users = await UserModel.find({
           gamification: { $exists: true, $ne: null }
         })
-        .select('_id gamification')
-        .skip(skip)
-        .limit(batchSize)
-        .lean();
+          .select('_id gamification')
+          .skip(skip)
+          .limit(batchSize)
+          .lean();
 
         for (const user of users) {
           try {
@@ -132,7 +132,7 @@ export class GamificationMigrationService {
 
     // Normalize and validate the data
     const normalizedData = this.normalizeGamificationData(currentData);
-    
+
     // Validate the normalized data
     try {
       GamificationPersistenceService.validateGamificationData(normalizedData);
@@ -140,11 +140,11 @@ export class GamificationMigrationService {
       if (validateOnly) {
         throw new Error(`Validation failed: ${validationError instanceof Error ? validationError.message : 'Unknown validation error'}`);
       }
-      
+
       // Try to fix common issues
       const fixedData = this.fixCommonDataIssues(normalizedData);
       GamificationPersistenceService.validateGamificationData(fixedData);
-      
+
       console.warn(`Fixed data issues for user ${userId}`);
     }
 
@@ -279,7 +279,7 @@ export class GamificationMigrationService {
     }
 
     // Remove duplicate badges
-    const uniqueBadges = fixed.badges.filter((badge, index, array) => 
+    const uniqueBadges = fixed.badges.filter((badge, index, array) =>
       array.findIndex(b => b.id === badge.id) === index
     );
     if (uniqueBadges.length !== fixed.badges.length) {
@@ -300,7 +300,7 @@ export class GamificationMigrationService {
    */
   private static calculateLevel(xp: number): number {
     const thresholds = [0, 100, 250, 500, 1000, 1750, 2750, 4000, 5500, 7500, 10000];
-    
+
     for (let i = thresholds.length - 1; i >= 0; i--) {
       if (xp >= thresholds[i]) {
         return i + 1;
@@ -385,9 +385,9 @@ export class GamificationMigrationService {
     const sampleUsers = await UserModel.find({
       gamification: { $exists: true, $ne: null }
     })
-    .select('gamification')
-    .limit(100)
-    .lean();
+      .select('gamification')
+      .limit(100)
+      .lean();
 
     for (const user of sampleUsers) {
       try {

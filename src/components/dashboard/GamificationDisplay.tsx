@@ -565,14 +565,16 @@ export default function GamificationDisplay({
 
                 {/* Error Alert for refresh failures */}
                 {error && gamificationData && (
-                    <Fade in={true}>
-                        <ErrorWithRetry
-                            error={error}
-                            onRetry={handleRetry}
-                            maxRetries={3}
-                            title="Failed to refresh data"
-                            showErrorDetails={false}
-                        />
+                    <Fade in={true} timeout={300}>
+                        <Box>
+                            <ErrorWithRetry
+                                error={error}
+                                onRetry={handleRetry}
+                                maxRetries={3}
+                                title="Failed to refresh data"
+                                showErrorDetails={false}
+                            />
+                        </Box>
                     </Fade>
                 )}
 

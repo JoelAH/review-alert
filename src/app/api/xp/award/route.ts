@@ -10,7 +10,7 @@ import { XPAction } from "@/types/gamification";
 // Helper function to verify authentication and get user
 async function getAuthenticatedUser() {
   const cookieStore = cookies();
-  const sessionCookie = cookieStore.get(CONSTANTS.SESSION_COOKIE_NAME);
+  const sessionCookie = cookieStore.get(CONSTANTS.sessionCookieName);
 
   if (!sessionCookie) {
     return null;
@@ -18,8 +18,10 @@ async function getAuthenticatedUser() {
 
   try {
     const { initAdminApp } = await import("@/lib/firebase/admin.config");
-    const { auth } = initAdminApp();
-    const decodedClaims = await auth.verifySessionCookie(sessionCookie.value, true);
+    const { auth } = await import("firebase-admin");
+
+    initAdminApp();
+    const decodedClaims = await auth().verifySessionCookie(sessionCookie.value, true);
     return decodedClaims;
   } catch (error) {
     console.error("Error verifying session:", error);
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("Error awarding XP:", error);
+    console.error("Error awarding XP geez:", error);
     return NextResponse.json(
       { error: "Failed to award XP" },
       { status: 500 }

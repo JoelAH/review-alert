@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response, { status: 200 });
 
   } catch (error: any) {
-    console.error("Error awarding XP:", error);
+    console.error("Error awarding XP lawwd:", error);
     
     if (error.message.includes("Unauthorized")) {
       return NextResponse.json(

@@ -44,7 +44,7 @@ export class XPService {
 
   /**
    * Award XP to a user for a specific action (with atomic operations and error recovery)
-   * @param userId - The user's ID
+   * @param userId - The user's UID (Firebase UID)
    * @param action - The action that earned XP
    * @param metadata - Optional metadata about the action
    * @returns Promise<XPAwardResult> - Result of the XP award
@@ -60,6 +60,7 @@ export class XPService {
 
   /**
    * Legacy XP award method (kept for backward compatibility)
+   * @param userId - The user's UID (Firebase UID)
    * @deprecated Use awardXP instead, which now uses atomic operations
    */
   static async awardXPLegacy(
@@ -68,8 +69,8 @@ export class XPService {
     metadata?: Record<string, any>
   ): Promise<XPAwardResult> {
     try {
-      // Get current user data
-      const user = await UserModel.findById(userId);
+      // Get current user data using UID
+      const user = await UserModel.findOne({ uid: userId });
       if (!user) {
         throw new Error(`User not found: ${userId}`);
       }
@@ -116,8 +117,8 @@ export class XPService {
         updatedGamificationData.badges = [...updatedGamificationData.badges, ...newlyEarnedBadges];
       }
 
-      // Save to database
-      await UserModel.findByIdAndUpdate(userId, {
+      // Save to database using UID
+      await UserModel.findOneAndUpdate({ uid: userId }, {
         gamification: updatedGamificationData,
       });
 
@@ -130,7 +131,7 @@ export class XPService {
         badgesEarned: newlyEarnedBadges,
       };
     } catch (error) {
-      console.error('Error awarding XP:', error);
+      console.error('Error awarding XP mann:', error);
       throw new Error(`Failed to award XP: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -181,7 +182,7 @@ export class XPService {
 
   /**
    * Get user's complete gamification data (with error recovery)
-   * @param userId - The user's ID
+   * @param userId - The user's UID (Firebase UID)
    * @returns Promise<GamificationData | null> - User's gamification data
    */
   static async getUserGamificationData(userId: string): Promise<GamificationData | null> {
@@ -262,7 +263,7 @@ export class XPService {
 
   /**
    * Update user login streak and award streak bonus XP if applicable (with atomic operations)
-   * @param userId - The user's ID
+   * @param userId - The user's UID (Firebase UID)
    * @returns Promise<XPAwardResult | null> - Result of streak bonus XP award, or null if no bonus
    */
   static async updateLoginStreak(userId: string): Promise<XPAwardResult | null> {
@@ -317,7 +318,7 @@ export class XPService {
       // Validate and save streak data
       GamificationPersistenceService.validateGamificationData(updatedGamificationData);
       
-      await UserModel.findByIdAndUpdate(userId, {
+      await UserModel.findOneAndUpdate({ uid: userId }, {
         gamification: updatedGamificationData,
         updatedAt: new Date()
       }, { runValidators: true });

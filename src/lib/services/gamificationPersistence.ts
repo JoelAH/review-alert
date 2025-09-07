@@ -71,7 +71,7 @@ export class GamificationPersistenceService {
 
   /**
    * Atomically award XP with full error recovery and validation
-   * @param userId - The user's ID
+   * @param userId - The user's UID (Firebase UID)
    * @param action - The XP action
    * @param metadata - Optional metadata
    * @returns Promise<XPAwardResult> - Result of the XP award
@@ -159,7 +159,7 @@ export class GamificationPersistenceService {
 
   /**
    * Perform XP award with validation and atomic database operations
-   * @param userId - The user's ID
+   * @param userId - The user's UID (Firebase UID)
    * @param action - The XP action
    * @param metadata - Optional metadata
    * @returns Promise<XPAwardResult> - Result of the XP award
@@ -169,8 +169,8 @@ export class GamificationPersistenceService {
     action: XPAction,
     metadata?: Record<string, any>
   ): Promise<XPAwardResult> {
-    // Get current user data with optimistic locking
-    const user = await UserModel.findById(userId);
+    // Get current user data with optimistic locking using UID
+    const user = await UserModel.findOne({ uid: userId });
     if (!user) {
       throw new GamificationError(
         `User not found: ${userId}`,
@@ -237,10 +237,10 @@ export class GamificationPersistenceService {
     // Final validation
     this.validateGamificationData(updatedData);
 
-    // Atomic database update with version checking
+    // Atomic database update with version checking using UID
     const updateResult = await UserModel.findOneAndUpdate(
       { 
-        _id: userId,
+        uid: userId,
         // Optimistic concurrency control - ensure data hasn't changed
         'gamification.xp': currentData.xp,
         'gamification.level': currentData.level
@@ -364,12 +364,12 @@ export class GamificationPersistenceService {
 
   /**
    * Create a backup of user's gamification data
-   * @param userId - The user's ID
+   * @param userId - The user's UID (Firebase UID)
    * @returns Promise<GamificationBackup | null> - Backup data or null if user not found
    */
   static async createBackup(userId: string): Promise<GamificationBackup | null> {
     try {
-      const user = await UserModel.findById(userId);
+      const user = await UserModel.findOne({ uid: userId });
       if (!user || !user.gamification) {
         return null;
       }
@@ -394,13 +394,13 @@ export class GamificationPersistenceService {
 
   /**
    * Rollback gamification data to a previous state
-   * @param userId - The user's ID
+   * @param userId - The user's UID (Firebase UID)
    * @param backupData - The backup data to restore
    */
   private static async rollbackTransaction(userId: string, backupData: GamificationData): Promise<void> {
     try {
-      await UserModel.findByIdAndUpdate(
-        userId,
+      await UserModel.findOneAndUpdate(
+        { uid: userId },
         { 
           gamification: backupData,
           updatedAt: new Date()
@@ -437,8 +437,8 @@ export class GamificationPersistenceService {
       this.validateGamificationData(backup.data);
 
       // Restore data
-      await UserModel.findByIdAndUpdate(
-        userId,
+      await UserModel.findOneAndUpdate(
+        { uid: userId },
         { 
           gamification: backup.data,
           updatedAt: new Date()
@@ -549,12 +549,12 @@ export class GamificationPersistenceService {
 
   /**
    * Get user's gamification data with error recovery
-   * @param userId - The user's ID
+   * @param userId - The user's UID (Firebase UID)
    * @returns Promise<GamificationData> - User's gamification data
    */
   static async getUserGamificationDataSafe(userId: string): Promise<GamificationData> {
     return this.retryOperation(async () => {
-      const user = await UserModel.findById(userId);
+      const user = await UserModel.findOne({ uid: userId });
       if (!user) {
         throw new GamificationError(
           `User not found: ${userId}`,
@@ -573,7 +573,7 @@ export class GamificationPersistenceService {
         const defaultData = this.initializeGamificationData();
         
         // Save the corrected data
-        await UserModel.findByIdAndUpdate(userId, {
+        await UserModel.findOneAndUpdate({ uid: userId }, {
           gamification: defaultData,
           updatedAt: new Date()
         });

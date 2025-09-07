@@ -47,8 +47,8 @@ export async function GET(request: NextRequest) {
   try {
     const user = await authenticateUser();
 
-    // Get user's gamification data
-    const gamificationData = await XPService.getUserGamificationData(user._id.toString());
+    // Get user's gamification data using Firebase UID
+    const gamificationData = await XPService.getUserGamificationData(user.uid);
     
     if (!gamificationData) {
       return NextResponse.json(

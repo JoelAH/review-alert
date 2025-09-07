@@ -116,6 +116,12 @@ export default function XPProgress({
     const theme = useTheme();
     const [showTransactions, setShowTransactions] = useState(false);
     const [animationVisible, setAnimationVisible] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
+
+    // Ensure component is mounted before showing animations
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     // Calculate progress percentage for current level
     const getLevelThresholds = () => {
@@ -132,7 +138,7 @@ export default function XPProgress({
 
     // Handle level up animation
     useEffect(() => {
-        if (showLevelUpAnimation) {
+        if (showLevelUpAnimation && isMounted) {
             setAnimationVisible(true);
             const timer = setTimeout(() => {
                 setAnimationVisible(false);
@@ -142,7 +148,7 @@ export default function XPProgress({
         } else {
             setAnimationVisible(false);
         }
-    }, [showLevelUpAnimation, onAnimationComplete]);
+    }, [showLevelUpAnimation, onAnimationComplete, isMounted]);
 
     const toggleTransactions = () => {
         setShowTransactions(!showTransactions);
@@ -158,8 +164,8 @@ export default function XPProgress({
     return (
         <Box>
             {/* Level Up Animation */}
-            {showLevelUpAnimation && (
-                <Fade in={animationVisible} timeout={500}>
+            {showLevelUpAnimation && isMounted && (
+                <Fade in={animationVisible} timeout={500} mountOnEnter unmountOnExit>
                     <Box
                         sx={{
                             position: 'fixed',
@@ -176,7 +182,7 @@ export default function XPProgress({
                             gap: 2,
                         }}
                     >
-                        <Zoom in={animationVisible} timeout={800}>
+                        <Zoom in={animationVisible} timeout={800} mountOnEnter unmountOnExit>
                             <TrophyIcon 
                                 sx={{ 
                                     fontSize: '4rem', 
