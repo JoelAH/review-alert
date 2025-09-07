@@ -554,7 +554,8 @@ export class GamificationPersistenceService {
    */
   static async getUserGamificationDataSafe(userId: string): Promise<GamificationData> {
     return this.retryOperation(async () => {
-      const user = await UserModel.findOne({ uid: userId });
+      const res = await UserModel.findOne({ uid: userId });
+      const user = res.toObject();
       if (!user) {
         throw new GamificationError(
           `User not found: ${userId}`,
