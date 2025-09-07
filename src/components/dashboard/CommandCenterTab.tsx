@@ -38,6 +38,9 @@ import { LoadingButton } from '@mui/lab';
 import { onSaveEmail } from '@/actions/onSaveEmail';
 import { onSaveApp } from '@/actions/onSaveApp';
 import { onDeleteApp } from '@/actions/onDeleteApp';
+import { GamificationClientService } from '@/lib/services/gamificationClient';
+import { XPApiService } from '@/lib/services/xpApi';
+import { XPAction } from '@/types/gamification';
 
 function SaveEmailButton(): JSX.Element {
     const { pending } = useFormStatus();
@@ -152,6 +155,18 @@ export default function CommandCenterTab({ user }: { user: User | null }) {
             setSnackbarMessage(appState.message);
             setOpenSnackbar(true);
             setAppDialog({ open: false, store: null, url: '', appName: '', isEdit: false, editingAppId: undefined });
+            
+            // Award XP for new app additions
+            if (appState.isNewApp && appState.appData) {
+                XPApiService.awardXP(XPAction.APP_ADDED, appState.appData)
+                    .then((xpResult) => {
+                        GamificationClientService.handleXPAwardResult(xpResult, XPAction.APP_ADDED);
+                    })
+                    .catch((error) => {
+                        console.error('Failed to award XP for app addition:', error);
+                        // Don't show error to user, XP is a nice-to-have feature
+                    });
+            }
         }
     }, [appState]);
 

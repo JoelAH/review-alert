@@ -18,6 +18,7 @@ import { QuestService, QuestError } from '@/lib/services/quests';
 import { NotificationService } from '@/lib/services/notifications';
 import QuestCard from './QuestCard';
 import QuestModal from './QuestModal';
+
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -74,6 +75,7 @@ export default function QuestsTab({ user, onViewReview, onQuestCountChange }: Qu
     const [retryCount, setRetryCount] = useState(0);
     const [isRetrying, setIsRetrying] = useState(false);
     const [isOffline, setIsOffline] = useState(false);
+
     const abortControllerRef = useRef<AbortController | null>(null);
 
     // Load quests on component mount
@@ -265,6 +267,8 @@ export default function QuestsTab({ user, onViewReview, onQuestCountChange }: Qu
         loadQuests(true);
     }, [loadQuests]);
 
+
+
     // Group quests by state for display
     const openQuests = quests.filter(quest => quest.state === QuestState.OPEN);
     const inProgressQuests = quests.filter(quest => quest.state === QuestState.IN_PROGRESS);
@@ -437,6 +441,8 @@ export default function QuestsTab({ user, onViewReview, onQuestCountChange }: Qu
                     </Box>
                 </Paper>
             </Box>
+
+
 
             {/* Open Quests */}
             {openQuests.length > 0 && (

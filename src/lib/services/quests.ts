@@ -1,6 +1,6 @@
 'use client';
 
-import { Quest, QuestType, QuestPriority, QuestState, CreateQuestInput, UpdateQuestInput } from '@/lib/models/client/quest';
+import { Quest, QuestType, QuestPriority, QuestState } from '@/lib/models/client/quest';
 
 export interface QuestFilters {
   type?: QuestType;
@@ -112,8 +112,8 @@ export class QuestService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new QuestError(
-          errorData.error || `Failed to fetch quests: ${response.status}`, 
-          'FETCH_ERROR', 
+          errorData.error || `Failed to fetch quests: ${response.status}`,
+          'FETCH_ERROR',
           response.status
         );
       }
@@ -139,17 +139,26 @@ export class QuestService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new QuestError(
-          errorData.error || `Failed to create quest: ${response.status}`, 
-          'CREATE_ERROR', 
+          errorData.error || `Failed to create quest: ${response.status}`,
+          'CREATE_ERROR',
           response.status
         );
       }
 
       const result = await response.json();
-      
+
+      // Handle XP award result if present and valid
+      if (result.xpAwarded && typeof result.xpAwarded === 'object' && result.xpAwarded.xpAwarded) {
+        // Import dynamically to avoid circular dependencies
+        const { GamificationClientService } = await import('./gamificationClient');
+        const { XPAction } = await import('@/types/gamification');
+
+        GamificationClientService.handleXPAwardResult(result.xpAwarded, XPAction.QUEST_CREATED);
+      }
+
       // Clear cache after successful creation
       QuestCache.clear();
-      
+
       return result.quest;
     }, signal);
   }
@@ -171,17 +180,34 @@ export class QuestService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new QuestError(
-          errorData.error || `Failed to update quest: ${response.status}`, 
-          'UPDATE_ERROR', 
+          errorData.error || `Failed to update quest: ${response.status}`,
+          'UPDATE_ERROR',
           response.status
         );
       }
 
       const result = await response.json();
-      
+
+      // Handle XP award result if present and valid (for state changes)
+      if (result.xpAwarded && typeof result.xpAwarded === 'object' && result.xpAwarded.xpAwarded) {
+        // Import dynamically to avoid circular dependencies
+        const { GamificationClientService } = await import('./gamificationClient');
+        const { XPAction } = await import('@/types/gamification');
+
+        // Determine XP action based on state change
+        let xpAction = XPAction.QUEST_IN_PROGRESS; // Default
+        if (updates.state === QuestState.IN_PROGRESS) {
+          xpAction = XPAction.QUEST_IN_PROGRESS;
+        } else if (updates.state === QuestState.DONE) {
+          xpAction = XPAction.QUEST_COMPLETED;
+        }
+
+        GamificationClientService.handleXPAwardResult(result.xpAwarded, xpAction);
+      }
+
       // Clear cache after successful update
       QuestCache.clear();
-      
+
       return result.quest;
     }, signal);
   }
@@ -202,8 +228,8 @@ export class QuestService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new QuestError(
-          errorData.error || `Failed to delete quest: ${response.status}`, 
-          'DELETE_ERROR', 
+          errorData.error || `Failed to delete quest: ${response.status}`,
+          'DELETE_ERROR',
           response.status
         );
       }
@@ -222,7 +248,7 @@ export class QuestService {
       limit: 1,
       signal
     });
-    
+
     return response.overview;
   }
 
@@ -234,7 +260,7 @@ export class QuestService {
     const filterString = filterKeys
       .map(key => `${key}:${filters[key as keyof QuestFilters]}`)
       .join('|');
-    
+
     return `quests:${page}:${filterString}`;
   }
 
@@ -244,7 +270,7 @@ export class QuestService {
   static async fetchQuestsWithCache(options: FetchQuestsOptions = {}): Promise<QuestsResponse> {
     const { page = 1, filters = {} } = options;
     const cacheKey = this.buildCacheKey(page, filters);
-    
+
     // Try to get from cache first
     const cached = QuestCache.get(cacheKey);
     if (cached) {
@@ -254,7 +280,7 @@ export class QuestService {
     // Fetch from API and cache the result
     const result = await this.fetchQuests(options);
     QuestCache.set(cacheKey, result);
-    
+
     return result;
   }
 
@@ -341,7 +367,7 @@ export class QuestService {
           if (error.status === 429) {
             return 'Too many requests. Please wait a moment and try again.';
           }
-          if (error.status >= 500) {
+          if (error.status && error.status >= 500) {
             return 'Server error. Please try again later.';
           }
           break;
@@ -370,7 +396,7 @@ export class QuestCache {
    */
   static get(key: string): QuestsResponse | null {
     const cached = this.cache.get(key);
-    
+
     if (!cached) {
       return null;
     }
@@ -411,11 +437,11 @@ export class QuestCache {
    */
   private static cleanup(): void {
     const now = Date.now();
-    for (const [key, value] of this.cache.entries()) {
+    this.cache.forEach((value, key) => {
       if (now - value.timestamp > this.CACHE_TTL) {
         this.cache.delete(key);
       }
-    }
+    });
   }
 }
 
@@ -447,16 +473,16 @@ export class QuestError extends Error {
     if (error instanceof QuestError) {
       return error;
     }
-    
+
     if (error instanceof Error) {
       // Network errors are typically retryable
-      const isNetworkError = error.message.toLowerCase().includes('fetch') || 
-                            error.message.toLowerCase().includes('network') ||
-                            error.message.toLowerCase().includes('connection') ||
-                            error.name === 'TypeError' && error.message.includes('fetch');
+      const isNetworkError = error.message.toLowerCase().includes('fetch') ||
+        error.message.toLowerCase().includes('network') ||
+        error.message.toLowerCase().includes('connection') ||
+        error.name === 'TypeError' && error.message.includes('fetch');
       return new QuestError(error.message, 'UNKNOWN_ERROR', undefined, isNetworkError);
     }
-    
+
     return new QuestError(fallbackMessage, 'UNKNOWN_ERROR');
   }
 
@@ -471,10 +497,10 @@ export class QuestError extends Error {
    * Check if this error indicates a network/connectivity issue
    */
   get isNetworkError(): boolean {
-    return this.code === 'FETCH_ERROR' || 
-           this.code === 'HTTP_ERROR' && (this.status === undefined || this.status >= 500) ||
-           this.message.toLowerCase().includes('network') ||
-           this.message.toLowerCase().includes('connection');
+    return this.code === 'FETCH_ERROR' ||
+      this.code === 'HTTP_ERROR' && (this.status === undefined || this.status >= 500) ||
+      this.message.toLowerCase().includes('network') ||
+      this.message.toLowerCase().includes('connection');
   }
 
   /**
@@ -493,7 +519,7 @@ export function debounce<T extends (...args: any[]) => any>(
   delay: number
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout;
-  
+
   return (...args: Parameters<T>) => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => func(...args), delay);
@@ -508,7 +534,7 @@ export function throttle<T extends (...args: any[]) => any>(
   delay: number
 ): (...args: Parameters<T>) => void {
   let lastCall = 0;
-  
+
   return (...args: Parameters<T>) => {
     const now = Date.now();
     if (now - lastCall >= delay) {

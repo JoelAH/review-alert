@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { toast, ToastOptions, Id } from 'react-toastify';
+import { XPAction, Badge, XPAwardResult } from '@/types/gamification';
 
 /**
  * Centralized notification service for consistent toast messaging
@@ -15,6 +16,301 @@ export class NotificationService {
     pauseOnHover: true,
     draggable: true,
   };
+
+  // Notification preferences - can be extended for user customization
+  private static preferences = {
+    xpNotifications: true,
+    badgeNotifications: true,
+    levelUpNotifications: true,
+    streakNotifications: true,
+    batchNotifications: true,
+  };
+
+  // Batching state for XP notifications
+  private static xpBatch: {
+    totalXP: number;
+    actions: Array<{ action: XPAction; amount: number }>;
+    timeoutId?: NodeJS.Timeout;
+  } = {
+    totalXP: 0,
+    actions: [],
+  };
+
+  /**
+   * Set notification preferences
+   */
+  static setPreferences(newPreferences: Partial<typeof NotificationService.preferences>): void {
+    this.preferences = { ...this.preferences, ...newPreferences };
+  }
+
+  /**
+   * Get current notification preferences
+   */
+  static getPreferences(): typeof NotificationService.preferences {
+    return { ...this.preferences };
+  }
+
+  /**
+   * Show XP gain notification with action context
+   */
+  static xpGained(xpAmount: number, action: XPAction, options?: ToastOptions): Id | null {
+    if (!this.preferences.xpNotifications) return null;
+
+    const actionMessages: Record<XPAction, string> = {
+      [XPAction.QUEST_CREATED]: 'Quest created',
+      [XPAction.QUEST_IN_PROGRESS]: 'Quest started',
+      [XPAction.QUEST_COMPLETED]: 'Quest completed',
+      [XPAction.APP_ADDED]: 'App added',
+      [XPAction.REVIEW_INTERACTION]: 'Review interaction',
+      [XPAction.LOGIN_STREAK_BONUS]: 'Login streak bonus',
+    };
+
+    const message = `+${xpAmount} XP • ${actionMessages[action]}`;
+    
+    return toast.success(
+      React.createElement('div', {
+        style: { display: 'flex', alignItems: 'center', gap: '8px' }
+      },
+        React.createElement('span', { 
+          style: { 
+            fontSize: '18px',
+            filter: 'drop-shadow(0 0 4px gold)',
+          }
+        }, '⭐'),
+        React.createElement('span', null, message)
+      ),
+      {
+        ...this.DEFAULT_OPTIONS,
+        autoClose: 3000,
+        className: 'xp-notification',
+        ...options,
+      }
+    );
+  }
+
+  /**
+   * Show batched XP notification for multiple simultaneous gains
+   */
+  static batchedXPGained(totalXP: number, actions: Array<{ action: XPAction; amount: number }>, options?: ToastOptions): Id | null {
+    if (!this.preferences.xpNotifications || !this.preferences.batchNotifications) return null;
+
+    const actionMessages: Record<XPAction, string> = {
+      [XPAction.QUEST_CREATED]: 'Quest created',
+      [XPAction.QUEST_IN_PROGRESS]: 'Quest started', 
+      [XPAction.QUEST_COMPLETED]: 'Quest completed',
+      [XPAction.APP_ADDED]: 'App added',
+      [XPAction.REVIEW_INTERACTION]: 'Review interaction',
+      [XPAction.LOGIN_STREAK_BONUS]: 'Login streak bonus',
+    };
+
+    const actionsList = actions.map(({ action, amount }) => 
+      `+${amount} XP • ${actionMessages[action]}`
+    ).join('\n');
+
+    return toast.success(
+      React.createElement('div', {
+        style: { display: 'flex', flexDirection: 'column', gap: '4px' }
+      },
+        React.createElement('div', {
+          style: { display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }
+        },
+          React.createElement('span', { 
+            style: { 
+              fontSize: '18px',
+              filter: 'drop-shadow(0 0 4px gold)',
+            }
+          }, '⭐'),
+          React.createElement('span', null, `+${totalXP} XP Total`)
+        ),
+        React.createElement('div', {
+          style: { fontSize: '12px', opacity: 0.8, marginLeft: '26px' }
+        }, actionsList)
+      ),
+      {
+        ...this.DEFAULT_OPTIONS,
+        autoClose: 4000,
+        className: 'xp-batch-notification',
+        ...options,
+      }
+    );
+  }
+
+  /**
+   * Add XP to batch and show notification after delay
+   */
+  static addToBatch(xpAmount: number, action: XPAction): void {
+    if (!this.preferences.batchNotifications) {
+      this.xpGained(xpAmount, action);
+      return;
+    }
+
+    this.xpBatch.totalXP += xpAmount;
+    this.xpBatch.actions.push({ action, amount: xpAmount });
+
+    // Clear existing timeout
+    if (this.xpBatch.timeoutId) {
+      clearTimeout(this.xpBatch.timeoutId);
+    }
+
+    // Set new timeout to show batched notification
+    this.xpBatch.timeoutId = setTimeout(() => {
+      if (this.xpBatch.actions.length === 1) {
+        // Single action, show regular notification
+        const { action, amount } = this.xpBatch.actions[0];
+        this.xpGained(amount, action);
+      } else {
+        // Multiple actions, show batched notification
+        this.batchedXPGained(this.xpBatch.totalXP, [...this.xpBatch.actions]);
+      }
+
+      // Reset batch
+      this.xpBatch.totalXP = 0;
+      this.xpBatch.actions = [];
+      this.xpBatch.timeoutId = undefined;
+    }, 1000); // 1 second delay for batching
+  }
+
+  /**
+   * Show badge earned notification with celebration
+   */
+  static badgeEarned(badge: Badge, options?: ToastOptions): Id | null {
+    if (!this.preferences.badgeNotifications) return null;
+
+    return toast.success(
+      React.createElement('div', {
+        style: { 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          gap: '8px',
+          textAlign: 'center'
+        }
+      },
+        React.createElement('div', {
+          style: { 
+            fontSize: '32px',
+            animation: 'bounce 0.6s ease-in-out',
+            filter: 'drop-shadow(0 0 8px gold)',
+          }
+        }, '🏆'),
+        React.createElement('div', {
+          style: { fontWeight: 'bold', fontSize: '16px' }
+        }, 'Badge Earned!'),
+        React.createElement('div', {
+          style: { fontSize: '14px' }
+        }, badge.name),
+        React.createElement('div', {
+          style: { fontSize: '12px', opacity: 0.8 }
+        }, badge.description)
+      ),
+      {
+        ...this.DEFAULT_OPTIONS,
+        autoClose: 6000,
+        className: 'badge-notification',
+        ...options,
+      }
+    );
+  }
+
+  /**
+   * Show level up notification with celebration
+   */
+  static levelUp(newLevel: number, options?: ToastOptions): Id | null {
+    if (!this.preferences.levelUpNotifications) return null;
+
+    return toast.success(
+      React.createElement('div', {
+        style: { 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          gap: '8px',
+          textAlign: 'center'
+        }
+      },
+        React.createElement('div', {
+          style: { 
+            fontSize: '36px',
+            animation: 'pulse 1s ease-in-out infinite',
+            filter: 'drop-shadow(0 0 12px #4CAF50)',
+          }
+        }, '🎉'),
+        React.createElement('div', {
+          style: { fontWeight: 'bold', fontSize: '18px', color: '#4CAF50' }
+        }, 'Level Up!'),
+        React.createElement('div', {
+          style: { fontSize: '16px' }
+        }, `You reached Level ${newLevel}!`)
+      ),
+      {
+        ...this.DEFAULT_OPTIONS,
+        autoClose: 7000,
+        className: 'level-up-notification',
+        ...options,
+      }
+    );
+  }
+
+  /**
+   * Show streak milestone notification
+   */
+  static streakMilestone(streakDays: number, bonusXP: number, options?: ToastOptions): Id | null {
+    if (!this.preferences.streakNotifications) return null;
+
+    return toast.success(
+      React.createElement('div', {
+        style: { 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          gap: '6px',
+          textAlign: 'center'
+        }
+      },
+        React.createElement('div', {
+          style: { 
+            fontSize: '28px',
+            filter: 'drop-shadow(0 0 6px orange)',
+          }
+        }, '🔥'),
+        React.createElement('div', {
+          style: { fontWeight: 'bold', fontSize: '16px' }
+        }, `${streakDays}-Day Streak!`),
+        React.createElement('div', {
+          style: { fontSize: '14px' }
+        }, `+${bonusXP} Bonus XP`)
+      ),
+      {
+        ...this.DEFAULT_OPTIONS,
+        autoClose: 5000,
+        className: 'streak-notification',
+        ...options,
+      }
+    );
+  }
+
+  /**
+   * Show comprehensive XP award result notification
+   */
+  static xpAwardResult(result: XPAwardResult, action: XPAction, options?: ToastOptions): Id | null {
+    // Handle level up first (most important)
+    if (result.levelUp && result.newLevel) {
+      this.levelUp(result.newLevel);
+    }
+
+    // Handle badge achievements
+    result.badgesEarned.forEach(badge => {
+      this.badgeEarned(badge);
+    });
+
+    // Handle XP gain (unless batching is preferred)
+    if (!this.preferences.batchNotifications) {
+      return this.xpGained(result.xpAwarded, action, options);
+    } else {
+      this.addToBatch(result.xpAwarded, action);
+      return null;
+    }
+  }
 
   /**
    * Show success notification
@@ -248,6 +544,16 @@ export function useNotifications() {
     retryError: NotificationService.retryError,
     dismiss: NotificationService.dismiss,
     dismissAll: NotificationService.dismissAll,
+    // Gamification notifications
+    xpGained: NotificationService.xpGained,
+    batchedXPGained: NotificationService.batchedXPGained,
+    addToBatch: NotificationService.addToBatch,
+    badgeEarned: NotificationService.badgeEarned,
+    levelUp: NotificationService.levelUp,
+    streakMilestone: NotificationService.streakMilestone,
+    xpAwardResult: NotificationService.xpAwardResult,
+    setPreferences: NotificationService.setPreferences,
+    getPreferences: NotificationService.getPreferences,
   };
 }
 

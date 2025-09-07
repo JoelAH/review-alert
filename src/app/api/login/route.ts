@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import CONSTANTS from "@/lib/constants";
 import { initAdminApp } from "@/lib/firebase/admin.config";
 import { revalidatePath } from "next/cache";
+import { XPService } from "@/lib/services/xp";
 
 export async function POST() {
     initAdminApp();
@@ -27,6 +28,15 @@ export async function POST() {
             };
             //Add the cookie to the browser
             cookies().set(options);
+            
+            // Update login streak and award streak bonus XP if applicable
+            try {
+                await XPService.updateLoginStreak(decodedToken.uid);
+            } catch (error) {
+                console.error('Error updating login streak:', error);
+                // Don't fail the login if streak tracking fails
+            }
+            
             revalidatePath('/');
             return NextResponse.json({ success: true }, { status: 200 });
         }

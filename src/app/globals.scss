@@ -337,6 +337,88 @@ img {
   }
 }
 
+/* Gamification notification animations */
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -15px, 0);
+  }
+  70% {
+    transform: translate3d(0, -7px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.2);
+  }
+}
+
+/* Gamification notification styles */
+.xp-notification {
+  background: linear-gradient(135deg, #FFD700, #FFA500) !important;
+  color: #333 !important;
+  font-weight: 600 !important;
+}
+
+.xp-batch-notification {
+  background: linear-gradient(135deg, #FFD700, #FFA500) !important;
+  color: #333 !important;
+  font-weight: 600 !important;
+}
+
+.badge-notification {
+  background: linear-gradient(135deg, #4CAF50, #45a049) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border: 2px solid #FFD700 !important;
+}
+
+.level-up-notification {
+  background: linear-gradient(135deg, #9C27B0, #7B1FA2) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border: 2px solid #FFD700 !important;
+}
+
+.streak-notification {
+  background: linear-gradient(135deg, #FF5722, #E64A19) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .xp-notification *,
+  .badge-notification *,
+  .level-up-notification *,
+  .streak-notification * {
+    animation: none !important;
+  }
+}
+
 /* Print styles */
 @media print {
   * {

@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Types } from "mongoose";
 
+
 const URL_TEST = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
 
 export async function onSaveApp(_prevState: any, formData: FormData): Promise<any> {
@@ -117,6 +118,8 @@ export async function onSaveApp(_prevState: any, formData: FormData): Promise<an
         savedApp = saved.apps?.[saved.apps.length - 1];
     }
 
+    // Note: XP awarding is handled on the client side after successful app save
+
     // if (savedApp) {
     //     try {
     //         await fetch(
@@ -143,7 +146,14 @@ export async function onSaveApp(_prevState: any, formData: FormData): Promise<an
     return {
         success: true,
         message: `${getStoreName(store)} app ${isUpdate ? 'updated' : 'added'} successfully`,
-        appId: savedApp?._id?.toString()
+        appId: savedApp?._id?.toString(),
+        isNewApp: !isUpdate, // Flag to indicate if XP should be awarded on client side
+        appData: !isUpdate ? {
+            appId: savedApp?._id?.toString(),
+            appName: savedApp?.appName,
+            store: savedApp?.store,
+            url: savedApp?.url
+        } : undefined
     };
 }
 
