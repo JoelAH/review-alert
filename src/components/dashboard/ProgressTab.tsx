@@ -66,7 +66,7 @@ export default function ProgressTab({ user }: ProgressTabProps) {
             >
                 <GamificationDisplay
                     userId={user.uid}
-                    initialData={user.gamification}
+                    initialData={undefined} // Don't use stale data, always fetch fresh
                     onRefresh={() => {
                         // Handle refresh if needed
                         console.log('Refreshing gamification data...');

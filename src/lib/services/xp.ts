@@ -9,11 +9,11 @@
 import UserModel from '@/lib/models/server/user';
 import { BadgeService } from './badges';
 import { GamificationPersistenceService } from './gamificationPersistence';
-import { 
-  XPAction, 
-  XPTransaction, 
-  XPAwardResult, 
-  GamificationData 
+import {
+  XPAction,
+  XPTransaction,
+  XPAwardResult,
+  GamificationData
 } from '@/types/gamification';
 
 export class XPService {
@@ -50,8 +50,8 @@ export class XPService {
    * @returns Promise<XPAwardResult> - Result of the XP award
    */
   static async awardXP(
-    userId: string, 
-    action: XPAction, 
+    userId: string,
+    action: XPAction,
     metadata?: Record<string, any>
   ): Promise<XPAwardResult> {
     // Use the new atomic persistence service for better error recovery
@@ -64,8 +64,8 @@ export class XPService {
    * @deprecated Use awardXP instead, which now uses atomic operations
    */
   static async awardXPLegacy(
-    userId: string, 
-    action: XPAction, 
+    userId: string,
+    action: XPAction,
     metadata?: Record<string, any>
   ): Promise<XPAwardResult> {
     try {
@@ -77,7 +77,7 @@ export class XPService {
 
       // Calculate XP to award
       let xpToAward = this.XP_VALUES[action];
-      
+
       // Handle special case for login streak bonus
       if (action === XPAction.LOGIN_STREAK_BONUS && metadata?.streakDays) {
         xpToAward = this.calculateStreakBonus(metadata.streakDays);
@@ -111,7 +111,7 @@ export class XPService {
 
       // Check for newly earned badges
       const newlyEarnedBadges = await BadgeService.checkAndAwardBadges(userId, updatedGamificationData);
-      
+
       // Add newly earned badges to user's gamification data
       if (newlyEarnedBadges.length > 0) {
         updatedGamificationData.badges = [...updatedGamificationData.badges, ...newlyEarnedBadges];
@@ -143,7 +143,7 @@ export class XPService {
    */
   static calculateLevel(xp: number): number {
     if (xp < 0) return 1;
-    
+
     for (let i = this.LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
       if (xp >= this.LEVEL_THRESHOLDS[i]) {
         return i + 1; // Add 1 because levels start at 1, not 0
@@ -160,11 +160,11 @@ export class XPService {
   static getXPForNextLevel(currentXP: number): number {
     const currentLevel = this.calculateLevel(currentXP);
     const nextLevelIndex = currentLevel; // Since levels start at 1, level 2 is at index 1
-    
+
     if (nextLevelIndex >= this.LEVEL_THRESHOLDS.length) {
       return 0; // Already at max level
     }
-    
+
     return this.LEVEL_THRESHOLDS[nextLevelIndex] - currentXP;
   }
 
@@ -317,7 +317,7 @@ export class XPService {
 
       // Validate and save streak data
       GamificationPersistenceService.validateGamificationData(updatedGamificationData);
-      
+
       await UserModel.findOneAndUpdate({ uid: userId }, {
         gamification: updatedGamificationData,
         updatedAt: new Date()

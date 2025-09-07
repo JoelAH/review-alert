@@ -292,20 +292,24 @@ export default function GamificationDisplay({
                 })),
             };
 
-            // Check for level up
-            if (previousLevel !== null && processedData.level > previousLevel) {
-                setShowLevelUpAnimation(true);
-                onLevelUp?.(processedData.level);
-            }
+            // Check for level up (use current state instead of dependency)
+            setGamificationData(currentData => {
+                const currentLevel = currentData?.level || 0;
+                if (currentLevel > 0 && processedData.level > currentLevel) {
+                    setShowLevelUpAnimation(true);
+                    onLevelUp?.(processedData.level);
+                }
 
-            // Check for new badges
-            if (gamificationData) {
-                const previousBadgeIds = new Set(gamificationData.badges.map(b => b.id));
-                const newBadges = processedData.badges.filter(badge => !previousBadgeIds.has(badge.id));
-                newBadges.forEach(badge => onBadgeEarned?.(badge));
-            }
+                // Check for new badges (use current state instead of dependency)
+                if (currentData) {
+                    const previousBadgeIds = new Set(currentData.badges.map(b => b.id));
+                    const newBadges = processedData.badges.filter(badge => !previousBadgeIds.has(badge.id));
+                    newBadges.forEach(badge => onBadgeEarned?.(badge));
+                }
 
-            setGamificationData(processedData);
+                return processedData;
+            });
+
             setBadgeProgress(data.badgeProgress || []);
             setXpForNextLevel(data.xpForNextLevel || 0);
             setLastUpdated(new Date());
@@ -322,10 +326,13 @@ export default function GamificationDisplay({
             
             setError(error);
             
-            // Mark initial load as failed if this is not a refresh
-            if (!isRefresh && !gamificationData) {
-                setHasInitialLoadFailed(true);
-            }
+            // Mark initial load as failed if this is not a refresh (use current state)
+            setGamificationData(currentData => {
+                if (!isRefresh && !currentData) {
+                    setHasInitialLoadFailed(true);
+                }
+                return currentData;
+            });
             
             onError?.(error);
             console.error('Error fetching gamification data:', error);
@@ -333,7 +340,7 @@ export default function GamificationDisplay({
             setLoading(false);
             setRefreshing(false);
         }
-    }, [gamificationData, previousLevel, onLevelUp, onBadgeEarned, onError, isOnline, resetRetry]);
+    }, [onLevelUp, onBadgeEarned, onError, isOnline, resetRetry]); // Removed gamificationData and previousLevel dependencies
 
     // Initial data fetch
     useEffect(() => {
@@ -342,7 +349,7 @@ export default function GamificationDisplay({
         } else {
             setPreviousLevel(initialData.level);
         }
-    }, [fetchGamificationData, initialData]);
+    }, [initialData]); // Remove fetchGamificationData from dependencies to prevent infinite loop
 
     // Handle refresh with retry logic
     const handleRefresh = useCallback(async () => {
@@ -378,7 +385,7 @@ export default function GamificationDisplay({
         }, 5 * 60 * 1000); // 5 minutes
 
         return () => clearInterval(interval);
-    }, [fetchGamificationData, loading, refreshing]);
+    }, [loading, refreshing]); // Remove fetchGamificationData from dependencies to prevent infinite loop
 
     // Loading state with skeleton
     if (loading && !gamificationData) {
