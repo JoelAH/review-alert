@@ -96,7 +96,7 @@ export default function RootLayout({
       </head>
       <AppRouterCacheProvider>
         <ThemeProvider theme={theme}>
-          <body className={lato.className}>
+          <body className={lato.className} suppressHydrationWarning={true}>
             <Script
               id="structured-data"
               type="application/ld+json"

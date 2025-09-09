@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { FixedSizeList } from 'react-window';
+import { List } from 'react-window';
 import { Box, useTheme, useMediaQuery } from '@mui/material';
 import { Review } from '@/lib/models/client/review';
 import ReviewCard from './ReviewCard';
@@ -28,7 +28,7 @@ interface ListItemProps {
   };
 }
 
-const ListItem: React.FC<ListItemProps> = React.memo(({ index, style, data }) => {
+const ListItem = React.memo<ListItemProps>(({ index, style, data }) => {
   const { reviews, getAppInfoForReview, onQuestCreated, highlightedReviewId } = data;
   const review = reviews[index];
   const { appName, platform } = getAppInfoForReview(review);
@@ -93,16 +93,14 @@ const VirtualizedReviewList: React.FC<VirtualizedReviewListProps> = ({
         overflow: 'hidden',
       }}
     >
-      <FixedSizeList
-        height={listHeight}
-        itemCount={reviews.length}
-        itemSize={adjustedItemHeight}
-        itemData={itemData}
-        overscanCount={overscan}
-        width="100%"
-      >
-        {ListItem}
-      </FixedSizeList>
+      {React.createElement(List as any, {
+        height: listHeight,
+        itemCount: reviews.length,
+        itemSize: adjustedItemHeight,
+        itemData: itemData,
+        overscanCount: overscan,
+        children: ListItem
+      })}
     </Box>
   );
 };
