@@ -31,7 +31,7 @@ import ReviewFilters from './ReviewFilters';
 import ReviewCard from './ReviewCard';
 import VirtualizedReviewList from './VirtualizedReviewList';
 import { Platform } from './types';
-import { usePerformanceMonitor } from '@/lib/utils/performanceMonitor';
+
 
 const VIRTUAL_SCROLL_THRESHOLD = 50; // Use virtual scrolling when more than 50 reviews
 
@@ -44,7 +44,7 @@ interface FeedTabProps {
 export default function FeedTab({ user, highlightedReviewId, onQuestCountChange }: FeedTabProps) {
     const theme = useTheme();
     const { isAuthenticated } = useAuth();
-    const { startRender, endRender } = usePerformanceMonitor('FeedTab');
+
 
     // State for filters
     const [filters, setFilters] = useState<ReviewFiltersType>({});
@@ -112,13 +112,7 @@ export default function FeedTab({ user, highlightedReviewId, onQuestCountChange 
         refresh();
     }, [refresh]);
 
-    // Performance monitoring
-    useEffect(() => {
-        startRender();
-        return () => {
-            endRender();
-        };
-    });
+
 
     // Show setup message if user hasn't configured apps
     if (!user?.apps || user.apps.length === 0) {
