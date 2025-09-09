@@ -7,10 +7,10 @@ import { Lato } from 'next/font/google';
 import Script from 'next/script';
 
 const lato = Lato({
-    weight: ['400', '700'],
-    style: ['italic', 'normal'],
-    subsets: ['latin']
-  })
+  weight: ['400', '700'],
+  style: ['italic', 'normal'],
+  subsets: ['latin']
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://reviewquest.app'),
@@ -90,31 +90,18 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no" />
         <meta name="theme-color" content="#3A6EA5" />
         <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon-192x192.png" type="image/png" sizes="192x192" />
+        <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
       <AppRouterCacheProvider>
         <ThemeProvider theme={theme}>
-          <body className={lato.className}>
+          <body className={lato.className} suppressHydrationWarning={true}>
             <Script
               id="structured-data"
               type="application/ld+json"
               dangerouslySetInnerHTML={{
                 __html: JSON.stringify(structuredData)
-              }}
-            />
-            <Script
-              id="performance-monitoring"
-              strategy="afterInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `
-                  // Initialize performance monitoring
-                  if (typeof window !== 'undefined') {
-                    import('/src/lib/utils/performance.js').then(module => {
-                      module.initPerformanceMonitoring();
-                    }).catch(() => {
-                      console.log('Performance monitoring not available');
-                    });
-                  }
-                `
               }}
             />
             <div id="__next">

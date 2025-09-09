@@ -8,34 +8,31 @@ import { auth } from "firebase-admin";
 
 export async function checkAuth(isAuthPage?: boolean) {
     initAdminApp();
-    const session = cookies().get(CONSTANTS.sessionCookieName)?.value || undefined;
+    const session = cookies().get(CONSTANTS.sessionCookieName)?.value;
 
-    //Validate if the cookie exist in the request
-    if (!session) {
-        if (isAuthPage) {
-            return null;
-        } else {
-            return redirect('/login');
+    let decodedClaims = null;
+    
+    // Always attempt verification if session exists to maintain consistent timing
+    if (session) {
+        try {
+            decodedClaims = await auth().verifySessionCookie(session, true);
+        } catch (e: any) {
+            // Log error code only, not full message for security
+            console.error('Session verification failed:', e.code || 'unknown');
         }
-    } else if (isAuthPage) {
-        return redirect('/dashboard');
-    }
-    //Use Firebase Admin to validate the session cookie
-    let decodedClaims;
-    try {
-        decodedClaims = await auth().verifySessionCookie(session, true);
-    }
-    catch (e: any) {
-        console.log(e.message);
     }
 
+    // Consistent handling for all authentication failures
     if (!decodedClaims) {
         if (isAuthPage) {
             return null;
         } else {
             return redirect('/login');
         }
-    } else if (isAuthPage) {
+    }
+    
+    // Redirect authenticated users away from auth pages
+    if (isAuthPage) {
         return redirect('/dashboard');
     }
 

@@ -9,6 +9,9 @@ import ReviewModel, { ReviewSentiment, ReviewQuest } from "@/lib/models/server/r
 import UserModel from "@/lib/models/server/user";
 import { XPService } from "@/lib/services/xp";
 import { XPAction } from "@/types/gamification";
+import { rateLimit, getRateLimitIdentifier } from "@/lib/middleware/rateLimit";
+import { sanitizeObjectId, isValidPlatform, validatePagination, validateQueryParam } from "@/lib/utils/validation";
+import { createErrorResponse, handleDatabaseError, handleAuthError, ApiError } from "@/lib/utils/errorHandling";
 
 interface ReviewsResponse {
   reviews: any[];
@@ -40,33 +43,40 @@ export async function GET(request: NextRequest) {
     // Verify authentication via session cookie
     const sessionCookie = cookies().get(CONSTANTS.sessionCookieName)?.value;
     if (!sessionCookie) {
-      return NextResponse.json(
-        { error: "Unauthorized - No session cookie" },
-        { status: 401 }
-      );
+      throw new ApiError("Unauthorized", 401);
     }
 
     let decodedClaims;
     try {
       decodedClaims = await auth().verifySessionCookie(sessionCookie, true);
     } catch (error) {
-      return NextResponse.json(
-        { error: "Unauthorized - Invalid session" },
-        { status: 401 }
-      );
+      return handleAuthError(error);
     }
 
     const uid = decodedClaims.uid;
+
+    // Apply rate limiting
+    const rateLimitId = getRateLimitIdentifier(request, uid);
+    const { success: rateLimitSuccess, remaining } = rateLimit(rateLimitId, 100, 60000);
+
+    if (!rateLimitSuccess) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': '0',
+            'Retry-After': '60'
+          }
+        }
+      );
+    }
 
     // Connect to database
     try {
       await dbConnect();
     } catch (error) {
-      console.error("Database connection failed:", error);
-      return NextResponse.json(
-        { error: "Database connection failed" },
-        { status: 503 }
-      );
+      return handleDatabaseError(error);
     }
 
     // Get user to access their apps
@@ -74,81 +84,90 @@ export async function GET(request: NextRequest) {
     try {
       user = await UserModel.findOne({ uid });
     } catch (error) {
-      console.error("Error fetching user:", error);
-      return NextResponse.json(
-        { error: "Error fetching user data" },
-        { status: 500 }
-      );
+      return handleDatabaseError(error);
     }
 
     if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      throw new ApiError("User not found", 404);
     }
 
-    // Parse query parameters
+    // Parse and validate query parameters
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100); // Cap at 100
-    const platform = searchParams.get("platform");
-    const rating = searchParams.get("rating");
-    const sentiment = searchParams.get("sentiment");
-    const quest = searchParams.get("quest");
 
-    // Validate parameters
-    if (page < 1 || limit < 1) {
-      return NextResponse.json(
-        { error: "Invalid pagination parameters. Page and limit must be positive integers." },
-        { status: 400 }
-      );
+    // Validate pagination
+    const paginationResult = validatePagination(
+      searchParams.get("page"),
+      searchParams.get("limit")
+    );
+
+    if (!paginationResult.isValid) {
+      throw new ApiError(paginationResult.error || "Invalid pagination parameters", 400);
     }
+
+    const { page, limit } = paginationResult;
 
     // Validate platform parameter
-    if (platform && !["GooglePlay", "AppleStore", "ChromeExt"].includes(platform)) {
-      return NextResponse.json(
-        { error: "Invalid platform. Must be one of: GooglePlay, AppleStore, ChromeExt" },
-        { status: 400 }
-      );
+    const platformParam = searchParams.get("platform");
+    const platformValidation = validateQueryParam(platformParam, {
+      allowedValues: ["GooglePlay", "AppleStore", "ChromeExt"]
+    });
+
+    if (!platformValidation.isValid) {
+      throw new ApiError("Invalid platform parameter", 400);
     }
+
+    const platform = platformValidation.sanitized;
 
     // Validate rating parameter
-    if (rating) {
-      const ratingNum = parseInt(rating);
-      if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
-        return NextResponse.json(
-          { error: "Invalid rating. Must be between 1 and 5." },
-          { status: 400 }
-        );
-      }
+    const ratingParam = searchParams.get("rating");
+    const ratingValidation = validateQueryParam(ratingParam, {
+      isNumeric: true,
+      min: 1,
+      max: 5
+    });
+
+    if (!ratingValidation.isValid) {
+      throw new ApiError("Invalid rating. Must be between 1 and 5.", 400);
     }
+
+    const rating = ratingValidation.sanitized;
 
     // Validate sentiment parameter
-    if (sentiment && !Object.values(ReviewSentiment).includes(sentiment as ReviewSentiment)) {
-      return NextResponse.json(
-        { error: `Invalid sentiment. Must be one of: ${Object.values(ReviewSentiment).join(", ")}` },
-        { status: 400 }
-      );
+    const sentimentParam = searchParams.get("sentiment");
+    const sentimentValidation = validateQueryParam(sentimentParam, {
+      allowedValues: Object.values(ReviewSentiment)
+    });
+
+    if (!sentimentValidation.isValid) {
+      throw new ApiError(`Invalid sentiment. Must be one of: ${Object.values(ReviewSentiment).join(", ")}`, 400);
     }
+
+    const sentiment = sentimentValidation.sanitized;
 
     // Validate quest parameter
-    if (quest && !Object.values(ReviewQuest).includes(quest as ReviewQuest)) {
-      return NextResponse.json(
-        { error: `Invalid quest. Must be one of: ${Object.values(ReviewQuest).join(", ")}` },
-        { status: 400 }
-      );
+    const questParam = searchParams.get("quest");
+    const questValidation = validateQueryParam(questParam, {
+      allowedValues: Object.values(ReviewQuest)
+    });
+
+    if (!questValidation.isValid) {
+      throw new ApiError(`Invalid quest. Must be one of: ${Object.values(ReviewQuest).join(", ")}`, 400);
     }
 
-    // Build filter query
+    const quest = questValidation.sanitized;
+
+    // Build filter query with proper sanitization
     const filter: any = { user: user._id };
 
     // Filter by platform (need to get appIds for the specific platform)
-    if (platform && ["GooglePlay", "AppleStore", "ChromeExt"].includes(platform)) {
+    if (platform && isValidPlatform(platform)) {
       const platformApps = user.apps?.filter((app: any) => app.store === platform) || [];
-      const appIds = platformApps.map((app: any) => app._id);
-      if (appIds.length > 0) {
-        filter.appId = { $in: appIds };
+      const validAppIds = platformApps
+        .map((app: any) => sanitizeObjectId(app._id?.toString()))
+        .filter(Boolean);
+
+      if (validAppIds.length > 0) {
+        filter.appId = { $in: validAppIds };
       } else {
         // No apps for this platform, return empty result
         const emptyResponse: ReviewsResponse = {
@@ -168,18 +187,16 @@ export async function GET(request: NextRequest) {
     // Filter by rating
     if (rating) {
       const ratingNum = parseInt(rating);
-      if (ratingNum >= 1 && ratingNum <= 5) {
-        filter.rating = ratingNum;
-      }
+      filter.rating = ratingNum;
     }
 
     // Filter by sentiment
-    if (sentiment && Object.values(ReviewSentiment).includes(sentiment as ReviewSentiment)) {
+    if (sentiment) {
       filter.sentiment = sentiment;
     }
 
     // Filter by quest
-    if (quest && Object.values(ReviewQuest).includes(quest as ReviewQuest)) {
+    if (quest) {
       filter.quest = quest === 'OTHER' ? { '$exists': false } : quest;
     }
 
@@ -188,16 +205,12 @@ export async function GET(request: NextRequest) {
     try {
       totalCount = await ReviewModel.countDocuments(filter);
     } catch (error) {
-      console.error("Error counting reviews:", error);
-      return NextResponse.json(
-        { error: "Error counting reviews" },
-        { status: 500 }
-      );
+      return handleDatabaseError(error);
     }
 
     // Calculate pagination
-    const skip = (page - 1) * limit;
-    const hasMore = skip + limit < totalCount;
+    const skip = ((page || 1) - 1) * (limit || 20);
+    const hasMore = skip + (limit || 20) < totalCount;
 
     // Fetch reviews with pagination and optimized query
     let reviews;
@@ -205,15 +218,11 @@ export async function GET(request: NextRequest) {
       reviews = await ReviewModel.find(filter)
         .sort({ date: -1, _id: -1 }) // Add _id for consistent sorting
         .skip(skip)
-        .limit(limit)
+        .limit((limit || 20))
         .lean() // Use lean() for better performance
         .hint({ user: 1, date: -1 }); // Hint to use the user + date index
     } catch (error) {
-      console.error("Error fetching reviews:", error);
-      return NextResponse.json(
-        { error: "Error fetching reviews" },
-        { status: 500 }
-      );
+      return handleDatabaseError(error);
     }
 
     // Create app lookup map for platform and app name information
@@ -267,11 +276,7 @@ export async function GET(request: NextRequest) {
         }
       ]);
     } catch (error) {
-      console.error("Error calculating overview statistics:", error);
-      return NextResponse.json(
-        { error: "Error calculating overview statistics" },
-        { status: 500 }
-      );
+      return handleDatabaseError(error);
     }
 
     // Use aggregated data for overview statistics
@@ -329,14 +334,18 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    return NextResponse.json(response);
+    // Add rate limit headers to successful responses
+    const responseHeaders = {
+      'X-RateLimit-Remaining': remaining.toString()
+    };
+
+    return NextResponse.json(response, { headers: responseHeaders });
 
   } catch (error) {
-    console.error("Error fetching reviews:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    if (error instanceof ApiError) {
+      return createErrorResponse(error);
+    }
+    return createErrorResponse(error as Error, "Failed to fetch reviews");
   }
 }
 
@@ -348,33 +357,40 @@ export async function PUT(request: NextRequest) {
     // Verify authentication via session cookie
     const sessionCookie = cookies().get(CONSTANTS.sessionCookieName)?.value;
     if (!sessionCookie) {
-      return NextResponse.json(
-        { error: "Unauthorized - No session cookie" },
-        { status: 401 }
-      );
+      throw new ApiError("Unauthorized", 401);
     }
 
     let decodedClaims;
     try {
       decodedClaims = await auth().verifySessionCookie(sessionCookie, true);
     } catch (error) {
-      return NextResponse.json(
-        { error: "Unauthorized - Invalid session" },
-        { status: 401 }
-      );
+      return handleAuthError(error);
     }
 
     const uid = decodedClaims.uid;
+
+    // Apply rate limiting
+    const rateLimitId = getRateLimitIdentifier(request, uid);
+    const { success: rateLimitSuccess, remaining } = rateLimit(rateLimitId, 50, 60000); // Lower limit for PUT
+
+    if (!rateLimitSuccess) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': '0',
+            'Retry-After': '60'
+          }
+        }
+      );
+    }
 
     // Connect to database
     try {
       await dbConnect();
     } catch (error) {
-      console.error("Database connection failed:", error);
-      return NextResponse.json(
-        { error: "Database connection failed" },
-        { status: 503 }
-      );
+      return handleDatabaseError(error);
     }
 
     // Get user to verify ownership
@@ -382,18 +398,11 @@ export async function PUT(request: NextRequest) {
     try {
       user = await UserModel.findOne({ uid });
     } catch (error) {
-      console.error("Error fetching user:", error);
-      return NextResponse.json(
-        { error: "Error fetching user data" },
-        { status: 500 }
-      );
+      return handleDatabaseError(error);
     }
 
     if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      throw new ApiError("User not found", 404);
     }
 
     // Parse request body
@@ -401,52 +410,54 @@ export async function PUT(request: NextRequest) {
     try {
       body = await request.json();
     } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid JSON in request body" },
-        { status: 400 }
-      );
+      throw new ApiError("Invalid JSON in request body", 400);
     }
 
     const { reviewId, questId } = body;
 
     // Validate required fields
     if (!reviewId) {
-      return NextResponse.json(
-        { error: "Review ID is required" },
-        { status: 400 }
-      );
+      throw new ApiError("Review ID is required", 400);
+    }
+
+    // Sanitize reviewId
+    const sanitizedReviewId = sanitizeObjectId(reviewId);
+    if (!sanitizedReviewId) {
+      throw new ApiError("Invalid review ID format", 400);
+    }
+
+    // Validate questId if provided
+    let sanitizedQuestId = null;
+    if (questId) {
+      sanitizedQuestId = sanitizeObjectId(questId);
+      if (!sanitizedQuestId) {
+        throw new ApiError("Invalid quest ID format", 400);
+      }
     }
 
     // Find and update the review
     let updatedReview: any;
     try {
       updatedReview = await ReviewModel.findOneAndUpdate(
-        { _id: reviewId, user: user._id },
-        { questId: questId || null, updatedAt: new Date() },
+        { _id: sanitizedReviewId, user: user._id },
+        { questId: sanitizedQuestId, updatedAt: new Date() },
         { new: true, lean: true }
       );
     } catch (error) {
-      console.error("Error updating review:", error);
-      return NextResponse.json(
-        { error: "Error updating review" },
-        { status: 500 }
-      );
+      return handleDatabaseError(error);
     }
 
     if (!updatedReview) {
-      return NextResponse.json(
-        { error: "Review not found or access denied" },
-        { status: 404 }
-      );
+      throw new ApiError("Review not found or access denied", 404);
     }
 
-    // Award XP for review interaction
+    // Award XP for review interaction - use authenticated user's UID for security
     let xpResult = null;
     try {
-      xpResult = await XPService.awardXP(user._id.toString(), XPAction.REVIEW_INTERACTION, {
+      xpResult = await XPService.awardXP(uid, XPAction.REVIEW_INTERACTION, {
         reviewId: updatedReview._id.toString(),
-        questId: questId,
-        action: questId ? 'linked_to_quest' : 'unlinked_from_quest'
+        questId: sanitizedQuestId?.toString() || null,
+        action: sanitizedQuestId ? 'linked_to_quest' : 'unlinked_from_quest'
       });
     } catch (error) {
       console.error("Error awarding XP for review interaction:", error);
@@ -468,13 +479,17 @@ export async function PUT(request: NextRequest) {
       response.xpAwarded = xpResult;
     }
 
-    return NextResponse.json(response);
+    // Add rate limit headers to successful responses
+    const responseHeaders = {
+      'X-RateLimit-Remaining': remaining.toString()
+    };
+
+    return NextResponse.json(response, { headers: responseHeaders });
 
   } catch (error) {
-    console.error("Error updating review:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    if (error instanceof ApiError) {
+      return createErrorResponse(error);
+    }
+    return createErrorResponse(error as Error, "Failed to update review");
   }
 }
