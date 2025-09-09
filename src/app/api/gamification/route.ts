@@ -8,7 +8,8 @@ import dbConnect from "@/lib/db/db";
 import UserModel from "@/lib/models/server/user";
 import { XPService } from "@/lib/services/xp";
 import { BadgeService } from "@/lib/services/badges";
-import { GamificationData } from "@/types/gamification";
+import { rateLimit, getRateLimitIdentifier } from "@/lib/middleware/rateLimit";
+import { createErrorResponse, handleDatabaseError, handleAuthError, ApiError } from "@/lib/utils/errorHandling";
 
 // Helper function to verify authentication and get user
 async function authenticateUser() {
@@ -18,43 +19,61 @@ async function authenticateUser() {
   // Verify authentication via session cookie
   const sessionCookie = cookies().get(CONSTANTS.sessionCookieName)?.value;
   if (!sessionCookie) {
-    throw new Error("Unauthorized - No session cookie");
+    throw new ApiError("Unauthorized", 401);
   }
 
   let decodedClaims;
   try {
     decodedClaims = await auth().verifySessionCookie(sessionCookie, true);
   } catch (error) {
-    throw new Error("Unauthorized - Invalid session");
+    throw new ApiError("Unauthorized", 401);
   }
 
   const uid = decodedClaims.uid;
 
   // Connect to database
-  await dbConnect();
+  try {
+    await dbConnect();
+  } catch (error) {
+    throw error; // Let the caller handle database errors
+  }
 
   // Get user
   const user = await UserModel.findOne({ uid });
   if (!user) {
-    throw new Error("User not found");
+    throw new ApiError("User not found", 404);
   }
 
-  return user;
+  return { user, uid };
 }
 
 // GET - Fetch user's gamification data
 export async function GET(request: NextRequest) {
   try {
-    const user = await authenticateUser();
+    // Apply rate limiting
+    const rateLimitId = getRateLimitIdentifier(request);
+    const { success: rateLimitSuccess, remaining } = rateLimit(rateLimitId, 100, 60000);
+    
+    if (!rateLimitSuccess) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': '0',
+            'Retry-After': '60'
+          }
+        }
+      );
+    }
+
+    const { user, uid } = await authenticateUser();
 
     // Get user's gamification data using Firebase UID
-    const gamificationData = await XPService.getUserGamificationData(user.uid);
+    const gamificationData = await XPService.getUserGamificationData(uid);
     
     if (!gamificationData) {
-      return NextResponse.json(
-        { error: "Gamification data not found" },
-        { status: 404 }
-      );
+      throw new ApiError("Gamification data not found", 404);
     }
 
     // Get badge progress for unearned badges
@@ -87,35 +106,25 @@ export async function GET(request: NextRequest) {
       levelThresholds,
     };
 
-    return NextResponse.json(response);
+    // Add rate limit headers to successful responses
+    const responseHeaders = {
+      'X-RateLimit-Remaining': remaining.toString()
+    };
+
+    return NextResponse.json(response, { headers: responseHeaders });
 
   } catch (error: any) {
-    console.error("Error fetching gamification data:", error);
-    
-    if (error.message.includes("Unauthorized")) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 401 }
-      );
+    // Handle database errors specifically
+    if (error.name && (error.name.includes('Mongo') || error.name === 'ValidationError')) {
+      return handleDatabaseError(error);
     }
     
-    if (error.message === "User not found") {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+    // Handle API errors
+    if (error instanceof ApiError) {
+      return createErrorResponse(error);
     }
-
-    if (error.message === "Database connection failed") {
-      return NextResponse.json(
-        { error: "Database connection failed" },
-        { status: 503 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    
+    // Handle all other errors
+    return createErrorResponse(error as Error, "Failed to fetch gamification data");
   }
 }
