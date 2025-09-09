@@ -90,6 +90,9 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no" />
         <meta name="theme-color" content="#3A6EA5" />
         <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon-192x192.png" type="image/png" sizes="192x192" />
+        <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
       <AppRouterCacheProvider>
         <ThemeProvider theme={theme}>
