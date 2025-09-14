@@ -7,7 +7,7 @@ const Schema = mongoose.Schema;
 
 export const UserSchema = new Schema({
   uid: {type: String, required: true, unique: true, index: true},
-  email: {type: String, required: true, trim: true, index: true},
+  email: {type: String, required: false, trim: true, index: true},
   apps: [
     { 
       store: { type: String, required: true }, 

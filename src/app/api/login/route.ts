@@ -6,6 +6,7 @@ import { initAdminApp } from "@/lib/firebase/admin.config";
 import { revalidatePath } from "next/cache";
 import { XPService } from "@/lib/services/xp";
 import dbConnect from "@/lib/db/db";
+import { getUser, insertUser } from "@/lib/db/user";
 
 export async function POST() {
     initAdminApp();
@@ -30,6 +31,11 @@ export async function POST() {
             };
             //Add the cookie to the browser
             cookies().set(options);
+
+            const user = await getUser(decodedToken.uid);
+            if (!user) {
+                await insertUser(decodedToken.uid);
+            }
             
             // Update login streak and award streak bonus XP if applicable
             try {
