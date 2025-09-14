@@ -31,7 +31,7 @@ export const ReviewSchema = new Schema({
   sentiment: { 
     type: String, 
     enum: Object.values(ReviewSentiment), 
-    required: true,
+    required: false,
     index: true
   },
   quest: { 
@@ -68,7 +68,7 @@ export type Review = {
   comment: string;
   date: Date;
   rating: number;
-  sentiment: ReviewSentiment;
+  sentiment?: ReviewSentiment;
   quest?: ReviewQuest;
   priority?: ReviewPriority;
   questId?: string; // ObjectId as string, optional reference to created quest

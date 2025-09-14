@@ -5,9 +5,8 @@ import gplay from "google-play-scraper";
 import appStoreScraper from 'app-store-scraper';
 import { parse } from 'node-html-parser';
 import axios from 'axios';
-import { Types } from "mongoose";
 
-const EMAIL_URL = "https://kp7r9sedu1.execute-api.us-east-1.amazonaws.com/dev/email-alert";
+const EMAIL_URL = process.env["EMAIL_URL"];
 const EMAIL_API_KEY = process.env["EMAIL_API_KEY"];
 
 export async function processApps(): Promise<void> {
@@ -32,6 +31,23 @@ export async function processApps(): Promise<void> {
                 const savedReviews = await ReviewModel.find({ user: user._id, appId: app._id }, null, { sort: { date: -1 }, limit: 10 });
                 const found = savedReviews.find(r => r.name === review.name && r.comment === review.comment && r.rating === review.rating);
                 if (!found) {
+                    // classification
+                    const result = await fetch(
+                        `${process.env.CLASS_URI}`,
+                        {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                texts: [review.comment]
+                            }),
+                            headers: {
+                                "Content-Type": "application/json",
+                                "x-api-key": process.env.CLASS_KEY || ''
+                            },
+                            cache: 'no-store'
+                        }
+                    );
+                    const data = await result.json();
+
                     const newReview = new ReviewModel({
                         user: user._id,
                         appId: app._id,
@@ -39,7 +55,10 @@ export async function processApps(): Promise<void> {
                         comment: review.comment,
                         date: review.date,
                         rating: review.rating,
-                        createdAt: new Date()
+                        createdAt: new Date(),
+                        sentiment: data.results[0].sentiment.label,
+                        priority: data.results[0].priority.label,
+                        quest: data.results[0].category.label
                     });
                     await newReview.save();
                     await sendNotification(user.email, { name: review.name, date: review.date, score: review.rating, text: review.comment });
@@ -104,7 +123,7 @@ async function getAppStoreReview(fullAppId: string) {
     }
 }
 
-async function  sendNotification(email: string, review: { name: string, date: Date, score: number, text: string }) {
+async function sendNotification(email: string, review: { name: string, date: Date, score: number, text: string }) {
     const { name, date, score, text } = review;
     try {
         // @ts-ignore
@@ -129,7 +148,7 @@ async function  sendNotification(email: string, review: { name: string, date: Da
             },
         });
     }
-    catch(e) {
+    catch (e) {
         console.log('error sending email');
     }
 }

@@ -121,24 +121,20 @@ export async function onSaveApp(_prevState: any, formData: FormData): Promise<an
     // Note: XP awarding is handled on the client side after successful app save
 
     if (savedApp) {
-        try {
-            await fetch(
-                `${process.env.REVIEW_API_URL}/update-reviews`,
-                {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        ids: [savedApp._id.toString()]
-                    }),
-                    headers: {
-                        "Content-Type": "application/json",
-                        "x-api-key": process.env.BACKEND_API_KEY || ''
-                    },
-                    cache: 'no-store'
-                }
-            );
-        } catch (e) {
-            console.log('Failed to trigger review update:', e);
-        }
+        fetch(
+            `${process.env.REVIEW_API_URL}/update-reviews`,
+            {
+                method: 'POST',
+                body: JSON.stringify({
+                    ids: [savedApp._id.toString()]
+                }),
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": process.env.BACKEND_API_KEY || ''
+                },
+                cache: 'no-store'
+            }
+        ).catch(e => console.log(`Failed to trigger review update`, JSON.stringify(e)));
     }
 
     revalidatePath('/', 'layout');
