@@ -35,6 +35,7 @@ export async function POST() {
             console.log('6');
             // Update login streak and award streak bonus XP if applicable
             try {
+                console.log('6.5', decodedToken.uid);
                 await XPService.updateLoginStreak(decodedToken.uid);
                 console.log('7');
             } catch (error) {

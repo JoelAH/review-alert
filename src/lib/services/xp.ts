@@ -268,8 +268,10 @@ export class XPService {
    */
   static async updateLoginStreak(userId: string): Promise<XPAwardResult | null> {
     try {
+      console.log('inside 6.5');
       // Get current user data with error recovery
       const currentGamificationData = await GamificationPersistenceService.getUserGamificationDataSafe(userId);
+      console.log('inside 6.52');
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Normalize to start of day
 
