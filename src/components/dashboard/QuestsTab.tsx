@@ -357,7 +357,7 @@ export default function QuestsTab({ user, onViewReview, onQuestCountChange }: Qu
                     Create your first quest from a review to start tracking actionable tasks.
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Visit the Feed tab and click "Create Quest" on any review card.
+                    Visit the Feed tab and click &quot;Create Quest&quot; on any review card.
                 </Typography>
             </Box>
         );

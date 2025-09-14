@@ -116,7 +116,7 @@ export function NetworkStatusIndicator({
           }
         >
           <Typography variant="body2">
-            You're offline. Some features may not work properly.
+            You&apos;re offline. Some features may not work properly.
           </Typography>
         </Alert>
       )}
@@ -150,11 +150,11 @@ export function useRetry(maxRetries = 3, initialDelay = 1000) {
   const [isRetrying, setIsRetrying] = useState(false);
   const [lastError, setLastError] = useState<Error | null>(null);
 
-  const retry = useCallback(async <T>(
-    operation: () => Promise<T>,
-    onSuccess?: (result: T) => void,
+  const retry = useCallback(async (
+    operation: () => Promise<any>,
+    onSuccess?: (result: any) => void,
     onError?: (error: Error) => void
-  ): Promise<T | null> => {
+  ): Promise<any | null> => {
     setIsRetrying(true);
     setLastError(null);
 

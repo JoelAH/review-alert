@@ -285,7 +285,7 @@ export default function ProgressIndicators({
                 <CardContent sx={{ textAlign: 'center', py: 4 }}>
                     <StarIcon sx={{ fontSize: '3rem', color: 'success.main', mb: 2 }} />
                     <Typography variant="h6" color="success.main" sx={{ mb: 1 }}>
-                        You're doing great!
+                        You&apos;re doing great!
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                         Keep up the excellent work. Continue completing quests and tracking apps to earn more XP and badges.
