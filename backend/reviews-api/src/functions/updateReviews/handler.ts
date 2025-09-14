@@ -5,7 +5,7 @@ import { update } from './update';
 import { Context } from 'aws-lambda';
 import { connectDB } from '@libs/utilities/db';
 
-let dbConn = null;
+const dbConn = null;
 const DB_URI = process.env.DB_URI;
 
 interface UpdateRequest {
