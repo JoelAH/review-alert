@@ -8,6 +8,8 @@ import dbConnect from '@/lib/db/db';
 import ReviewModel, { formatReview } from '@/lib/models/server/review';
 import UserModel from '@/lib/models/server/user';
 
+export const dynamic = 'force-dynamic';
+
 // Helper function to verify authentication and get user
 async function authenticateUser() {
     // Initialize Firebase Admin

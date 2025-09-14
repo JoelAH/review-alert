@@ -174,11 +174,11 @@ export class ReviewsCache {
    */
   private static cleanup(): void {
     const now = Date.now();
-    for (const [key, value] of this.cache.entries()) {
+    Array.from(this.cache.entries()).map(([key, value]) => {
       if (now - value.timestamp > this.CACHE_TTL) {
         this.cache.delete(key);
       }
-    }
+    })
   }
 }
 

@@ -17,10 +17,11 @@ import {
   Email as EmailIcon,
   Lock as LockIcon
 } from '@mui/icons-material';
-import { validateEmail, EmailValidationResult } from '@/lib/utils/emailValidation';
-import { validatePassword, PasswordValidationResult } from '@/lib/utils/passwordValidation';
+import { validateEmail } from '@/lib/utils/emailValidation';
+import { validatePassword } from '@/lib/utils/passwordValidation';
 
 import { EnhancedAuthError } from '@/lib/utils/authErrorHandler';
+import { PasswordValidationResult, EmailValidationResult } from '@/types/auth';
 
 export interface EmailAuthFormProps {
   mode: 'signup' | 'login';
@@ -372,8 +373,8 @@ export default function EmailAuthForm({
               sx={{ 
                 ml: 1,
                 color: passwordValidation.strength === 'weak' ? 'error.main' :
-                       passwordValidation.strength === 'fair' ? 'warning.main' :
-                       passwordValidation.strength === 'good' ? 'info.main' : 'success.main',
+                       passwordValidation.strength === 'medium' ? 'warning.main' :
+                       passwordValidation.strength === 'strong' ? 'info.main' : 'success.main',
                 fontWeight: 'medium'
               }}
               data-testid="password-strength"

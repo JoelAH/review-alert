@@ -254,7 +254,7 @@ function BadgeDetailModal({ badge, isEarned, open, onClose, badgeProgressMap }: 
     // Get requirements from badge definition or progress badge
     const badgeId = 'badge' in badge ? badge.badge.id : badge.id;
     const badgeProgress = badgeProgressMap?.get(badgeId);
-    const requirements = badgeData.requirements || badgeProgress?.badge.requirements || [];
+    const requirements = 'requirements' in badgeData && badgeData?.requirements ? badgeData.requirements : (badgeProgress?.badge.requirements || []);
 
     return (
         <Dialog
