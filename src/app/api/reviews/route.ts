@@ -13,6 +13,8 @@ import { rateLimit, getRateLimitIdentifier } from "@/lib/middleware/rateLimit";
 import { sanitizeObjectId, isValidPlatform, validatePagination, validateQueryParam } from "@/lib/utils/validation";
 import { createErrorResponse, handleDatabaseError, handleAuthError, ApiError } from "@/lib/utils/errorHandling";
 
+export const dynamic = 'force-dynamic';
+
 interface ReviewsResponse {
   reviews: any[];
   hasMore: boolean;

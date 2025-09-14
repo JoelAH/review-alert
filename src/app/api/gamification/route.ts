@@ -11,6 +11,8 @@ import { BadgeService } from "@/lib/services/badges";
 import { rateLimit, getRateLimitIdentifier } from "@/lib/middleware/rateLimit";
 import { createErrorResponse, handleDatabaseError, handleAuthError, ApiError } from "@/lib/utils/errorHandling";
 
+export const dynamic = 'force-dynamic';
+
 // Helper function to verify authentication and get user
 async function authenticateUser() {
   // Initialize Firebase Admin

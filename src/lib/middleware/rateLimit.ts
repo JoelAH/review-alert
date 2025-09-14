@@ -30,11 +30,11 @@ export function rateLimit(
   
   // Clean up expired entries periodically
   if (rateLimitMap.size > 10000) {
-    for (const [key, entry] of rateLimitMap.entries()) {
+    Array.from(rateLimitMap.entries()).map(([key, entry]) => {
       if (now > entry.resetTime) {
         rateLimitMap.delete(key);
       }
-    }
+    })
   }
   
   if (!userLimit || now > userLimit.resetTime) {

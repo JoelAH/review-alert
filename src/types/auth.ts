@@ -20,6 +20,7 @@ export interface PasswordValidationResult {
   isValid: boolean;
   strength: 'weak' | 'medium' | 'strong';
   errors: string[];
+  message?: string
 }
 
 // Authentication form interfaces

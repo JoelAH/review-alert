@@ -94,7 +94,7 @@ export function validatePassword(
  * @param password - The password to analyze
  * @returns Password strength level
  */
-export function calculatePasswordStrength(password: string): 'weak' | 'fair' | 'good' | 'strong' {
+export function calculatePasswordStrength(password: string): 'weak' | 'medium' | 'strong' {
   let score = 0;
   
   // Length scoring (more conservative)
@@ -117,8 +117,8 @@ export function calculatePasswordStrength(password: string): 'weak' | 'fair' | '
   
   // Determine strength based on score (more conservative thresholds)
   if (score <= 3) return 'weak';
-  if (score <= 5) return 'fair';
-  if (score <= 7) return 'good';
+  if (score <= 5) return 'medium';
+  if (score <= 7) return 'strong';
   return 'strong';
 }
 
