@@ -316,7 +316,7 @@ export function ErrorWithRetry({
       
       {isRetrying && (
         <Box sx={{ mt: 1 }}>
-          <LinearProgress size="small" />
+          <LinearProgress />
           <Typography variant="caption" color="text.secondary">
             Retrying... ({retryCount}/{maxRetries})
           </Typography>

@@ -13,7 +13,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import { User } from '@/lib/models/client/user';
 import { useFormState, useFormStatus } from 'react-dom';
 import { LoadingButton } from '@mui/lab';
-import { onSaveInfo } from '@/actions/onSaveInfo';
+import { onSaveApp } from '@/actions/onSaveApp';
 
 function ConfirmSubmit(): JSX.Element {
     const { pending } = useFormStatus();
@@ -44,7 +44,7 @@ export default function ClientDashboard({ user }: { user: User | null }) {
     const [appStoreLinkId, setAppStoreLinkId] = useState('');
 
     const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [state, formAction] = useFormState(onSaveInfo, {});
+    const [state, formAction] = useFormState(onSaveApp, {});
 
     useEffect(() => {
         if (state?.success) {

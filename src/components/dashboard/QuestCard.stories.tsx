@@ -65,7 +65,7 @@ const mockQuests: Quest[] = [
     }
 ];
 
-const mockOnStateChange = (questId: string, newState: QuestState) => {
+const mockOnStateChange = async (questId: string, newState: QuestState) => {
     console.log(`State change requested for quest ${questId} to ${newState}`);
 };
 

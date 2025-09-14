@@ -23,5 +23,5 @@
     "types": ["jest", "@testing-library/jest-dom"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "jest.setup.ts", "scripts/migrate-gamification.js"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "scripts"]
 }
