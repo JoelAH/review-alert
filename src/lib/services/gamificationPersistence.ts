@@ -554,7 +554,9 @@ export class GamificationPersistenceService {
    */
   static async getUserGamificationDataSafe(userId: string): Promise<GamificationData> {
     return this.retryOperation(async () => {
+      console.log('a1');
       const res = await UserModel.findOne({ uid: userId });
+      console.log('a2');
       const user = res.toObject();
       if (!user) {
         throw new GamificationError(
@@ -562,26 +564,29 @@ export class GamificationPersistenceService {
           GamificationErrorType.VALIDATION_ERROR
         );
       }
+      console.log('a3');
 
       const data = user.gamification || this.initializeGamificationData();
-      
+      console.log('a4');
       // Validate data integrity
       try {
         this.validateGamificationData(data);
+        console.log('a5');
       } catch (validationError) {
+        console.log('a6');
         // If validation fails, try to recover with default data
         console.warn(`Gamification data validation failed for user ${userId}, initializing default data`);
         const defaultData = this.initializeGamificationData();
-        
+        console.log('a7');
         // Save the corrected data
         await UserModel.findOneAndUpdate({ uid: userId }, {
           gamification: defaultData,
           updatedAt: new Date()
         });
-        
+        console.log('a8');
         return defaultData;
       }
-
+      console.log('a9',data);
       return data;
     }, this.MAX_RETRIES);
   }
