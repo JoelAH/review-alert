@@ -5,9 +5,11 @@ import CONSTANTS from "@/lib/constants";
 import { initAdminApp } from "@/lib/firebase/admin.config";
 import { revalidatePath } from "next/cache";
 import { XPService } from "@/lib/services/xp";
+import dbConnect from "@/lib/db/db";
 
 export async function POST() {
     initAdminApp();
+    dbConnect();
     console.log('1');
     const authorization = headers().get("Authorization");
     if (authorization?.startsWith("Bearer ")) {
