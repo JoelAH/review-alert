@@ -2,7 +2,7 @@ import { Context } from 'aws-lambda';
 import { connectDB } from '@libs/utilities/db';
 import { processApps } from './process';
 
-const dbConn = null;
+let dbConn = null;
 const DB_URI = process.env.DB_URI;
 
 export const main = async (context: Context) => {

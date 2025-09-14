@@ -48,6 +48,11 @@
 - **MongoDB** - NoSQL database with Mongoose ODM
 - **Server-Only Architecture** - Secure server-side code separation
 
+### Serverless apps in backend folder
+- **Review API** - Gets all reviews for the app when its submitted
+- **Classification API** - API that gets the priority, sentinment and category for the review.
+
+
 ### Development Tools
 - **ESLint** - Code linting with Next.js configuration
 - **Jest** - Testing framework with React Testing Library

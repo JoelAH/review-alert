@@ -97,13 +97,13 @@ async function getPlayStoreReview(fullAppId: string) {
         num: 1
     });
 
-    if (!all?.length) return null;
+    if (!all?.data?.length) return null;
 
     return {
-        name: all[0].userName,
-        rating: all[0].score,
-        date: new Date(all[0].date || new Date()),
-        comment: all[0].text
+        name: all.data[0].userName,
+        rating: all.data[0].score,
+        date: new Date(all.data[0].date || new Date()),
+        comment: all.data[0].text
     }
 }
 
