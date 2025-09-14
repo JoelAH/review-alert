@@ -17,9 +17,6 @@ interface AwardXPRequest {
 // Rate limiting storage (in production, use Redis or similar)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
-// Export for testing
-export { rateLimitStore };
-
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 10; // Max 10 XP awards per minute per user
