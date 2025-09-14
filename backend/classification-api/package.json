@@ -1,0 +1,22 @@
+{
+  "name": "classification-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "docker:build": "docker build -t dockerjojo7/feedback-api:latest .",
+    "docker:push": "docker push dockerjojo7/feedback-api:latest",
+    "docker:run": "docker run -p 3000:3000 --env-file .env feedback-api",
+    "docker:run-detached": "docker run -d -p 3000:3000 --env-file .env --name feedback-api feedback-api",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@huggingface/transformers": "^3.7.2",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0"
+  }
+}

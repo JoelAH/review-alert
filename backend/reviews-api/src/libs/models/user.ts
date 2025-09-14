@@ -1,0 +1,31 @@
+import mongoose from 'mongoose';
+
+const Schema = mongoose.Schema;
+
+export const UserSchema = new Schema({
+    uid: {type: String, required: true, unique: true, index: true},
+    email: {type: String, required: true, trim: true, index: true},
+    apps: [
+      { 
+        store: { type: String, required: true }, url: { type: String, required: true }, appId: { type: String, required: true } 
+      }
+    ],
+    createdAt: {type: Date, default: new Date()},
+    updatedAt: {type: Date, default: new Date()}
+  });
+  
+  UserSchema.pre("save", function(next) {
+    this.updatedAt = new Date();
+    next();
+  });
+
+  export type User = {
+    _id?: any;
+    uid: string,
+    email: string,
+    apps?: { store: 'ChromeExt' | 'GooglePlay' | 'AppleStore', url: string, appId?: string, _id?: any }[],
+    createdAt?: Date,
+    updatedAt?: Date
+}
+
+export const UserModel = mongoose.model('User', UserSchema)
